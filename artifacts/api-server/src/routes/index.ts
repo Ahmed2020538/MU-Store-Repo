@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import path from "path";
 import healthRouter from "./health.js";
 import productsRouter from "./products.js";
 import categoriesRouter from "./categories.js";
@@ -9,7 +10,8 @@ import wishlistRouter from "./wishlist.js";
 import reviewsRouter from "./reviews.js";
 import promoRouter from "./promo.js";
 import adminRouter from "./admin.js";
-
+import settingsRouter from "./settings.js";
+import uploadsRouter from "./uploads.js";
 const router: IRouter = Router();
 
 router.use(healthRouter);
@@ -22,5 +24,7 @@ router.use("/wishlist", wishlistRouter);
 router.use("/reviews", reviewsRouter);
 router.use("/promo", promoRouter);
 router.use("/admin", adminRouter);
+router.use("/settings", settingsRouter);
+router.use("/products", uploadsRouter);
 
 export default router;

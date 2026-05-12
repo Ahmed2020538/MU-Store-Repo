@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
-import { Heart, ShoppingBag, Share2, Minus, Plus, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, ShoppingBag, Share2, Minus, Plus, Star, ChevronLeft, ChevronRight, Send } from "lucide-react";
 import { motion } from "framer-motion";
-import { useGetProduct, useGetProductReviews, useListProducts, useAddToWishlist, useRemoveFromWishlist, getGetProductQueryKey, getGetProductReviewsQueryKey, getListProductsQueryKey } from "@workspace/api-client-react";
+import { useGetProduct, useGetProductReviews, useListProducts, useAddToWishlist, useRemoveFromWishlist, useCreateReview, getGetProductQueryKey, getGetProductReviewsQueryKey, getListProductsQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 const GOVERNORATES = ["Cairo", "Giza", "Alexandria", "Dakahlia", "Red Sea", "Beheira", "Fayoum", "Gharbiya", "Ismailia", "Menofia", "Minya", "Qaliubiya", "New Valley", "Suez", "Aswan", "Assiut", "Beni Suef", "Port Said", "Damietta", "Sharqia", "South Sinai", "Kafr El Sheikh", "Matrouh", "Luxor", "Qena", "Sohag", "North Sinai"];
@@ -29,6 +30,12 @@ export default function ProductDetailPage() {
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [wishlisted, setWishlisted] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewHover, setReviewHover] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const qc = useQueryClient();
+  const createReview = useCreateReview();
 
   if (isLoading) {
     return (
@@ -196,7 +203,7 @@ export default function ProductDetailPage() {
               {product.description ?? "Handcrafted with premium Egyptian leather and fine attention to detail."}
               {product.material && <p className="mt-2"><span className="font-medium text-foreground">Material:</span> {product.material}</p>}
             </TabsContent>
-            <TabsContent value="reviews" className="mt-4 space-y-3">
+            <TabsContent value="reviews" className="mt-4 space-y-4">
               {(reviews ?? []).length === 0
                 ? <p className="text-sm text-muted-foreground">No reviews yet. Be the first!</p>
                 : (reviews ?? []).map(r => (
@@ -204,10 +211,54 @@ export default function ProductDetailPage() {
                     <div className="flex items-center gap-2 mb-1">
                       <div className="flex">{Array(5).fill(0).map((_, i) => <Star key={i} size={12} className={i < r.rating ? "text-[#C9A96E] fill-[#C9A96E]" : "text-muted-foreground/30"} />)}</div>
                       <span className="text-xs text-muted-foreground">{r.userName ?? "Verified Buyer"}</span>
+                      <span className="text-xs text-muted-foreground ml-auto">{new Date(r.createdAt).toLocaleDateString()}</span>
                     </div>
                     {r.comment && <p className="text-sm">{r.comment}</p>}
                   </div>
                 ))}
+              {isLoggedIn ? (
+                <div className="border border-border rounded-xl p-4 bg-muted/20 space-y-3" data-testid="review-form">
+                  <p className="font-semibold text-sm">Write a Review</p>
+                  <div className="flex items-center gap-1">
+                    {Array(5).fill(0).map((_, i) => (
+                      <button key={i} type="button"
+                        onClick={() => setReviewRating(i + 1)}
+                        onMouseEnter={() => setReviewHover(i + 1)}
+                        onMouseLeave={() => setReviewHover(0)}
+                        data-testid={`star-${i + 1}`}
+                        className="transition-transform hover:scale-110">
+                        <Star size={22} className={(reviewHover || reviewRating) > i ? "text-[#C9A96E] fill-[#C9A96E]" : "text-muted-foreground/30"} />
+                      </button>
+                    ))}
+                    {reviewRating > 0 && <span className="text-xs text-muted-foreground ml-2">{["", "Poor", "Fair", "Good", "Very Good", "Excellent"][reviewRating]}</span>}
+                  </div>
+                  <textarea value={reviewComment} onChange={e => setReviewComment(e.target.value)} rows={3} maxLength={500}
+                    placeholder="Share your experience with this product..." data-testid="input-review-comment"
+                    className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background resize-none focus:outline-none focus:ring-1 focus:ring-ring" />
+                  <Button size="sm" disabled={reviewRating === 0 || submittingReview}
+                    className="bg-[#C9A96E] text-foreground hover:opacity-90"
+                    data-testid="button-submit-review"
+                    onClick={async () => {
+                      if (!reviewRating) { toast.error("Please select a rating"); return; }
+                      setSubmittingReview(true);
+                      createReview.mutate({ data: { productId, rating: reviewRating, comment: reviewComment || undefined } }, {
+                        onSuccess: () => {
+                          toast.success("Review submitted!");
+                          setReviewRating(0); setReviewComment("");
+                          qc.invalidateQueries({ queryKey: getGetProductReviewsQueryKey(productId) });
+                        },
+                        onError: () => toast.error("Failed to submit review"),
+                        onSettled: () => setSubmittingReview(false),
+                      });
+                    }}>
+                    <Send size={14} className="mr-1.5" />{submittingReview ? "Submitting..." : "Submit Review"}
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground border border-border rounded-lg p-3">
+                  <Link href="/login" className="text-[#C9A96E] font-medium hover:underline">Sign in</Link> to leave a review.
+                </p>
+              )}
             </TabsContent>
             <TabsContent value="shipping" className="text-sm text-muted-foreground mt-4 space-y-2">
               <p>Free shipping on orders over 500 EGP. Standard delivery 2-5 business days.</p>

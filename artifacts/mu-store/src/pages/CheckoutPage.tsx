@@ -57,15 +57,25 @@ export default function CheckoutPage() {
   const [promoCode, setPromoCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [placedOrderId, setPlacedOrderId] = useState<number | null>(null);
+  const [codDownPaymentAmount, setCodDownPaymentAmount] = useState(50);
+  const [codDownPaymentMethod, setCodDownPaymentMethod] = useState("instapay");
 
   const { items, total, clearCart } = useCart();
   const { isLoggedIn } = useAuth();
   const createOrder = useCreateOrder();
   const validatePromo = useValidatePromo();
 
+  // Fetch COD down payment setting on mount
+  useState(() => {
+    fetch("/api/settings/cod-down-payment").then(r => r.json()).then(d => {
+      if (d.amount) setCodDownPaymentAmount(d.amount);
+    }).catch(() => {});
+  });
+
   const shipping = total > 0 && total < 500 ? 50 : 0;
   const codFee = paymentMethod === "cod" ? 20 : 0;
   const finalTotal = total + shipping + codFee - discount;
+  const amountDueOnDelivery = paymentMethod === "cod" ? Math.max(0, finalTotal - codDownPaymentAmount) : 0;
 
   const { register, handleSubmit, formState: { errors } } = useForm<DeliveryData>({ resolver: zodResolver(deliverySchema) });
 
@@ -86,7 +96,12 @@ export default function CheckoutPage() {
         governorate: deliveryData.governorate, address: deliveryData.address,
         paymentMethod, promoCode: promoCode || undefined,
         subtotal: total, shipping: shipping + codFee, discount, total: finalTotal,
-      }
+        ...(paymentMethod === "cod" ? {
+          codDownPayment: codDownPaymentAmount,
+          codDownPaymentMethod,
+          codDownPaymentStatus: "pending",
+        } : {}),
+      } as any
     }, {
       onSuccess: (order) => { clearCart(); setPlacedOrderId(order.id); },
       onError: () => toast.error("Failed to place order. Try again."),
@@ -196,6 +211,30 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                 )}
+                {paymentMethod === "cod" && (
+                  <div className="mt-4 p-4 rounded-xl border border-amber-200 bg-amber-50/60 dark:bg-amber-950/20 dark:border-amber-800 space-y-3">
+                    <div className="flex items-start gap-2">
+                      <span className="text-amber-600 text-lg">⚠️</span>
+                      <div>
+                        <p className="text-sm font-semibold text-amber-800 dark:text-amber-400">Down Payment Required</p>
+                        <p className="text-xs text-amber-700 dark:text-amber-500 mt-0.5">A non-refundable down payment of <strong>{codDownPaymentAmount} EGP</strong> is required to confirm your order. The remaining <strong>{amountDueOnDelivery.toLocaleString()} EGP</strong> will be collected upon delivery.</p>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-sm">Pay down payment via</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {["instapay", "vodafone", "fawry", "bank"].map(m => (
+                          <label key={m} className={`flex items-center gap-2 p-2.5 rounded-lg border-2 cursor-pointer text-sm transition-colors capitalize ${codDownPaymentMethod === m ? "border-amber-500 bg-amber-50 dark:bg-amber-950/30" : "border-border hover:border-amber-300"}`} data-testid={`cod-method-${m}`}>
+                            <input type="radio" name="cod-method" value={m} checked={codDownPaymentMethod === m} onChange={() => setCodDownPaymentMethod(m)} className="sr-only" />
+                            <div className={`w-3 h-3 rounded-full border-2 flex-shrink-0 ${codDownPaymentMethod === m ? "border-amber-500 bg-amber-500" : "border-border"}`} />
+                            {m === "bank" ? "Bank Transfer" : m.charAt(0).toUpperCase() + m.slice(1)}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Payment instructions will be sent to your email after order confirmation.</p>
+                  </div>
+                )}
                 <div className="flex gap-3 mt-6">
                   <Button variant="outline" onClick={() => setStep(1)} className="flex-1" data-testid="button-back-step2">Back</Button>
                   <Button onClick={() => setStep(3)} className="flex-1 bg-foreground text-background hover:opacity-90 font-semibold" data-testid="button-next-step2">
@@ -271,6 +310,16 @@ export default function CheckoutPage() {
               <div className="flex justify-between font-bold text-base pt-1 border-t border-border" data-testid="text-order-total">
                 <span>Total</span><span>{finalTotal.toLocaleString()} EGP</span>
               </div>
+              {paymentMethod === "cod" && (
+                <div className="mt-2 pt-2 border-t border-amber-200 space-y-1">
+                  <div className="flex justify-between text-amber-700 dark:text-amber-400 text-xs font-medium">
+                    <span>Down payment now</span><span>{codDownPaymentAmount} EGP</span>
+                  </div>
+                  <div className="flex justify-between text-muted-foreground text-xs">
+                    <span>Due on delivery</span><span>{amountDueOnDelivery.toLocaleString()} EGP</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -76,7 +76,7 @@ router.get("/orders", requireAdmin, async (_req, res) => {
 });
 
 router.put("/orders/:id/status", requireAdmin, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   const { status } = req.body;
   const [order] = await db.update(ordersTable).set({ status }).where(eq(ordersTable.id, id)).returning();
   if (!order) { res.status(404).json({ error: "Not found" }); return; }

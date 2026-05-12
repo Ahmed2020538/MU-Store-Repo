@@ -26,6 +26,8 @@ function formatProduct(p: any, avgRating?: number, reviewCount?: number, categor
     isNew: p.isNew ?? false,
     isSale: p.isSale ?? false,
     isFeatured: p.isFeatured ?? false,
+    isHidden: p.isHidden ?? false,
+    discountLabel: p.discountLabel ?? null,
     rating: avgRating ?? null,
     reviewCount: reviewCount ?? 0,
     soldCount: p.soldCount ?? 0,
@@ -108,7 +110,7 @@ router.post("/", requireAdmin, async (req, res) => {
 });
 
 router.put("/:id", requireAdmin, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   const result = UpdateProductBody.safeParse(req.body);
   if (!result.success) { res.status(400).json({ error: "Invalid input" }); return; }
   const [product] = await db.update(productsTable).set(result.data as any).where(eq(productsTable.id, id)).returning();
@@ -117,7 +119,7 @@ router.put("/:id", requireAdmin, async (req, res) => {
 });
 
 router.delete("/:id", requireAdmin, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   await db.delete(productsTable).where(eq(productsTable.id, id));
   res.status(204).send();
 });

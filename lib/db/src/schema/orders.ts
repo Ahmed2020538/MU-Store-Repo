@@ -28,6 +28,10 @@ export const ordersTable = pgTable("orders", {
   discount: real("discount").notNull().default(0),
   total: real("total").notNull().default(0),
   promoCode: text("promo_code"),
+  codDownPayment: real("cod_down_payment").default(0),
+  codDownPaymentStatus: text("cod_down_payment_status").default("pending"),
+  codDownPaymentMethod: text("cod_down_payment_method"),
+  amountDueOnDelivery: real("amount_due_on_delivery").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

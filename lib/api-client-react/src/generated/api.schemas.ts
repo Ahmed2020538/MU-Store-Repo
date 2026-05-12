@@ -170,6 +170,9 @@ export interface OrderInput {
   shipping?: number;
   discount?: number;
   total?: number;
+  codDownPayment?: number;
+  codDownPaymentStatus?: string;
+  codDownPaymentMethod?: string;
 }
 
 export type OrderStatusUpdateStatus =

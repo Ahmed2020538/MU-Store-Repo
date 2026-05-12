@@ -19,6 +19,7 @@ export const productsTable = pgTable("products", {
   descriptionAr: text("description_ar"),
   price: real("price").notNull(),
   salePrice: real("sale_price"),
+  discountLabel: text("discount_label"),
   categoryId: integer("category_id").notNull().references(() => categoriesTable.id),
   images: jsonb("images").$type<string[]>().default([]),
   sizes: jsonb("sizes").$type<string[]>().default([]),
@@ -28,7 +29,10 @@ export const productsTable = pgTable("products", {
   isNew: boolean("is_new").default(true),
   isSale: boolean("is_sale").default(false),
   isFeatured: boolean("is_featured").default(false),
+  isHidden: boolean("is_hidden").default(false),
   soldCount: integer("sold_count").default(0),
+  rating: real("rating"),
+  reviewCount: integer("review_count").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

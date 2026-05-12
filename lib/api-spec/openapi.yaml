@@ -703,6 +703,9 @@ components:
         shipping: { type: number }
         discount: { type: number }
         total: { type: number }
+        codDownPayment: { type: number }
+        codDownPaymentStatus: { type: string }
+        codDownPaymentMethod: { type: string }
 
     OrderStatusUpdate:
       type: object

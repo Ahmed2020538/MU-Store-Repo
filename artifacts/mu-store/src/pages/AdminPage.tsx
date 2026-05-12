@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Package, Users, ShoppingBag, TrendingUp, DollarSign, Edit, Trash2, Plus, ChevronDown } from "lucide-react";
+import { Package, Users, ShoppingBag, DollarSign, Edit, Trash2, Plus, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   useAdminDashboard, useAdminListOrders, useAdminListCustomers,
   useListProducts, useAdminUpdateOrderStatus,
   useDeleteProduct, getAdminDashboardQueryKey, getAdminListOrdersQueryKey,
-  getAdminListCustomersQueryKey, getListProductsQueryKey,
+  getAdminListCustomersQueryKey, getListProductsQueryKey, useListCategories,
+  getListCategoriesQueryKey,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import AdminProductModal from "./admin/AdminProductModal";
+import AdminContactPage from "./admin/AdminContactPage";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -49,17 +52,20 @@ export default function AdminPage() {
   const { isAdmin, isLoggedIn } = useAuth();
   const qc = useQueryClient();
 
+  const [productModal, setProductModal] = useState<{ open: boolean; product?: any }>({ open: false });
+
   const { data: dashboard, isLoading: dashLoading } = useAdminDashboard({ query: { enabled: isAdmin, queryKey: getAdminDashboardQueryKey() } });
   const { data: orders, isLoading: ordersLoading } = useAdminListOrders({ query: { enabled: isAdmin, queryKey: getAdminListOrdersQueryKey() } });
   const { data: customers, isLoading: customersLoading } = useAdminListCustomers({ query: { enabled: isAdmin, queryKey: getAdminListCustomersQueryKey() } });
-  const { data: productsData, isLoading: productsLoading } = useListProducts({ limit: 50 }, { query: { enabled: isAdmin, queryKey: getListProductsQueryKey({ limit: 50 }) } });
+  const { data: productsData, isLoading: productsLoading } = useListProducts({ limit: 100 }, { query: { enabled: isAdmin, queryKey: getListProductsQueryKey({ limit: 100 }) } });
+  const { data: categoriesData } = useListCategories({ query: { enabled: isAdmin, queryKey: getListCategoriesQueryKey() } });
 
   const updateStatus = useAdminUpdateOrderStatus();
   const deleteProduct = useDeleteProduct();
 
   if (!isLoggedIn) { setLocation("/login"); return null; }
   if (!isAdmin) {
-    return <div className="text-center py-24"><p className="text-lg font-medium">Access denied</p><Button asChild variant="outline" className="mt-4" onClick={() => setLocation("/")}><a>Go Home</a></Button></div>;
+    return <div className="text-center py-24"><p className="text-lg font-medium">Access denied</p><Button variant="outline" className="mt-4" onClick={() => setLocation("/")}><a>Go Home</a></Button></div>;
   }
 
   const handleStatusChange = (orderId: number, status: string) => {
@@ -77,6 +83,13 @@ export default function AdminPage() {
     });
   };
 
+  const handleProductSaved = () => {
+    setProductModal({ open: false });
+    qc.invalidateQueries({ queryKey: getListProductsQueryKey() });
+  };
+
+  const categories = (categoriesData as any[] | undefined) ?? [];
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -84,7 +97,6 @@ export default function AdminPage() {
         <p className="text-muted-foreground mt-1">MU Store management panel</p>
       </div>
 
-      {/* KPIs */}
       {dashLoading
         ? <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">{Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div>
         : (
@@ -96,7 +108,6 @@ export default function AdminPage() {
           </div>
         )}
 
-      {/* Revenue chart */}
       {dashboard?.revenueByCategory && dashboard.revenueByCategory.length > 0 && (
         <div className="border border-border rounded-xl p-5 mb-8">
           <h3 className="font-semibold mb-4">Revenue by Category</h3>
@@ -113,10 +124,11 @@ export default function AdminPage() {
       )}
 
       <Tabs defaultValue="orders">
-        <TabsList className="mb-6">
+        <TabsList className="mb-6 flex-wrap gap-1">
           <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="customers">Customers</TabsTrigger>
+          <TabsTrigger value="settings" data-testid="tab-settings"><Settings size={14} className="mr-1.5 inline" />Settings</TabsTrigger>
         </TabsList>
 
         {/* Orders */}
@@ -126,20 +138,32 @@ export default function AdminPage() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
-                    {["Order", "Customer", "Items", "Total", "Status", "Date", "Action"].map(h => (
+                    {["Order", "Customer", "Items", "Total", "COD", "Status", "Date", "Action"].map(h => (
                       <th key={h} className="text-left px-4 py-3 font-medium text-muted-foreground text-xs whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {ordersLoading
-                    ? Array(5).fill(0).map((_, i) => <tr key={i}><td colSpan={7}><Skeleton className="h-12 m-2 rounded" /></td></tr>)
-                    : (orders ?? []).map(order => (
+                    ? Array(5).fill(0).map((_, i) => <tr key={i}><td colSpan={8}><Skeleton className="h-12 m-2 rounded" /></td></tr>)
+                    : (orders ?? []).map((order: any) => (
                       <tr key={order.id} className="hover:bg-muted/30 transition-colors" data-testid={`row-order-${order.id}`}>
                         <td className="px-4 py-3 font-medium">#{order.id}</td>
                         <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{order.fullName ?? "—"}</td>
                         <td className="px-4 py-3">{(order.items as any[]).length}</td>
                         <td className="px-4 py-3 font-semibold whitespace-nowrap">{order.total.toLocaleString()} EGP</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {order.paymentMethod === "cod" ? (
+                            <div className="text-xs space-y-0.5">
+                              <div className="flex items-center gap-1">
+                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${order.codDownPaymentStatus === "paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                                  Down: {order.codDownPayment?.toLocaleString()} EGP
+                                </span>
+                              </div>
+                              <p className="text-muted-foreground">Due: {order.amountDueOnDelivery?.toLocaleString()} EGP</p>
+                            </div>
+                          ) : <span className="text-muted-foreground text-xs">—</span>}
+                        </td>
                         <td className="px-4 py-3">
                           <span className={`text-xs font-medium px-2 py-1 rounded-full capitalize ${STATUS_COLORS[order.status] ?? "bg-muted"}`}>{order.status}</span>
                         </td>
@@ -161,7 +185,7 @@ export default function AdminPage() {
         {/* Products */}
         <TabsContent value="products">
           <div className="flex justify-end mb-4">
-            <Button className="bg-foreground text-background hover:opacity-90" size="sm" data-testid="button-add-product">
+            <Button onClick={() => setProductModal({ open: true })} className="bg-foreground text-background hover:opacity-90" size="sm" data-testid="button-add-product">
               <Plus size={16} className="mr-1.5" /> Add Product
             </Button>
           </div>
@@ -170,20 +194,23 @@ export default function AdminPage() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
-                    {["Product", "Category", "Price", "Stock", "Sales", "Actions"].map(h => (
+                    {["Product", "Category", "Price", "Stock", "Status", "Sales", "Actions"].map(h => (
                       <th key={h} className="text-left px-4 py-3 font-medium text-muted-foreground text-xs whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {productsLoading
-                    ? Array(5).fill(0).map((_, i) => <tr key={i}><td colSpan={6}><Skeleton className="h-12 m-2 rounded" /></td></tr>)
-                    : (productsData?.products ?? []).map(p => (
-                      <tr key={p.id} className="hover:bg-muted/30 transition-colors" data-testid={`row-product-${p.id}`}>
+                    ? Array(5).fill(0).map((_, i) => <tr key={i}><td colSpan={7}><Skeleton className="h-12 m-2 rounded" /></td></tr>)
+                    : (productsData?.products ?? []).map((p: any) => (
+                      <tr key={p.id} className={`hover:bg-muted/30 transition-colors ${p.isHidden ? "opacity-50" : ""}`} data-testid={`row-product-${p.id}`}>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             {p.images[0] && <img src={p.images[0]} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />}
-                            <span className="font-medium leading-tight max-w-[160px] truncate">{p.name}</span>
+                            <div>
+                              <span className="font-medium leading-tight max-w-[140px] truncate block">{p.name}</span>
+                              {p.discountLabel && <span className="text-[10px] bg-[#D4608A]/10 text-[#D4608A] px-1.5 rounded-full">{p.discountLabel}</span>}
+                            </div>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">{p.categoryName ?? "—"}</td>
@@ -193,10 +220,18 @@ export default function AdminPage() {
                         <td className="px-4 py-3">
                           <span className={p.stock <= 3 ? "text-amber-600 font-medium" : ""}>{p.stock}</span>
                         </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-1">
+                            {p.isNew && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">New</span>}
+                            {p.isFeatured && <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">Featured</span>}
+                            {p.isSale && <span className="text-[10px] bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded-full">Sale</span>}
+                            {p.isHidden && <span className="text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">Hidden</span>}
+                          </div>
+                        </td>
                         <td className="px-4 py-3 text-muted-foreground">{p.soldCount}</td>
                         <td className="px-4 py-3">
                           <div className="flex gap-2">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" data-testid={`button-edit-product-${p.id}`}><Edit size={14} /></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setProductModal({ open: true, product: p })} data-testid={`button-edit-product-${p.id}`}><Edit size={14} /></Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDeleteProduct(p.id, p.name)} data-testid={`button-delete-product-${p.id}`}><Trash2 size={14} /></Button>
                           </div>
                         </td>
@@ -223,7 +258,7 @@ export default function AdminPage() {
                 <tbody className="divide-y divide-border">
                   {customersLoading
                     ? Array(5).fill(0).map((_, i) => <tr key={i}><td colSpan={6}><Skeleton className="h-12 m-2 rounded" /></td></tr>)
-                    : (customers ?? []).map(c => (
+                    : (customers ?? []).map((c: any) => (
                       <tr key={c.id} className="hover:bg-muted/30" data-testid={`row-customer-${c.id}`}>
                         <td className="px-4 py-3 font-medium">{c.name}</td>
                         <td className="px-4 py-3 text-muted-foreground">{c.email}</td>
@@ -238,7 +273,21 @@ export default function AdminPage() {
             </div>
           </div>
         </TabsContent>
+
+        {/* Settings */}
+        <TabsContent value="settings">
+          <AdminContactPage />
+        </TabsContent>
       </Tabs>
+
+      {productModal.open && (
+        <AdminProductModal
+          product={productModal.product}
+          categories={categories}
+          onClose={() => setProductModal({ open: false })}
+          onSaved={handleProductSaved}
+        />
+      )}
     </div>
   );
 }

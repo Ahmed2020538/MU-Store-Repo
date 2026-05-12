@@ -1,0 +1,259 @@
+You are working on an existing MU women's shoes & bags e-commerce website.
+Do NOT regenerate the entire project. Apply ALL fixes and features below 
+to the existing codebase. Work file by file, confirm each file before 
+moving to the next.
+
+════════════════════════════════════════════════════════════
+SECTION 1: FIX ADMIN LOGIN
+════════════════════════════════════════════════════════════
+
+1. In the database seed file:
+   - Delete any existing user with email admin@mu.com
+   - Re-insert with bcrypt.hashSync("MUadmin2025", 10) as password
+   - Set role: "admin"
+
+2. In POST /api/auth/login endpoint:
+   - Query user by email
+   - Use bcrypt.compare() to verify password
+   - Return JWT with { userId, role } in payload
+   - Return 401 if credentials wrong
+
+3. In frontend login form:
+   - On success: store token as "mu_token" in localStorage
+   - Store role as "mu_role" in localStorage
+   - If role === "admin" → redirect to /admin
+
+4. Create ProtectedAdminRoute component:
+   - Checks localStorage for mu_token + mu_role === "admin"
+   - Redirects to /admin/login if missing
+   - Wraps ALL /admin/* routes
+
+════════════════════════════════════════════════════════════
+SECTION 2: FIX NAVIGATION LINKS
+════════════════════════════════════════════════════════════
+
+1. In Navbar component — replace all broken links with:
+   import { Link, useLocation } from 'react-router-dom';
+
+   <Link to="/products">Shop</Link>
+   <Link to="/products?category=heels">Heels</Link>
+   <Link to="/products?category=bags">Bags</Link>
+   <Link to="/products?category=flats">Flats</Link>
+   <Link to="/products?category=boots">Boots</Link>
+
+   Active link style: color #C9A96E + underline using useLocation()
+
+2. In ProductsPage:
+   import { useSearchParams } from 'react-router-dom';
+   const [searchParams] = useSearchParams();
+   const category = searchParams.get('category');
+   
+   useEffect(() => { fetchProducts(category); }, [category]);
+   Filter products by category if param exists, else show all.
+
+3. In Footer: apply same Link fixes to any category links there.
+
+4. On Homepage "Shop by Category" cards:
+   Wrap each in <Link to="/products?category=X">
+
+════════════════════════════════════════════════════════════
+SECTION 3: ADMIN PRODUCT MANAGEMENT (Full CRUD + Images)
+════════════════════════════════════════════════════════════
+
+Add these DB columns if missing (ALTER TABLE or recreate):
+   - discount_price     REAL nullable
+   - discount_active    INTEGER default 0
+   - discount_label     TEXT nullable
+   - is_featured        INTEGER default 0
+   - is_new             INTEGER default 0
+   - images             TEXT (JSON array of paths)
+
+── Admin Products Page (/admin/products) ──────────────────
+
+Table columns:
+Thumbnail | Name | Category | Price | Discount Price | Stock | Status | Actions
+Actions: Edit (pencil) | Delete (trash + confirm dialog)
+"Add New Product" button top-right in gold (#C9A96E)
+
+── Add/Edit Product Modal ─────────────────────────────────
+
+Fields:
+- Product Name (text)
+- Category (dropdown: Heels|Flats|Boots|Bags|Accessories)
+- Description (textarea, 500 chars max)
+- Original Price EGP (number)
+- Discount Price EGP (number, optional)
+- Toggle: "Discount Active" (ON/OFF)
+- Discount Label (text: e.g. "Ramadan Sale")
+  → % badge auto-calculated: Math.round((1 - discount/original) * 100)
+- Sizes (multi-checkbox: 35,36,37,38,39,40,41,42)
+- Colors (add chip: color name + hex picker, multiple allowed)
+- Stock Quantity (number)
+- Status toggle: Active / Hidden
+- Is Featured? toggle
+- Is New Arrival? toggle
+
+── Image Management ───────────────────────────────────────
+
+- Upload up to 5 images per product (multer middleware)
+- Drag to reorder — first image = main display image
+- Click X to remove individual image
+- Instant preview after upload
+- "Replace" button per thumbnail
+- Store images in /uploads folder, serve as static files
+
+── Backend API Endpoints (all JWT admin protected) ────────
+
+POST   /api/admin/products
+PUT    /api/admin/products/:id
+DELETE /api/admin/products/:id
+POST   /api/admin/products/:id/images   (multer, max 5 files)
+DELETE /api/admin/products/:id/images/:imgIndex
+
+── Frontend Product Display ───────────────────────────────
+
+In ProductCard + ProductDetailPage:
+If discount_active = 1 AND discount_price exists:
+  • Original price: strikethrough, gray
+  • Discount price: bold, color #D4608A
+  • Badge: "خصم X%" auto-calculated
+  • Ribbon: discount_label text if provided
+Else: show normal price in #1A1A2E
+
+════════════════════════════════════════════════════════════
+SECTION 4: ADMIN CONTACT & SOCIAL MEDIA MANAGER
+════════════════════════════════════════════════════════════
+
+Create DB table if missing:
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value TEXT
+);
+
+── Admin Page: /admin/contact-settings ────────────────────
+
+Panel A — Contact Information:
+- Phone Number 1 + WhatsApp toggle
+- Phone Number 2 (optional)
+- Support Email
+- Address Arabic + Address English
+- Working Hours text
+- Google Maps embed URL
+
+Panel B — Social Media Links:
+Platforms: WhatsApp | Instagram | Facebook | TikTok | 
+           Pinterest | YouTube | Snapchat | X (Twitter)
+
+Each platform row has:
+  [Platform Icon] [Show/Hide Toggle] [URL or Phone Input] [Order ↑↓]
+Only toggled-ON platforms appear on the website.
+
+Panel C — WhatsApp Settings:
+- Default WhatsApp number
+- Auto-message template (pre-fills when customer clicks button)
+  Default: "مرحباً، أريد الاستفسار عن منتج"
+- Floating button: ON/OFF toggle + color picker
+
+Save button → POST /api/admin/settings/contact
+Stores: key="contact_settings", value=JSON.stringify(allSettings)
+
+── API Endpoints ──────────────────────────────────────────
+
+GET  /api/settings/contact          → public, used by frontend
+POST /api/admin/settings/contact    → admin JWT protected
+
+── Frontend Dynamic Rendering ─────────────────────────────
+
+Footer: render only active social icons from DB
+Contact page: address, phone, hours from DB
+WhatsApp float button: number + message from DB
+Fallback to hardcoded defaults if no settings saved yet
+
+════════════════════════════════════════════════════════════
+SECTION 5: CASH ON DELIVERY — MANDATORY DOWN PAYMENT
+════════════════════════════════════════════════════════════
+
+Store configurable value in settings table:
+key="cod_down_payment", value="50"
+Admin can change this amount from admin panel settings.
+
+── Frontend Checkout Changes ──────────────────────────────
+
+When customer selects "Cash on Delivery":
+
+1. Show amber notice box immediately below the option:
+   ┌──────────────────────────────────────────────────────┐
+   │ 🚚 الدفع عند الاستلام                               │
+   │                                                      │
+   │ لتأكيد طلبك يلزم دفع تأمين التوصيل أونلاين:       │
+   │ 50 جنيه مصري (تُخصم من إجمالي طلبك)               │
+   │                                                      │
+   │ ادفع الآن:        50 EGP  ✓ (online)               │
+   │ ادفع عند الاستلام: [total - 50] EGP                │
+   └──────────────────────────────────────────────────────┘
+
+2. Show sub-payment selector for the 50 EGP ONLY:
+   Options: Visa/Mastercard (Stripe) | Vodafone Cash | Fawry
+   (NO another COD option here)
+
+3. Order Summary sidebar updates in real-time:
+   • Subtotal:              X EGP
+   • Delivery:              FREE / X EGP
+   • تأمين التوصيل:        50 EGP  (gold highlight)
+   • ─────────────────────────────
+   • ادفع الآن:            50 EGP
+   • ادفع عند الاستلام:   [total-50] EGP
+   • الإجمالي:             X EGP
+
+4. "Place Order" button disabled until 50 EGP down payment confirmed.
+   If clicked before paying: toast error:
+   "يرجى دفع تأمين التوصيل لإتمام الطلب"
+
+── Backend Changes ────────────────────────────────────────
+
+Add to orders table if missing:
+- cod_down_payment          REAL default 0
+- cod_down_payment_status   TEXT default 'pending'  
+- cod_down_payment_method   TEXT nullable
+- amount_due_on_delivery    REAL default 0
+
+In POST /api/orders:
+If payment_method = "cod" AND cod_down_payment_status != "paid":
+  → Return 400: { error: "Down payment required for COD orders" }
+
+── Admin Orders View ──────────────────────────────────────
+
+COD orders show two-part payment display:
+  ✅ "50 EGP paid online" → green badge
+  🕐 "[X] EGP pending on delivery" → amber badge
+Button: "Mark Delivery Payment Received" 
+  → updates order to fully paid + changes status
+
+── Order Confirmation Message (WhatsApp/on-screen) ────────
+
+"✅ تم تأكيد طلبك رقم #[ORDER_ID]
+💳 دفعت مقدماً: 50 جنيه (تأمين التوصيل)
+💰 المتبقي عند الاستلام: [amount] جنيه
+📦 موعد التوصيل المتوقع: خلال 3-5 أيام عمل"
+
+════════════════════════════════════════════════════════════
+EXECUTION RULES
+════════════════════════════════════════════════════════════
+
+- Fix and build in this exact order:
+  1. DB schema updates (ALTER TABLE / CREATE TABLE)
+  2. Backend API endpoints
+  3. Frontend components
+
+- After EACH file: print "✅ Done: [filename]" then continue
+- Never truncate a file — always write it completely
+- Never touch files unrelated to sections above
+- If a file needs changes from multiple sections, apply ALL 
+  changes to that file in ONE pass (don't edit same file twice)
+- Max 250 lines per file — split into sub-components if needed
+- At the end, print a summary:
+  "Modified: [list]"
+  "Created:  [list]"
+  "Run: npm install multer (if not already installed)"
+
+START NOW with Step 1: DB schema updates.

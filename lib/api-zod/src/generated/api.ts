@@ -445,6 +445,9 @@ export const CreateOrderBody = zod.object({
   shipping: zod.number().optional(),
   discount: zod.number().optional(),
   total: zod.number().optional(),
+  codDownPayment: zod.number().optional(),
+  codDownPaymentStatus: zod.string().optional(),
+  codDownPaymentMethod: zod.string().optional(),
 });
 
 /**

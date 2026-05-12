@@ -39,7 +39,7 @@ router.get("/", requireAuth, async (req, res) => {
 
 router.post("/:productId", requireAuth, async (req, res) => {
   const userId = (req as any).user.id;
-  const productId = parseInt(req.params.productId);
+  const productId = parseInt(String(req.params.productId));
   const existing = await db.select().from(wishlistTable).where(and(eq(wishlistTable.userId, userId), eq(wishlistTable.productId, productId))).limit(1);
   if (existing.length === 0) {
     await db.insert(wishlistTable).values({ userId, productId });
@@ -49,7 +49,7 @@ router.post("/:productId", requireAuth, async (req, res) => {
 
 router.delete("/:productId", requireAuth, async (req, res) => {
   const userId = (req as any).user.id;
-  const productId = parseInt(req.params.productId);
+  const productId = parseInt(String(req.params.productId));
   await db.delete(wishlistTable).where(and(eq(wishlistTable.userId, userId), eq(wishlistTable.productId, productId)));
   res.json({ success: true });
 });

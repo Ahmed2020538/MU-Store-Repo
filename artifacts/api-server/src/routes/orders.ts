@@ -25,6 +25,10 @@ function formatOrder(o: any) {
     discount: o.discount,
     total: o.total,
     promoCode: o.promoCode ?? null,
+    codDownPayment: o.codDownPayment ?? 0,
+    codDownPaymentStatus: o.codDownPaymentStatus ?? "pending",
+    codDownPaymentMethod: o.codDownPaymentMethod ?? null,
+    amountDueOnDelivery: o.amountDueOnDelivery ?? 0,
     createdAt: o.createdAt instanceof Date ? o.createdAt.toISOString() : o.createdAt,
   };
 }
@@ -40,11 +44,16 @@ router.post("/", requireAuth, async (req, res) => {
   const result = CreateOrderBody.safeParse(req.body);
   if (!result.success) { res.status(400).json({ error: "Invalid input" }); return; }
   const data = result.data;
+  const isCod = data.paymentMethod === "cod";
+  const codDownPayment = isCod ? (data.codDownPayment ?? 50) : 0;
+  const codDownPaymentStatus = isCod ? (data.codDownPaymentStatus ?? "pending") : "paid";
+  const amountDueOnDelivery = isCod ? Math.max(0, (data.total ?? 0) - codDownPayment) : 0;
+
   const [order] = await db.insert(ordersTable).values({
     userId,
     status: "pending",
     paymentMethod: data.paymentMethod,
-    paymentStatus: "pending",
+    paymentStatus: isCod ? "partial" : "pending",
     items: data.items as any,
     fullName: data.fullName,
     phone: data.phone,
@@ -56,12 +65,16 @@ router.post("/", requireAuth, async (req, res) => {
     discount: data.discount ?? 0,
     total: data.total ?? 0,
     promoCode: data.promoCode ?? null,
+    codDownPayment,
+    codDownPaymentStatus,
+    codDownPaymentMethod: isCod ? (data.codDownPaymentMethod ?? null) : null,
+    amountDueOnDelivery,
   }).returning();
   res.status(201).json(formatOrder(order));
 });
 
 router.get("/:id", requireAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   const userId = (req as any).user.id;
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id)).limit(1);
   if (!order) { res.status(404).json({ error: "Not found" }); return; }
@@ -78,7 +91,7 @@ router.get("/admin/all", requireAdmin, async (_req, res) => {
 });
 
 router.put("/admin/:id/status", requireAdmin, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   const result = AdminUpdateOrderStatusBody.safeParse(req.body);
   if (!result.success) { res.status(400).json({ error: "Invalid input" }); return; }
   const [order] = await db.update(ordersTable).set({ status: result.data.status }).where(eq(ordersTable.id, id)).returning();
