@@ -1,0 +1,218 @@
+You are a senior full-stack web developer. Build a complete, production-ready 
+e-commerce website for "MU" — a premium Egyptian women's shoes & bags brand.
+
+=== TECH STACK ===
+- Frontend: React.js + Tailwind CSS + Framer Motion
+- Backend: Node.js + Express.js
+- Database: SQLite (via better-sqlite3) — lightweight for Replit free tier
+- Auth: JWT + bcrypt
+- Payments: Stripe (test mode) + Fawry integration (mock)
+- AI Try-On: TensorFlow.js + MediaPipe (browser-based, no server GPU needed)
+- Image Storage: Cloudinary free tier
+- State: Zustand
+- NO heavy dependencies — keep bundle size minimal for Replit limits
+
+=== BRAND IDENTITY ===
+Name: MU
+Tagline: "Where Every Step Tells Your Story"
+Color Palette:
+  Primary:   #1A1A2E  (deep midnight navy)
+  Secondary: #C9A96E  (warm champagne gold)
+  Accent:    #E8D5B7  (soft sand)
+  Surface:   #F9F5F0  (warm cream)
+  Pop:       #D4608A  (rose blush — CTAs & badges)
+Typography: 
+  Display: "Cormorant Garamond" (elegant serif — headings)
+  Body:    "DM Sans" (clean sans-serif — UI)
+  Arabic support: "Cairo" font
+Logo: Stylized "MU" monogram — clean geometric, gold on dark
+
+=== PAGES & FEATURES ===
+
+** 1. HOME PAGE **
+- Full-screen hero with parallax video background (looping runway clip 
+  or fallback gradient animation)
+- Animated headline with typewriter effect
+- "New Arrivals" horizontal scroll carousel (autoplay + drag)
+- "Shop by Category" grid: Heels | Flats | Boots | Bags | Accessories
+- "Our Story" section with split-screen image + text reveal on scroll
+- Instagram-style UGC gallery (masonry grid, lightbox on click)
+- Trending Now — live counter showing "X women viewed this today" 
+  (mock real-time via setInterval)
+- Newsletter signup with animated input + confetti on submit
+- Trust badges: Free Shipping | Easy Returns | Secure Payment | Made in Egypt
+
+** 2. PRODUCT LISTING PAGE **
+- Sidebar filters: Category | Size | Color | Price Range | Rating | 
+  Material | Brand Collection (all animated, apply without page reload)
+- Sort: Newest | Price ↑↓ | Best Selling | Most Reviewed
+- Grid/List view toggle with smooth transition
+- Product cards with:
+  • Hover = secondary image swap (smooth fade)
+  • Quick-add-to-cart without opening product page
+  • Wishlist heart toggle (persisted to localStorage + DB if logged in)
+  • "Low Stock" badge, "New" badge, "Sale" ribbon
+  • Star rating preview + review count
+- Infinite scroll (load 12 more on scroll bottom)
+- "No results" state with smart suggestions
+- Skeleton loading placeholders
+
+** 3. PRODUCT DETAIL PAGE **
+- Image gallery: main zoom + thumbnail strip + 360° spin (CSS 
+  animation on drag)
+- Size guide modal with Egyptian sizing chart (35–42)
+- Color selector — image updates on click
+- Quantity selector with stock validation
+- Sticky "Add to Cart" + "Virtual Try-On" CTA bar on scroll
+- Product tabs: Description | Size Guide | Reviews | Shipping & Returns
+- Verified reviews with photo upload + helpful voting
+- AI-powered "Complete the Look" — shows matching bag/shoe combos
+- Real-time stock indicator ("Only 3 left!")
+- Share buttons: WhatsApp | Facebook | Copy Link
+
+** 4. VIRTUAL TRY-ON (AI FEATURE) ★ **
+Build this entirely browser-side using MediaPipe + Canvas API:
+
+Shoes Try-On:
+- Access user camera (getUserMedia)
+- Detect feet using MediaPipe Pose landmarks
+- Overlay selected shoe PNG on feet in real-time
+- Adjust scale/position with foot distance
+- Snapshot button → download or share to WhatsApp
+- Fallback: upload a photo of feet → static overlay
+
+Bags Try-On:
+- Detect shoulders/arm using pose landmarks  
+- Overlay bag PNG on arm/shoulder
+- Same snapshot + share functionality
+
+UI for Try-On:
+- Split screen: live camera left, product selector right
+- Instruction overlay: "Point your camera at your feet"
+- Loading state with animated logo
+- Privacy notice: "Camera feed never leaves your device"
+- Works on mobile (portrait) and desktop
+
+** 5. CART & CHECKOUT **
+Cart (slide-over drawer):
+- Item list with inline quantity edit + remove
+- Size/color shown per item
+- Promo code field (codes: MU20 = 20% off, FREESHIP = free shipping)
+- Order summary with animated price updates
+- "You might also like" upsell strip
+- Persist cart to localStorage + sync to DB on login
+
+Checkout (3-step wizard with progress bar):
+Step 1 — Delivery Info:
+  • Full name, phone, email
+  • Egyptian governorates dropdown (all 27)
+  • Save address for next time
+  • Delivery estimate calculator
+
+Step 2 — Payment:
+  • Stripe Credit/Debit Card (test mode, real UI)
+  • Fawry (mock — show reference number flow)
+  • Vodafone Cash / Etisalat Cash (mock confirmation SMS flow)
+  • Cash on Delivery (with 20 EGP COD fee)
+  • Installments via ValU (mock — 6/12/24 month selector)
+  • Apple Pay / Google Pay (Stripe Payment Request Button)
+  
+Step 3 — Review & Confirm:
+  • Full order summary
+  • Edit any step inline
+  • Animated "Order Placed!" success screen with confetti
+  • Order number + WhatsApp confirmation option
+
+** 6. USER ACCOUNT **
+- Register / Login / Google OAuth (mock)
+- Dashboard: My Orders | Wishlist | Addresses | Reviews | Points
+- Order tracking timeline (Confirmed → Packed → Shipped → Delivered)
+- MU Loyalty Points: earn 1 point per 10 EGP, redeem on checkout
+- Return request form with reason selector + photo upload
+- Referral code system (share link → get 50 EGP credit)
+
+** 7. ADMIN DASHBOARD (protected /admin route) **
+Login: admin@mu.com / MUadmin2025
+
+- Dashboard KPIs: Total Sales | Orders Today | Revenue Chart | 
+  Top Products
+- Product CRUD: add/edit/delete with image upload (Cloudinary)
+- Order management: view all orders, update status, print invoice
+- Customer list with order history
+- Discount codes manager
+- Try-On asset manager: upload shoe/bag PNGs with transparent backgrounds
+- Analytics: sales by category, conversion rate, avg order value
+
+** 8. ADDITIONAL PAGES **
+- About MU: brand story, founding team, Egyptian craftsmanship focus
+- Size Guide: interactive measurement tool (input foot length → get size)
+- Blog: fashion tips, care guides (3 mock articles, markdown rendered)
+- Contact: form + WhatsApp floating button + Google Maps embed
+- FAQ: accordion with search
+- 404 page: animated "Lost your shoe?" illustration
+
+=== GLOBAL FEATURES ===
+- Arabic/English toggle (RTL support for Arabic, all text translated)
+- Dark/Light mode toggle (persisted to localStorage)
+- WhatsApp floating button (bottom-right, always visible)
+- Cookie consent banner (GDPR-style)
+- Progressive Web App (PWA): manifest.json + service worker for 
+  offline product browsing
+- SEO: meta tags, og:image, sitemap.xml, robots.txt
+- Performance: lazy loading images, code splitting, compressed assets
+- Mobile-first responsive (breakpoints: 375, 768, 1024, 1440px)
+- Smooth page transitions (Framer Motion)
+- Toast notifications system (success/error/info)
+- Loading skeleton screens on all data-fetching components
+
+=== DATABASE SCHEMA (SQLite) ===
+Tables: users | products | categories | orders | order_items | 
+        reviews | wishlist | addresses | discount_codes | 
+        loyalty_points | blog_posts | tryon_assets
+
+Seed with:
+- 20 products (10 shoes, 10 bags) with realistic Egyptian pricing 
+  (500–2500 EGP range)
+- 3 categories minimum
+- 5 mock reviews per product
+- 2 discount codes (MU20, FREESHIP)
+
+=== API ENDPOINTS ===
+RESTful Express API:
+GET/POST /api/products (filter, sort, paginate)
+GET /api/products/:id
+POST /api/cart (add/remove/update)
+POST /api/orders (create order)
+GET /api/orders/:id (tracking)
+POST /api/auth/login | /register
+GET /api/wishlist | POST /api/wishlist/:id
+POST /api/reviews
+GET /api/admin/* (protected, JWT middleware)
+POST /api/promo/validate
+
+=== REPLIT OPTIMIZATION (CRITICAL) ===
+- Use SQLite not PostgreSQL (no separate DB server needed)
+- All AI/ML runs client-side (TensorFlow.js) — zero server GPU cost
+- Images served from Cloudinary CDN — not stored locally
+- Split build into chunks: never generate more than 300 lines per file
+- Use environment variables in Replit Secrets for API keys
+- Single package.json with exact versions to avoid install issues
+- Add .replit config:
+  run = "npm start"
+  [env] NODE_ENV = "production"
+
+=== IMPLEMENTATION ORDER ===
+Build in this exact sequence to avoid hitting token limits:
+Phase 1: Project setup + DB + API skeleton (run & verify)
+Phase 2: Home page + Navigation + Footer
+Phase 3: Product Listing + Detail pages
+Phase 4: Cart + Checkout flow + Payment integrations
+Phase 5: Virtual Try-On feature (camera + overlay)
+Phase 6: User auth + Account dashboard
+Phase 7: Admin dashboard
+Phase 8: Arabic translation + Dark mode + PWA + Polish
+
+After each phase, confirm it runs without errors before proceeding.
+Generate each file separately and completely. Do not truncate any file.
+
+START with Phase 1. Begin now.
