@@ -86,7 +86,6 @@ export default function TestimonialsSection() {
         <motion.div initial={{ opacity: 0, y: 40 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.6 }} className="text-center mb-10">
           <p className="text-xs tracking-[0.3em] uppercase text-[#C9A96E] mb-2">Reviews</p>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white">What Our Customers Say</h2>
-          <p className="font-serif text-xl text-[#C9A96E]/60 italic mt-1">ماذا يقول عملاؤنا</p>
           <div className="mx-auto mt-4 w-20 h-px bg-gradient-to-r from-transparent via-[#C9A96E] to-transparent" />
           <div className="flex items-center justify-center gap-3 mt-6">
             <span className="text-4xl font-bold text-[#C9A96E]">{countShown ? avg : "0"}</span>

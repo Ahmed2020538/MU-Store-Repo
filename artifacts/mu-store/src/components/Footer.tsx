@@ -71,7 +71,7 @@ function FollowUsSection({ social }: { social: Record<string, any> }) {
           transition={{ duration: 0.5 }}
           className="text-xs tracking-[0.25em] uppercase text-[#C9A96E] font-medium"
         >
-          Stay Connected · تابعينا
+          Stay Connected
         </motion.p>
         <motion.h3
           initial={{ opacity: 0, y: 8 }}

@@ -61,7 +61,6 @@ export default function BrandsCarousel() {
       >
         <p className="text-xs tracking-[0.3em] uppercase text-[#C9A96E] mb-2">Our Partners</p>
         <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white">Brands We Carry</h2>
-        <p className="font-serif text-xl text-[#C9A96E]/60 mt-1 italic">الماركات المتاحة</p>
         <div className="mx-auto mt-4 w-20 h-px bg-gradient-to-r from-transparent via-[#C9A96E] to-transparent" />
       </motion.div>
 

@@ -10,11 +10,11 @@ import TestimonialsSection from "@/components/TestimonialsSection";
 import { getRecentlyViewed, type RecentProduct } from "@/lib/recently-viewed";
 
 const CATEGORIES = [
-  { slug: "heels", label: "Heels", labelAr: "كعب عالي", image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600" },
-  { slug: "flats", label: "Flats", labelAr: "مسطح", image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600" },
-  { slug: "boots", label: "Boots", labelAr: "بوت", image: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=600" },
-  { slug: "bags", label: "Bags", labelAr: "حقائب", image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600" },
-  { slug: "accessories", label: "Accessories", labelAr: "إكسسوارات", image: "https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?w=600" },
+  { slug: "heels", label: "Heels", sub: "High Heels", image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600" },
+  { slug: "flats", label: "Flats", sub: "Flat Shoes", image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600" },
+  { slug: "boots", label: "Boots", sub: "Ankle & Knee", image: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=600" },
+  { slug: "bags", label: "Bags", sub: "Handbags & Totes", image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600" },
+  { slug: "accessories", label: "Accessories", sub: "Belts & More", image: "https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?w=600" },
 ];
 
 const TRUST_BADGES = [
@@ -265,7 +265,7 @@ function CategoriesSection() {
                   <div className="absolute inset-0 border-2 border-[#C9A96E]/0 group-hover:border-[#C9A96E]/60 rounded-2xl transition-all duration-500" />
                   <div className="absolute inset-0 flex flex-col justify-end p-4">
                     <span className="font-serif text-xl font-bold text-white leading-tight">{cat.label}</span>
-                    <span className="text-white/60 text-xs mt-0.5">{cat.labelAr}</span>
+                    <span className="text-white/60 text-xs mt-0.5">{cat.sub}</span>
                     <span className="text-[#C9A96E] text-xs mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-y-1 group-hover:translate-y-0">
                       Shop now <ArrowRight size={11} />
                     </span>

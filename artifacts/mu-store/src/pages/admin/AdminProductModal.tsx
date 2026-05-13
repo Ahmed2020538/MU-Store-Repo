@@ -171,7 +171,7 @@ export default function AdminProductModal({ product, categories, onClose, onSave
               <Label>Discount Label</Label>
               <Input placeholder="e.g. Ramadan Sale" {...register("discountLabel")} data-testid="input-discount-label" />
             </div>
-            {discountPct > 0 && <div className="flex items-end pb-2"><span className="text-sm text-[#D4608A] font-bold bg-[#D4608A]/10 px-3 py-1.5 rounded-full">خصم {discountPct}%</span></div>}
+            {discountPct > 0 && <div className="flex items-end pb-2"><span className="text-sm text-[#D4608A] font-bold bg-[#D4608A]/10 px-3 py-1.5 rounded-full">{discountPct}% OFF</span></div>}
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[

@@ -12,7 +12,7 @@ const DEFAULT_SETTINGS = {
   addressAr: "القاهرة، مصر", addressEn: "Cairo, Egypt",
   workingHours: "Sun–Thu: 10am–8pm", googleMapsUrl: "",
   whatsappNumber: "+20 100 000 0000",
-  whatsappMessage: "مرحباً، أريد الاستفسار عن منتج",
+  whatsappMessage: "Hello, I'd like to inquire about a product",
   whatsappButtonActive: true, whatsappButtonColor: "#25D366",
   codDownPayment: 50,
 };

@@ -26,7 +26,7 @@ export default function WhatsAppFAB() {
   if (config.whatsappButtonActive === false) return null;
 
   const num = (config.whatsappNumber ?? "201000000000").replace(/\D/g, "");
-  const msg = encodeURIComponent(config.whatsappMessage ?? "مرحباً، أريد الاستفسار");
+  const msg = encodeURIComponent(config.whatsappMessage ?? "Hello, I'd like to inquire about a product");
   const color = config.whatsappButtonColor ?? "#25D366";
 
   return (
@@ -50,7 +50,7 @@ export default function WhatsAppFAB() {
                 transition={{ duration: 0.15 }}
                 className="absolute bottom-full right-0 mb-3 bg-[#1A1A2E] text-white text-xs py-2 px-3 rounded-xl whitespace-nowrap shadow-xl border border-white/10"
               >
-                <p className="font-medium">تواصلي معنا على واتساب</p>
+                <p className="font-medium">Chat with us on WhatsApp</p>
                 {config.workingHours && <p className="text-white/50 text-[10px] mt-0.5">{config.workingHours}</p>}
                 <div className="absolute bottom-0 right-5 translate-y-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-[#1A1A2E]" />
               </motion.div>

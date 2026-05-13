@@ -34,7 +34,6 @@ import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
 import TermsPage from "@/pages/TermsPage";
 import ProfileCompletePage from "@/pages/ProfileCompletePage";
 import AuthCallbackPage from "@/pages/AuthCallbackPage";
-import LanguageSelectPage from "@/pages/LanguageSelectPage";
 import CookieBanner from "@/components/CookieBanner";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import NotFound from "@/pages/not-found";
@@ -102,10 +101,8 @@ function Router() {
 }
 
 function LanguageGate({ children }: { children: React.ReactNode }) {
-  const [langChosen, setLangChosen] = useState(() => !!localStorage.getItem("mu_language"));
-  if (!langChosen) {
-    return <LanguageSelectPage onSelect={() => setLangChosen(true)} />;
-  }
+  // English is the default — no blocking gate for new visitors.
+  // Language can be changed any time via the LanguageSwitcher.
   return <>{children}</>;
 }
 

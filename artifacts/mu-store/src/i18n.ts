@@ -40,7 +40,7 @@ i18n
       ja: { translation: ja },
       ru: { translation: ru },
     },
-    fallbackLng: "ar",
+    fallbackLng: "en",
     defaultNS: "translation",
     detection: {
       order: ["localStorage"],
@@ -52,7 +52,13 @@ i18n
 
 i18n.on("languageChanged", applyLangDir);
 
+// Default to English for first-time visitors
 const stored = localStorage.getItem("mu_language");
-if (stored) applyLangDir(stored);
+if (stored) {
+  applyLangDir(stored);
+} else {
+  localStorage.setItem("mu_language", "en");
+  applyLangDir("en");
+}
 
 export default i18n;

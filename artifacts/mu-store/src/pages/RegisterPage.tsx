@@ -96,7 +96,7 @@ export default function RegisterPage() {
               <Input id="phone" placeholder="+20 1XX XXX XXXX" {...register("phone")} data-testid="input-phone" />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="birthDate">تاريخ ميلادك <span className="text-destructive">*</span></Label>
+              <Label htmlFor="birthDate">Date of Birth <span className="text-destructive">*</span></Label>
               <Input id="birthDate" type="date" {...register("birthDate")} data-testid="input-birthdate"
                 max={new Date(new Date().setFullYear(new Date().getFullYear() - 10)).toISOString().split("T")[0]} />
               {errors.birthDate && <p className="text-xs text-destructive">{errors.birthDate.message}</p>}

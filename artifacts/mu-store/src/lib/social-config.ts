@@ -19,7 +19,7 @@ export const SOCIAL_PLATFORMS: SocialPlatform[] = [
     Icon: FaWhatsapp as any,
     color: "#25D366",
     bgColor: "#25D366",
-    buildUrl: v => `https://wa.me/${v.replace(/\D/g, "")}?text=مرحباً`,
+    buildUrl: v => `https://wa.me/${v.replace(/\D/g, "")}?text=Hello`,
   },
   {
     key: "instagram",

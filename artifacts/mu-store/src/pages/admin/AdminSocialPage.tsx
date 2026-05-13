@@ -261,7 +261,7 @@ export default function AdminSocialPage() {
                 <div className="bg-[#1A1A2E] p-6">
                   <div className="text-center mb-6">
                     <p className="text-[10px] tracking-[0.25em] uppercase text-[#C9A96E] font-medium mb-1.5">
-                      Stay Connected · تابعينا
+                      Stay Connected
                     </p>
                     <h3 className="font-serif text-xl font-bold text-white">Follow Us</h3>
                     <p className="text-[11px] text-white/40 mt-1">Join our community</p>
