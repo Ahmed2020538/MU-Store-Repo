@@ -8,14 +8,10 @@ import { DEFAULT_SMTP } from "../lib/mailer.js";
 const router = Router();
 
 const DEFAULT_CONTACT: Record<string, any> = {
-  phone1: "+20 100 000 0000",
-  phone1Whatsapp: true,
-  phone2: "",
+  phone1: "+20 100 000 0000", phone1Whatsapp: true, phone2: "",
   supportEmail: "support@mu-store.com",
-  addressAr: "القاهرة، مصر",
-  addressEn: "Cairo, Egypt",
-  workingHours: "Sun–Thu: 10am–8pm",
-  googleMapsUrl: "",
+  addressAr: "القاهرة، مصر", addressEn: "Cairo, Egypt",
+  workingHours: "Sun–Thu: 10am–8pm", googleMapsUrl: "",
   socials: [
     { platform: "WhatsApp", active: true, url: "+20 100 000 0000", order: 0 },
     { platform: "Instagram", active: true, url: "https://instagram.com/mustore", order: 1 },
@@ -24,8 +20,18 @@ const DEFAULT_CONTACT: Record<string, any> = {
   ],
   whatsappNumber: "+20 100 000 0000",
   whatsappMessage: "مرحباً، أريد الاستفسار عن منتج",
-  whatsappButtonActive: true,
-  whatsappButtonColor: "#25D366",
+  whatsappButtonActive: true, whatsappButtonColor: "#25D366",
+};
+
+const DEFAULT_SOCIAL: Record<string, any> = {
+  whatsapp:  { active: true,  value: "+201000000000", order: 1 },
+  instagram: { active: true,  value: "", order: 2 },
+  facebook:  { active: true,  value: "", order: 3 },
+  tiktok:    { active: false, value: "", order: 4 },
+  pinterest: { active: false, value: "", order: 5 },
+  youtube:   { active: false, value: "", order: 6 },
+  snapchat:  { active: false, value: "", order: 7 },
+  twitter:   { active: false, value: "", order: 8 },
 };
 
 router.get("/contact", async (_req, res) => {
@@ -53,6 +59,21 @@ router.post("/cod-down-payment", requireAdmin, async (req, res) => {
   res.json({ ok: true, amount: parseInt(amount) });
 });
 
+// Social media (public read, admin write)
+router.get("/social", async (_req, res) => {
+  const [row] = await db.select().from(settingsTable).where(eq(settingsTable.key, "social_media"));
+  if (!row) { res.json(DEFAULT_SOCIAL); return; }
+  try { res.json(JSON.parse(row.value)); } catch { res.json(DEFAULT_SOCIAL); }
+});
+
+router.post("/social", requireAdmin, async (req, res) => {
+  const value = JSON.stringify(req.body);
+  await db.insert(settingsTable).values({ key: "social_media", value })
+    .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+  res.json({ ok: true });
+});
+
+// SMTP settings
 router.get("/smtp", requireAdmin, async (_req, res) => {
   const [row] = await db.select().from(settingsTable).where(eq(settingsTable.key, "smtp_settings"));
   if (!row) { res.json({ ...DEFAULT_SMTP, pass: "" }); return; }
@@ -64,14 +85,10 @@ router.get("/smtp", requireAdmin, async (_req, res) => {
 
 router.post("/smtp", requireAdmin, async (req, res) => {
   const incoming = req.body;
-  // If pass is the placeholder, preserve existing
   if (incoming.pass === "••••••••") {
     const [existing] = await db.select().from(settingsTable).where(eq(settingsTable.key, "smtp_settings"));
     if (existing) {
-      try {
-        const prev = JSON.parse(existing.value);
-        incoming.pass = prev.pass;
-      } catch { /* keep placeholder */ }
+      try { incoming.pass = JSON.parse(existing.value).pass; } catch { /* keep */ }
     }
   }
   const value = JSON.stringify(incoming);
@@ -85,15 +102,14 @@ router.post("/smtp/test", requireAdmin, async (req, res) => {
   if (!to) { res.status(400).json({ error: "Missing 'to' email" }); return; }
   const { sendMail: send } = await import("../lib/mailer.js");
   const ok = await send({
-    to,
-    subject: "MU Store — Test Email",
+    to, subject: "MU Store — Test Email",
     html: `<div style="font-family:Arial,sans-serif;padding:32px;background:#F8F5F0;">
       <h2 style="color:#1A1A2E;font-family:Georgia,serif;">MU Store</h2>
-      <p style="color:#555;">This is a test email from your MU Store admin panel. SMTP is configured correctly! 🎉</p>
+      <p style="color:#555;">SMTP is configured correctly! ✓</p>
     </div>`,
   });
   if (ok) { res.json({ ok: true }); }
-  else { res.status(500).json({ error: "Failed to send — check SMTP credentials and that email sending is enabled." }); }
+  else { res.status(500).json({ error: "Failed — check SMTP credentials and enable flag." }); }
 });
 
 export default router;

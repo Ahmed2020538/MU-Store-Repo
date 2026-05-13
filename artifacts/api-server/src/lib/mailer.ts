@@ -36,33 +36,53 @@ export async function getSmtpConfig(): Promise<SmtpConfig> {
   }
 }
 
+function buildTransporter(user: string, pass: string, host: string, port: number, secure: boolean) {
+  return nodemailer.createTransport({ host, port, secure, auth: { user, pass } });
+}
+
 export async function sendMail(opts: {
   to: string;
   subject: string;
   html: string;
+  fromName?: string;
+  fromEmail?: string;
 }): Promise<boolean> {
   const config = await getSmtpConfig();
-  if (!config.enabled || !config.user || !config.pass) {
-    logger.info({ to: opts.to, subject: opts.subject }, "Email sending disabled — skipping");
-    return false;
+
+  // Use DB config if enabled
+  if (config.enabled && config.user && config.pass) {
+    try {
+      const t = buildTransporter(config.user, config.pass, config.host, config.port, config.secure);
+      await t.sendMail({
+        from: `"${opts.fromName ?? config.fromName}" <${opts.fromEmail ?? config.fromEmail}>`,
+        to: opts.to, subject: opts.subject, html: opts.html,
+      });
+      logger.info({ to: opts.to, subject: opts.subject }, "Email sent via DB SMTP");
+      return true;
+    } catch (err) {
+      logger.error({ err, to: opts.to }, "DB SMTP failed");
+      return false;
+    }
   }
-  try {
-    const transporter = nodemailer.createTransport({
-      host: config.host,
-      port: config.port,
-      secure: config.secure,
-      auth: { user: config.user, pass: config.pass },
-    });
-    await transporter.sendMail({
-      from: `"${config.fromName}" <${config.fromEmail}>`,
-      to: opts.to,
-      subject: opts.subject,
-      html: opts.html,
-    });
-    logger.info({ to: opts.to, subject: opts.subject }, "Email sent");
-    return true;
-  } catch (err) {
-    logger.error({ err, to: opts.to }, "Failed to send email");
-    return false;
+
+  // Fallback to ENV vars (EMAIL_USER / EMAIL_PASS)
+  const envUser = process.env["EMAIL_USER"];
+  const envPass = process.env["EMAIL_PASS"];
+  if (envUser && envPass) {
+    try {
+      const t = buildTransporter(envUser, envPass, "smtp.gmail.com", 587, false);
+      await t.sendMail({
+        from: `"MU Store" <${envUser}>`,
+        to: opts.to, subject: opts.subject, html: opts.html,
+      });
+      logger.info({ to: opts.to, subject: opts.subject }, "Email sent via ENV SMTP");
+      return true;
+    } catch (err) {
+      logger.error({ err, to: opts.to }, "ENV SMTP failed");
+      return false;
+    }
   }
+
+  logger.info({ to: opts.to, subject: opts.subject }, "Email skipped — no SMTP configured");
+  return false;
 }

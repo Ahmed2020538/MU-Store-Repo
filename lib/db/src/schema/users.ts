@@ -10,6 +10,12 @@ export const usersTable = pgTable("users", {
   phone: text("phone"),
   role: text("role").notNull().default("customer"),
   loyaltyPoints: integer("loyalty_points").default(0),
+  birthDate: text("birth_date"),
+  birthdayCouponYear: integer("birthday_coupon_year").default(0),
+  isAdmin: integer("is_admin").default(0),
+  adminCreatedBy: integer("admin_created_by"),
+  adminCreatedAt: text("admin_created_at"),
+  permissions: text("permissions").default("{}"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

@@ -1,7 +1,7 @@
 import { useState, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Package, Users, ShoppingBag, DollarSign, Edit, Trash2, Plus, Settings } from "lucide-react";
+import { Package, Users, ShoppingBag, DollarSign, Edit, Trash2, Plus, Settings, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   useAdminDashboard, useAdminListOrders, useAdminListCustomers,
@@ -18,6 +18,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import AdminProductModal from "./admin/AdminProductModal";
 import AdminContactPage from "./admin/AdminContactPage";
+import AdminAdminsPage from "./admin/AdminAdminsPage";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -128,20 +129,17 @@ export default function AdminPage() {
           <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="customers">Customers</TabsTrigger>
+          <TabsTrigger value="admins" data-testid="tab-admins"><ShieldCheck size={14} className="mr-1.5 inline" />Admins</TabsTrigger>
           <TabsTrigger value="settings" data-testid="tab-settings"><Settings size={14} className="mr-1.5 inline" />Settings</TabsTrigger>
         </TabsList>
 
-        {/* Orders */}
         <TabsContent value="orders">
           <div className="rounded-xl border border-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
-                  <tr>
-                    {["Order", "Customer", "Items", "Total", "COD", "Status", "Date", "Action"].map(h => (
-                      <th key={h} className="text-left px-4 py-3 font-medium text-muted-foreground text-xs whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
+                  <tr>{["Order", "Customer", "Items", "Total", "COD", "Status", "Date", "Action"].map(h =>
+                    <th key={h} className="text-left px-4 py-3 font-medium text-muted-foreground text-xs whitespace-nowrap">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {ordersLoading
@@ -155,11 +153,9 @@ export default function AdminPage() {
                         <td className="px-4 py-3 whitespace-nowrap">
                           {order.paymentMethod === "cod" ? (
                             <div className="text-xs space-y-0.5">
-                              <div className="flex items-center gap-1">
-                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${order.codDownPaymentStatus === "paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
-                                  Down: {order.codDownPayment?.toLocaleString()} EGP
-                                </span>
-                              </div>
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${order.codDownPaymentStatus === "paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                                Down: {order.codDownPayment?.toLocaleString()} EGP
+                              </span>
                               <p className="text-muted-foreground">Due: {order.amountDueOnDelivery?.toLocaleString()} EGP</p>
                             </div>
                           ) : <span className="text-muted-foreground text-xs">—</span>}
@@ -182,7 +178,6 @@ export default function AdminPage() {
           </div>
         </TabsContent>
 
-        {/* Products */}
         <TabsContent value="products">
           <div className="flex justify-end mb-4">
             <Button onClick={() => setProductModal({ open: true })} className="bg-foreground text-background hover:opacity-90" size="sm" data-testid="button-add-product">
@@ -193,11 +188,8 @@ export default function AdminPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
-                  <tr>
-                    {["Product", "Category", "Price", "Stock", "Status", "Sales", "Actions"].map(h => (
-                      <th key={h} className="text-left px-4 py-3 font-medium text-muted-foreground text-xs whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
+                  <tr>{["Product", "Category", "Price", "Stock", "Status", "Sales", "Actions"].map(h =>
+                    <th key={h} className="text-left px-4 py-3 font-medium text-muted-foreground text-xs whitespace-nowrap">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {productsLoading
@@ -217,9 +209,7 @@ export default function AdminPage() {
                         <td className="px-4 py-3 whitespace-nowrap">
                           {p.salePrice ? <><span className="font-bold text-[#D4608A]">{p.salePrice.toLocaleString()}</span><span className="text-xs text-muted-foreground line-through ml-1">{p.price.toLocaleString()}</span></> : <span>{p.price.toLocaleString()} EGP</span>}
                         </td>
-                        <td className="px-4 py-3">
-                          <span className={p.stock <= 3 ? "text-amber-600 font-medium" : ""}>{p.stock}</span>
-                        </td>
+                        <td className="px-4 py-3"><span className={p.stock <= 3 ? "text-amber-600 font-medium" : ""}>{p.stock}</span></td>
                         <td className="px-4 py-3">
                           <div className="flex flex-wrap gap-1">
                             {p.isNew && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">New</span>}
@@ -243,17 +233,13 @@ export default function AdminPage() {
           </div>
         </TabsContent>
 
-        {/* Customers */}
         <TabsContent value="customers">
           <div className="rounded-xl border border-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
-                  <tr>
-                    {["Name", "Email", "Phone", "Points", "Role", "Joined"].map(h => (
-                      <th key={h} className="text-left px-4 py-3 font-medium text-muted-foreground text-xs whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
+                  <tr>{["Name", "Email", "Phone", "Points", "Role", "Joined"].map(h =>
+                    <th key={h} className="text-left px-4 py-3 font-medium text-muted-foreground text-xs whitespace-nowrap">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {customersLoading
@@ -274,10 +260,8 @@ export default function AdminPage() {
           </div>
         </TabsContent>
 
-        {/* Settings */}
-        <TabsContent value="settings">
-          <AdminContactPage />
-        </TabsContent>
+        <TabsContent value="admins"><AdminAdminsPage /></TabsContent>
+        <TabsContent value="settings"><AdminContactPage /></TabsContent>
       </Tabs>
 
       {productModal.open && (

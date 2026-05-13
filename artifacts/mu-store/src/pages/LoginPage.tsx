@@ -33,7 +33,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left brand panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-foreground flex-col items-center justify-center p-12 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10"
           style={{ backgroundImage: "radial-gradient(circle at 30% 50%, #C9A96E 0%, transparent 60%)" }} />
@@ -53,7 +52,6 @@ export default function LoginPage() {
         </motion.div>
       </div>
 
-      {/* Right form panel */}
       <div className="flex-1 flex items-center justify-center p-8">
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="w-full max-w-md">
           <div className="lg:hidden mb-8 text-center">
@@ -78,12 +76,6 @@ export default function LoginPage() {
               {loginMutation.isPending ? "Signing in..." : "Sign In"}
             </Button>
           </form>
-
-          <div className="mt-4 p-3 rounded-lg bg-muted text-xs text-muted-foreground">
-            <p className="font-medium mb-1">Admin access:</p>
-            <p>Email: admin@mu.com</p>
-            <p>Password: MUadmin2025</p>
-          </div>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
             Don't have an account?{" "}

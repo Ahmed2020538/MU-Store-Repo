@@ -1,0 +1,164 @@
+Add these features to the existing MU website. Do NOT regenerate 
+the project. Modify only what is needed.
+
+════════════════════════════════════════════════════════
+1. BIRTHDAY SYSTEM
+════════════════════════════════════════════════════════
+
+DB changes:
+ALTER TABLE users ADD COLUMN birth_date TEXT;
+ALTER TABLE users ADD COLUMN birthday_coupon_year INTEGER DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS coupons (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  code TEXT UNIQUE,
+  discount_percent INTEGER DEFAULT 20,
+  user_id INTEGER,
+  expires_at TEXT,
+  used INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+Registration form:
+- Add required field "تاريخ ميلادك" (input type="date")
+- Save birth_date to DB on register
+
+Birthday check (runs every 24h using setInterval or node-cron):
+- Query users where birth_date day+month = today day+month
+  AND birthday_coupon_year != current year
+- For each matched user:
+  1. Generate code: "BDAY-" + userId + "-" + currentYear
+  2. Insert into coupons table (20% off, expires 7 days)
+  3. Send email via nodemailer to user:
+     Subject: "🎂 عيد ميلاد سعيد من MU!"
+     Body:
+     "كل سنة وأنتِ بخير 🎉
+      كود خصم عيد ميلادك: [CODE]
+      خصم 20% صالح 7 أيام فقط 🎁"
+  4. Update birthday_coupon_year = currentYear for that user
+
+Coupon validation in checkout:
+- GET /api/promo/validate?code=XXX
+- Check: exists + not used + not expired + belongs to user
+- Apply discount, mark used after order placed
+
+════════════════════════════════════════════════════════
+2. REMOVE ADMIN CREDENTIALS FROM WEBSITE UI
+   + SEND TO EMAIL ONCE
+════════════════════════════════════════════════════════
+
+- Search ALL frontend files for "admin@mu.com" or "MUadmin2025"
+  and remove from any visible UI, login page, or home page display
+
+- Setup nodemailer with Gmail SMTP using Replit Secrets:
+  EMAIL_USER = mubrand2050@gmail.com
+  EMAIL_PASS = [gmail app password from secrets]
+
+- On server start, check settings table for key="admin_email_sent"
+  If NOT found:
+  → Send this email once:
+    To: mubrand2050@gmail.com
+    Subject: "🔐 MU Admin Login Credentials"
+    Body:
+    "Admin URL: [site-url]/admin/login
+     Email: admin@mu.com
+     Password: MUadmin2025
+     Keep this private."
+  → Insert into settings: key="admin_email_sent", value="true"
+  If found: skip sending
+
+════════════════════════════════════════════════════════
+3. SOCIAL MEDIA MANAGER IN ADMIN SETTINGS
+════════════════════════════════════════════════════════
+
+Save in settings table:
+key = "social_media"
+value = JSON with these platforms:
+{
+  whatsapp:  { active: true,  value: "+201000000000", order: 1 },
+  instagram: { active: true,  value: "", order: 2 },
+  facebook:  { active: true,  value: "", order: 3 },
+  tiktok:    { active: false, value: "", order: 4 },
+  pinterest: { active: false, value: "", order: 5 },
+  youtube:   { active: false, value: "", order: 6 },
+  snapchat:  { active: false, value: "", order: 7 },
+  twitter:   { active: false, value: "", order: 8 }
+}
+
+Admin Settings Page — Social Media section:
+- Table: Platform | Icon | Active Toggle | URL or Phone | Order (↑↓)
+- "Save Changes" button → POST /api/admin/settings/social
+- Success toast: "تم الحفظ ✓"
+
+API:
+GET  /api/settings/social        → public
+POST /api/admin/settings/social  → admin JWT protected
+
+Frontend Footer + Contact page:
+- Fetch /api/settings/social on load
+- Render only active platforms in saved order
+- WhatsApp link: "https://wa.me/[number]?text=مرحباً"
+
+════════════════════════════════════════════════════════
+4. MULTI-ADMIN MANAGEMENT
+════════════════════════════════════════════════════════
+
+DB changes:
+ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0;
+ALTER TABLE users ADD COLUMN admin_created_by INTEGER;
+ALTER TABLE users ADD COLUMN admin_created_at TEXT;
+ALTER TABLE users ADD COLUMN permissions TEXT DEFAULT '{}';
+
+Admin Panel — new page /admin/admins:
+
+Table columns: Name | Email | Created At | Status | Actions
+
+"Add New Admin" modal fields:
+- Full Name
+- Email
+- Password + "Auto Generate" button (generates "MU@" + 8 random chars)
+- Confirm Password
+- Permissions checkboxes:
+  ☑ View Orders     ☑ Manage Products  ☑ Manage Customers
+  ☑ View Analytics  ☑ Manage Settings  ☐ Manage Admins
+
+On Save:
+1. Hash password with bcrypt
+2. Insert user: role="admin", is_admin=1, permissions=JSON
+3. Send welcome email to new admin:
+   Subject: "تم إضافتك كمشرف على موقع MU 🔐"
+   Body:
+   "مرحباً [Name]،
+    رابط الدخول: [site-url]/admin/login
+    البريد: [email]
+    كلمة المرور: [plain password]
+    يرجى تغييرها بعد أول دخول."
+
+Deactivate/Delete admin:
+- Cannot delete original admin (admin@mu.com) — protect this
+- Deactivate: sets is_admin=0, role="user"
+- Delete: removes from DB with confirm dialog
+
+Login update:
+- Any user with role="admin" OR is_admin=1 can access /admin
+- JWT payload: { userId, role, permissions }
+- Each admin section checks its required permission before rendering
+
+════════════════════════════════════════════════════════
+EXECUTION ORDER
+════════════════════════════════════════════════════════
+
+1. DB schema changes first
+2. Backend APIs + nodemailer setup
+3. Birthday cron/interval
+4. Frontend components
+5. Restart server
+
+Rules:
+- Print "✅ Done: [filename]" after each file
+- Max 250 lines per file
+- Do not modify unrelated files
+- At the end print Modified and Created file lists
+- Run: npm install nodemailer node-cron
+
+START with Step 1: DB schema changes.

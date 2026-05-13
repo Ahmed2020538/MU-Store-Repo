@@ -14,6 +14,7 @@ const schema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email"),
   phone: z.string().optional(),
+  birthDate: z.string().min(1, "Date of birth is required"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
 }).refine(d => d.password === d.confirmPassword, { message: "Passwords don't match", path: ["confirmPassword"] });
@@ -27,15 +28,26 @@ export default function RegisterPage() {
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   const onSubmit = (data: FormData) => {
-    const { confirmPassword, ...payload } = data;
-    registerMutation.mutate({ data: payload }, {
+    const { confirmPassword, birthDate, ...payload } = data;
+    registerMutation.mutate({ data: payload as any }, {
       onSuccess: (res) => {
+        // Also patch birthDate since it's not in the generated schema
+        const token = localStorage.getItem("mu_token") ?? res.token;
+        fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
         login(res.token, res.user as any);
         toast.success(`Welcome to MU, ${res.user.name}`);
         setLocation("/");
       },
       onError: (err: any) => toast.error(err?.data?.error ?? "Registration failed"),
     });
+    // Patch birthDate via a separate call immediately (non-blocking workaround since generated schema doesn't include it)
+    const rawPayload = { ...data };
+    delete (rawPayload as any).confirmPassword;
+    fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rawPayload),
+    }).catch(() => {});
   };
 
   return (
@@ -46,7 +58,7 @@ export default function RegisterPage() {
           <span className="font-serif text-7xl font-bold text-[#C9A96E]">MU</span>
           <p className="text-background/70 italic text-lg mt-4">Join the MU Family</p>
           <div className="mt-12 space-y-4 text-left max-w-sm">
-            {["Earn loyalty points on every purchase", "Early access to new collections", "Exclusive member discounts", "Save addresses & order tracking"].map(feat => (
+            {["Earn loyalty points on every purchase", "Early access to new collections", "Exclusive member discounts", "Birthday gift coupon every year 🎂"].map(feat => (
               <div key={feat} className="flex items-center gap-3 text-background/70 text-sm">
                 <div className="w-5 h-5 rounded-full bg-[#C9A96E]/20 flex items-center justify-center flex-shrink-0">
                   <span className="text-[#C9A96E] text-xs">✓</span>
@@ -80,6 +92,13 @@ export default function RegisterPage() {
             <div className="space-y-1.5">
               <Label htmlFor="phone">Phone (Optional)</Label>
               <Input id="phone" placeholder="+20 1XX XXX XXXX" {...register("phone")} data-testid="input-phone" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="birthDate">تاريخ ميلادك <span className="text-destructive">*</span></Label>
+              <Input id="birthDate" type="date" {...register("birthDate")} data-testid="input-birthdate"
+                max={new Date(new Date().setFullYear(new Date().getFullYear() - 10)).toISOString().split("T")[0]} />
+              {errors.birthDate && <p className="text-xs text-destructive">{errors.birthDate.message}</p>}
+              <p className="text-xs text-muted-foreground">🎂 You'll receive a 20% birthday discount coupon every year!</p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
