@@ -1,0 +1,67 @@
+Develop a dynamic "Social Media Management System" within the website settings/admin panel that controls which platforms appear in the "Follow Us" section on the frontend.
+
+Requirements:
+
+1. Admin Control Panel:
+- Create a dedicated "Social Media Settings" section in the admin dashboard.
+- Display a list of available platforms (Facebook, Instagram, Twitter/X, LinkedIn, TikTok, etc.).
+- Each platform should have:
+  - Toggle (Enable/Disable visibility on frontend)
+  - Input field for profile URL
+  - Optional: reorder control (drag & drop ترتيب)
+
+2. Dynamic Rendering:
+- The "Follow Us" section on the website must render dynamically based on admin settings.
+- Only enabled platforms should appear.
+- If a platform is disabled → automatically removed from UI بدون كسر التصميم.
+
+3. Consistency & Design System:
+- All icons must follow a unified style (same size, spacing, animation).
+- Maintain consistent alignment and layout even when platforms are added/removed.
+- Use a responsive layout that auto-adjusts (flex/grid system).
+
+4. Systematic Behavior:
+- Adding/removing platforms should NOT break layout.
+- Automatically adjust spacing and positioning.
+- Maintain visual balance regardless of number of icons.
+
+5. Interactivity:
+- Each icon:
+  - Clickable → opens link in new tab
+  - Has hover animation (scale, color transition)
+  - Tooltip (e.g., "Follow us on Instagram")
+
+6. Default Fallback:
+- If no platforms are enabled:
+  - Hide the entire "Follow Us" section OR
+  - Show a fallback message (configurable).
+
+7. Data Persistence:
+- Save all settings in database (or CMS).
+- Reflect changes instantly (or via real-time update).
+
+8. Scalability:
+- Allow easy addition of new platforms in the future without breaking UI.
+- Use a config-driven approach (JSON or database schema).
+
+Example structure:
+[
+  {
+    "name": "Instagram",
+    "enabled": true,
+    "url": "https://instagram.com/brand",
+    "order": 1
+  }
+]
+
+9. UX Enhancements (Admin Side):
+- Show live preview of "Follow Us" section أثناء التعديل.
+- Validate URLs automatically.
+- Display icon preview next to each platform.
+
+10. Performance:
+- Load icons efficiently (SVG preferred).
+- Avoid unnecessary re-renders.
+
+Goal:
+Create a flexible, scalable, and visually consistent system that allows full control over social media visibility while maintaining a premium and balanced UI automatically.

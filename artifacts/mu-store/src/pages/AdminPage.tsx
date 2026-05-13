@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Package, Users, ShoppingBag, DollarSign, Edit, Trash2, Plus, Settings, ShieldCheck, Mail, Ticket, Crown, Tag, Star } from "lucide-react";
+import { Package, Users, ShoppingBag, DollarSign, Edit, Trash2, Plus, Settings, ShieldCheck, Mail, Ticket, Crown, Tag, Star, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   useAdminDashboard, useAdminListOrders, useAdminListCustomers,
@@ -23,6 +23,7 @@ import AdminMessagesPage from "./admin/AdminMessagesPage";
 import AdminCouponsPage from "./admin/AdminCouponsPage";
 import AdminBrandsPage from "./admin/AdminBrandsPage";
 import AdminTestimonialsPage from "./admin/AdminTestimonialsPage";
+import AdminSocialPage from "./admin/AdminSocialPage";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800", confirmed: "bg-blue-100 text-blue-800",
@@ -130,6 +131,7 @@ export default function AdminPage() {
           <TabsTrigger value="coupons"><Ticket size={13} className="mr-1 inline" />Coupons</TabsTrigger>
           <TabsTrigger value="messages"><Mail size={13} className="mr-1 inline" />Messages</TabsTrigger>
           <TabsTrigger value="admins"><ShieldCheck size={13} className="mr-1 inline" />Admins</TabsTrigger>
+          <TabsTrigger value="social"><Share2 size={13} className="mr-1 inline" />Social</TabsTrigger>
           <TabsTrigger value="settings"><Settings size={13} className="mr-1 inline" />Settings</TabsTrigger>
         </TabsList>
 
@@ -216,6 +218,7 @@ export default function AdminPage() {
         <TabsContent value="coupons"><AdminCouponsPage /></TabsContent>
         <TabsContent value="messages"><AdminMessagesPage /></TabsContent>
         <TabsContent value="admins"><AdminAdminsPage /></TabsContent>
+        <TabsContent value="social"><AdminSocialPage /></TabsContent>
         <TabsContent value="settings"><AdminContactPage /></TabsContent>
       </Tabs>
 
