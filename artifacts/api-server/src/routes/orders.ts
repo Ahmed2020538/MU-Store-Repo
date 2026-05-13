@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { ordersTable, usersTable } from "@workspace/db";
+import { ordersTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../lib/auth.js";
 import { CreateOrderBody, AdminUpdateOrderStatusBody } from "@workspace/api-zod";
+import { sendMail } from "../lib/mailer.js";
+import { orderConfirmationHtml } from "../lib/email-templates.js";
 
 const router = Router();
 
@@ -45,8 +47,8 @@ router.post("/", requireAuth, async (req, res) => {
   if (!result.success) { res.status(400).json({ error: "Invalid input" }); return; }
   const data = result.data;
   const isCod = data.paymentMethod === "cod";
-  const codDownPayment = isCod ? (data.codDownPayment ?? 50) : 0;
-  const codDownPaymentStatus = isCod ? (data.codDownPaymentStatus ?? "pending") : "paid";
+  const codDownPayment = isCod ? ((data as any).codDownPayment ?? 50) : 0;
+  const codDownPaymentStatus = isCod ? ((data as any).codDownPaymentStatus ?? "pending") : "paid";
   const amountDueOnDelivery = isCod ? Math.max(0, (data.total ?? 0) - codDownPayment) : 0;
 
   const [order] = await db.insert(ordersTable).values({
@@ -67,10 +69,37 @@ router.post("/", requireAuth, async (req, res) => {
     promoCode: data.promoCode ?? null,
     codDownPayment,
     codDownPaymentStatus,
-    codDownPaymentMethod: isCod ? (data.codDownPaymentMethod ?? null) : null,
+    codDownPaymentMethod: isCod ? ((data as any).codDownPaymentMethod ?? null) : null,
     amountDueOnDelivery,
   }).returning();
+
   res.status(201).json(formatOrder(order));
+
+  // Send confirmation email (non-blocking)
+  if (order.email) {
+    sendMail({
+      to: order.email,
+      subject: `Order Confirmed — #${order.id} | MU Store`,
+      html: orderConfirmationHtml({
+        orderId: order.id,
+        fullName: order.fullName ?? "",
+        email: order.email,
+        phone: order.phone ?? undefined,
+        address: order.address ?? undefined,
+        governorate: order.governorate ?? undefined,
+        paymentMethod: order.paymentMethod ?? "card",
+        subtotal: order.subtotal,
+        shipping: order.shipping,
+        discount: order.discount,
+        total: order.total,
+        items: (order.items ?? []) as any[],
+        promoCode: order.promoCode ?? undefined,
+        codDownPayment: order.codDownPayment ?? 0,
+        codDownPaymentMethod: order.codDownPaymentMethod ?? undefined,
+        amountDueOnDelivery: order.amountDueOnDelivery ?? 0,
+      }),
+    }).catch(() => {});
+  }
 });
 
 router.get("/:id", requireAuth, async (req, res) => {

@@ -3,6 +3,7 @@ import { db } from "@workspace/db";
 import { settingsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth.js";
+import { DEFAULT_SMTP } from "../lib/mailer.js";
 
 const router = Router();
 
@@ -50,6 +51,49 @@ router.post("/cod-down-payment", requireAdmin, async (req, res) => {
   await db.insert(settingsTable).values({ key: "cod_down_payment", value: amount })
     .onConflictDoUpdate({ target: settingsTable.key, set: { value: amount } });
   res.json({ ok: true, amount: parseInt(amount) });
+});
+
+router.get("/smtp", requireAdmin, async (_req, res) => {
+  const [row] = await db.select().from(settingsTable).where(eq(settingsTable.key, "smtp_settings"));
+  if (!row) { res.json({ ...DEFAULT_SMTP, pass: "" }); return; }
+  try {
+    const cfg = JSON.parse(row.value);
+    res.json({ ...cfg, pass: cfg.pass ? "••••••••" : "" });
+  } catch { res.json({ ...DEFAULT_SMTP, pass: "" }); }
+});
+
+router.post("/smtp", requireAdmin, async (req, res) => {
+  const incoming = req.body;
+  // If pass is the placeholder, preserve existing
+  if (incoming.pass === "••••••••") {
+    const [existing] = await db.select().from(settingsTable).where(eq(settingsTable.key, "smtp_settings"));
+    if (existing) {
+      try {
+        const prev = JSON.parse(existing.value);
+        incoming.pass = prev.pass;
+      } catch { /* keep placeholder */ }
+    }
+  }
+  const value = JSON.stringify(incoming);
+  await db.insert(settingsTable).values({ key: "smtp_settings", value })
+    .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+  res.json({ ok: true });
+});
+
+router.post("/smtp/test", requireAdmin, async (req, res) => {
+  const { to } = req.body;
+  if (!to) { res.status(400).json({ error: "Missing 'to' email" }); return; }
+  const { sendMail: send } = await import("../lib/mailer.js");
+  const ok = await send({
+    to,
+    subject: "MU Store — Test Email",
+    html: `<div style="font-family:Arial,sans-serif;padding:32px;background:#F8F5F0;">
+      <h2 style="color:#1A1A2E;font-family:Georgia,serif;">MU Store</h2>
+      <p style="color:#555;">This is a test email from your MU Store admin panel. SMTP is configured correctly! 🎉</p>
+    </div>`,
+  });
+  if (ok) { res.json({ ok: true }); }
+  else { res.status(500).json({ error: "Failed to send — check SMTP credentials and that email sending is enabled." }); }
 });
 
 export default router;
