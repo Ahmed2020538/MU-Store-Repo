@@ -209,6 +209,16 @@
   --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.2);
 }
 
+/* ── Smooth theme transitions (only fires during theme switch) ── */
+.theme-transitioning,
+.theme-transitioning *,
+.theme-transitioning *::before,
+.theme-transitioning *::after {
+  transition-property: color, background-color, border-color, fill, stroke, box-shadow !important;
+  transition-duration: 300ms !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
 @layer base {
   * {
     @apply border-border;

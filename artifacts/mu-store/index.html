@@ -4,18 +4,33 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>MU Store</title>
-    <meta name="description" content="MU Store — built on Replit. Update this description to reflect the app." />
+    <meta name="description" content="MU — Premium Egyptian women's shoes & bags. Where Every Step Tells Your Story." />
     <meta name="robots" content="index, follow" />
     <meta property="og:title" content="MU Store" />
-    <meta property="og:description" content="MU Store — built on Replit. Update this description to reflect the app." />
+    <meta property="og:description" content="Premium Egyptian women's shoes & bags." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="MU Store" />
-    <meta name="twitter:description" content="MU Store — built on Replit. Update this description to reflect the app." />
+    <meta name="twitter:description" content="Premium Egyptian women's shoes & bags." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FOUC prevention: apply theme before first paint -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('mu_theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var shouldDark =
+            stored === 'dark' ||
+            ((stored === 'system' || !stored) && prefersDark);
+          if (shouldDark) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
