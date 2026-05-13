@@ -1,12 +1,42 @@
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { X, Minus, Plus, ShoppingBag } from "lucide-react";
+import { X, Minus, Plus, ShoppingBag, Bookmark, BookmarkCheck, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
 import { Button } from "@/components/ui/button";
+import { saveForLater, removeSaved, getSavedItems, type SavedItem } from "@/lib/save-for-later";
+import { toast } from "sonner";
 
 export default function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, updateQuantity, total, itemCount } = useCart();
+  const { items, isOpen, closeCart, removeItem, updateQuantity, addItem, total, itemCount } = useCart();
+  const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const shipping = total > 0 && total < 500 ? 50 : 0;
+
+  useEffect(() => {
+    if (isOpen) setSavedItems(getSavedItems());
+  }, [isOpen]);
+
+  const handleSaveForLater = (item: typeof items[0]) => {
+    saveForLater({
+      productId: item.productId, size: item.size, color: item.color,
+      savedAt: new Date().toISOString(), product: item.product,
+    });
+    removeItem(item.productId);
+    setSavedItems(getSavedItems());
+    toast.success("Saved for later");
+  };
+
+  const handleMoveToCart = (saved: SavedItem) => {
+    addItem({ productId: saved.productId, quantity: 1, size: saved.size, color: saved.color, product: saved.product });
+    removeSaved(saved.productId, saved.size, saved.color);
+    setSavedItems(getSavedItems());
+    toast.success("Moved to cart");
+  };
+
+  const handleRemoveSaved = (saved: SavedItem) => {
+    removeSaved(saved.productId, saved.size, saved.color);
+    setSavedItems(getSavedItems());
+  };
 
   return (
     <AnimatePresence>
@@ -29,7 +59,7 @@ export default function CartDrawer() {
 
             {/* Items */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {items.length === 0 ? (
+              {items.length === 0 && savedItems.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
                   <ShoppingBag size={48} className="text-muted-foreground/40" />
                   <p className="text-muted-foreground">Your cart is empty</p>
@@ -38,36 +68,66 @@ export default function CartDrawer() {
                   </Button>
                 </div>
               ) : (
-                items.map(item => (
-                  <div key={`${item.productId}-${item.size}-${item.color}`} className="flex gap-3" data-testid={`cart-item-${item.productId}`}>
-                    <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                      {item.product.images[0] && <img src={item.product.images[0]} alt={item.product.name} className="w-full h-full object-cover" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm leading-tight truncate">{item.product.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Size: {item.size} · Color: {item.color}</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center gap-1 border border-border rounded-md">
-                          <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="p-1.5 hover:bg-muted transition-colors" data-testid={`button-qty-minus-${item.productId}`}>
-                            <Minus size={12} />
-                          </button>
-                          <span className="px-2 text-sm font-medium" data-testid={`text-qty-${item.productId}`}>{item.quantity}</span>
-                          <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="p-1.5 hover:bg-muted transition-colors" data-testid={`button-qty-plus-${item.productId}`}>
-                            <Plus size={12} />
-                          </button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-sm" data-testid={`text-price-${item.productId}`}>
-                            {((item.product.salePrice ?? item.product.price) * item.quantity).toLocaleString()} EGP
-                          </span>
-                          <button onClick={() => removeItem(item.productId)} className="text-muted-foreground hover:text-destructive transition-colors" data-testid={`button-remove-${item.productId}`}>
-                            <X size={14} />
-                          </button>
+                <>
+                  {items.map(item => (
+                    <div key={`${item.productId}-${item.size}-${item.color}`} className="flex gap-3" data-testid={`cart-item-${item.productId}`}>
+                      <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                        {item.product.images[0] && <img src={item.product.images[0]} alt={item.product.name} className="w-full h-full object-cover" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm leading-tight truncate">{item.product.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Size: {item.size} · Color: {item.color}</p>
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center gap-1 border border-border rounded-md">
+                            <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="p-1.5 hover:bg-muted transition-colors" data-testid={`button-qty-minus-${item.productId}`}><Minus size={12} /></button>
+                            <span className="px-2 text-sm font-medium" data-testid={`text-qty-${item.productId}`}>{item.quantity}</span>
+                            <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="p-1.5 hover:bg-muted transition-colors" data-testid={`button-qty-plus-${item.productId}`}><Plus size={12} /></button>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm" data-testid={`text-price-${item.productId}`}>
+                              {((item.product.salePrice ?? item.product.price) * item.quantity).toLocaleString()} EGP
+                            </span>
+                            <button onClick={() => handleSaveForLater(item)} className="text-muted-foreground hover:text-[#C9A96E] transition-colors" title="Save for later" data-testid={`button-save-later-${item.productId}`}>
+                              <Bookmark size={14} />
+                            </button>
+                            <button onClick={() => removeItem(item.productId)} className="text-muted-foreground hover:text-destructive transition-colors" data-testid={`button-remove-${item.productId}`}>
+                              <X size={14} />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+
+                  {/* Saved for Later */}
+                  {savedItems.length > 0 && (
+                    <div className="border-t border-border pt-4 mt-2">
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <BookmarkCheck size={14} className="text-[#C9A96E]" />
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Saved for Later ({savedItems.length})</p>
+                      </div>
+                      <div className="space-y-3">
+                        {savedItems.map(saved => (
+                          <div key={`${saved.productId}-${saved.size}-${saved.color}`} className="flex gap-3 bg-muted/30 rounded-xl p-2.5">
+                            <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                              {saved.product.images[0] && <img src={saved.product.images[0]} alt={saved.product.name} className="w-full h-full object-cover" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-xs leading-tight truncate">{saved.product.name}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">{saved.size} · {saved.color}</p>
+                              <p className="text-xs font-bold mt-1">{(saved.product.salePrice ?? saved.product.price).toLocaleString()} EGP</p>
+                              <div className="flex items-center gap-2 mt-1.5">
+                                <button onClick={() => handleMoveToCart(saved)} className="text-[10px] text-[#C9A96E] font-semibold hover:underline">Move to cart</button>
+                                <span className="text-muted-foreground/40">·</span>
+                                <button onClick={() => handleRemoveSaved(saved)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 size={11} /></button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 

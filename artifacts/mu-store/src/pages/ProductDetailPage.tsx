@@ -27,6 +27,8 @@ export default function ProductDetailPage() {
   const { data: reviews } = useGetProductReviews(productId, { query: { enabled: !!productId, queryKey: getGetProductReviewsQueryKey(productId) } });
   const { data: related } = useListProducts({ category: product?.categoryName?.toLowerCase(), limit: 4 }, { query: { enabled: !!product, queryKey: getListProductsQueryKey({ category: product?.categoryName?.toLowerCase(), limit: 4 }) } });
 
+  const [socialProof, setSocialProof] = useState<{ recentPurchases: number; totalSold: number } | null>(null);
+
   useEffect(() => {
     if (!product) return;
     addRecentlyViewed({
@@ -37,6 +39,10 @@ export default function ProductDetailPage() {
       images: product.images ?? [],
       categoryName: product.categoryName,
     });
+    fetch(`/api/products/${product.id}/social-proof`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d && setSocialProof(d))
+      .catch(() => {});
   }, [product?.id]);
 
   const { addItem } = useCart();
@@ -289,6 +295,16 @@ export default function ProductDetailPage() {
               )}
             </div>
           </div>
+
+          {/* Social Proof */}
+          {socialProof && socialProof.recentPurchases > 0 && (
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />
+              <p className="text-xs font-medium text-amber-800 dark:text-amber-400">
+                <span className="font-bold">{socialProof.recentPurchases}</span> {socialProof.recentPurchases === 1 ? "person" : "people"} purchased this in the last 24 hours
+              </p>
+            </div>
+          )}
 
           {/* CTAs */}
           <div className="flex gap-3">

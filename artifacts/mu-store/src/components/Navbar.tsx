@@ -32,6 +32,7 @@ export default function Navbar() {
     { href: "/products?category=bags", label: t("nav.bags") },
     { href: "/products?category=flats", label: t("nav.flats") },
     { href: "/products?category=boots", label: t("nav.boots") },
+    { href: "/lookbook", label: "Lookbook" },
   ];
 
   const isActive = (href: string) =>

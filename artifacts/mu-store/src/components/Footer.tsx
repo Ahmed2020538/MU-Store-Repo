@@ -177,6 +177,8 @@ export default function Footer() {
                 { label: "Size Guide", href: "/size-guide" },
                 { label: "Shipping Policy", href: "/shipping" },
                 { label: "Returns", href: "/returns" },
+                { label: "Privacy Policy", href: "/privacy" },
+                { label: "Terms of Service", href: "/terms" },
               ].map(({ label, href }) => (
                 <li key={label}>
                   <Link href={href} className="hover:text-background transition-colors hover:translate-x-0.5 inline-block">

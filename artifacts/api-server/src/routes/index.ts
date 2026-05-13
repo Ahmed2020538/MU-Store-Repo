@@ -18,6 +18,7 @@ import couponsUserRouter from "./coupons-user.js";
 import adminCouponsRouter from "./admin-coupons.js";
 import brandsRouter from "./brands.js";
 import testimonialsRouter from "./testimonials.js";
+import socialProofRouter from "./social-proof.js";
 
 const router: IRouter = Router();
 
@@ -38,6 +39,7 @@ router.use("/products", uploadsRouter);
 router.use("/profile", profileRouter);
 router.use("/contact", contactRouter);
 router.use("/coupons", couponsUserRouter);
+router.use("/products", socialProofRouter);
 router.use("/", brandsRouter);
 router.use("/", testimonialsRouter);
 
