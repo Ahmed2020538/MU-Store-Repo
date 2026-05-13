@@ -10,6 +10,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
+import HelpWidget from "@/components/HelpWidget";
 import HomePage from "@/pages/HomePage";
 import ProductsPage from "@/pages/ProductsPage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
@@ -19,6 +20,9 @@ import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import AdminPage from "@/pages/AdminPage";
 import ContactPage from "@/pages/ContactPage";
+import SizeGuidePage from "@/pages/SizeGuidePage";
+import ShippingPolicyPage from "@/pages/ShippingPolicyPage";
+import ReturnsPolicyPage from "@/pages/ReturnsPolicyPage";
 import ProfileCompletePage from "@/pages/ProfileCompletePage";
 import AuthCallbackPage from "@/pages/AuthCallbackPage";
 import LanguageSelectPage from "@/pages/LanguageSelectPage";
@@ -41,12 +45,16 @@ function AppLayout() {
           <Route path="/checkout" component={CheckoutPage} />
           <Route path="/account" component={AccountPage} />
           <Route path="/contact" component={ContactPage} />
+          <Route path="/size-guide" component={SizeGuidePage} />
+          <Route path="/shipping" component={ShippingPolicyPage} />
+          <Route path="/returns" component={ReturnsPolicyPage} />
           <Route path="/admin" component={AdminPage} />
           <Route component={NotFound} />
         </Switch>
       </main>
       <Footer />
       <WhatsAppFAB />
+      <HelpWidget />
     </div>
   );
 }

@@ -1,0 +1,54 @@
+Develop a modern, fully interactive e-commerce website with a strong focus on user experience, usability, and guided navigation.
+
+The website must include the following "Help" section features:
+- My Account
+- Contact Us
+- Size Guide
+- Shipping Policy
+- Returns
+
+Requirements:
+
+1. Interactivity:
+Each feature must be fully interactive, not static.
+- Use dynamic UI components (modals, tooltips, expandable sections, step-by-step flows).
+- Add hover effects, animations, and transitions for better UX.
+- Ensure all buttons and links trigger meaningful actions (no dead clicks).
+
+2. User Guidance (Critical):
+Each section must include clear, built-in guidance for users:
+- My Account: onboarding hints, profile completion tips, password/security guidance.
+- Contact Us: smart form with suggestions, FAQs before submission, auto-response feedback.
+- Size Guide: interactive size selector with recommendations based on user input.
+- Shipping Policy: visual timeline, delivery estimator, and FAQs.
+- Returns: step-by-step return process with progress tracking and eligibility checker.
+
+3. UX/UI Design:
+- Clean, modern design (inspired by Zara / Amazon).
+- Consistent design system (colors, typography, spacing).
+- Mobile-first and fully responsive.
+- Accessibility-friendly (clear labels, readable fonts, contrast).
+
+4. Smart Features:
+- Contextual suggestions (e.g., suggest help articles based on user behavior).
+- Inline validation and real-time feedback.
+- Optional chatbot or assistant for guidance.
+
+5. Admin Panel:
+- Admin can update content of all help sections بسهولة.
+- Track user interactions (analytics dashboard).
+- Manage FAQs and guidance content dynamically.
+
+6. Performance:
+- Fast loading (lazy loading where needed).
+- Optimized assets and clean code structure.
+
+7. Technology (preferred but flexible):
+- Frontend: React / Next.js
+- Backend: Node.js (microservices architecture)
+- Database: scalable (MongoDB / PostgreSQL)
+- Caching: Redis
+- Optional: AI-based recommendations
+
+Goal:
+Transform all help-related features into an interactive, guided experience that improves user engagement, reduces confusion, and increases conversion rate.

@@ -25,8 +25,6 @@ export default function Footer() {
             <p className="mt-4 text-sm text-background/60 max-w-sm">
               Premium Egyptian women's shoes and bags, crafted with care and designed to make every moment unforgettable.
             </p>
-
-            {/* Follow Us — expanded social icons with labels */}
             <div className="mt-6">
               <p className="text-xs tracking-widest uppercase text-[#C9A96E] mb-3">Follow Us · تابعينا</p>
               <SocialIconsBar size="sm" variant="expanded" showLabels data={social} />
@@ -49,9 +47,9 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-background/70">
               <li><Link href="/account" className="hover:text-background transition-colors">My Account</Link></li>
               <li><Link href="/contact" className="hover:text-background transition-colors">Contact Us</Link></li>
-              <li><a href="#" className="hover:text-background transition-colors">Size Guide</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">Shipping Policy</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">Returns</a></li>
+              <li><Link href="/size-guide" className="hover:text-background transition-colors">Size Guide</Link></li>
+              <li><Link href="/shipping" className="hover:text-background transition-colors">Shipping Policy</Link></li>
+              <li><Link href="/returns" className="hover:text-background transition-colors">Returns</Link></li>
             </ul>
           </div>
         </div>
