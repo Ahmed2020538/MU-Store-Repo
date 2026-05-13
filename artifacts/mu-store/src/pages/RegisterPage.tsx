@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
+import PasswordStrength from "@/components/PasswordStrength";
 
 const schema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -25,7 +26,8 @@ export default function RegisterPage() {
   const [, setLocation] = useLocation();
   const { login } = useAuth();
   const registerMutation = useRegister();
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const passwordValue = watch("password", "");
 
   const onSubmit = (data: FormData) => {
     const { confirmPassword, birthDate, ...payload } = data;
@@ -104,6 +106,7 @@ export default function RegisterPage() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" placeholder="Min 8 characters" {...register("password")} data-testid="input-password" />
               {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+              <PasswordStrength password={passwordValue} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="confirmPassword">Confirm Password</Label>

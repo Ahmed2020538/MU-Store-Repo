@@ -7,9 +7,12 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import { CartProvider } from "@/lib/cart-context";
 import { ThemeProvider } from "@/lib/theme-context";
+import { SearchProvider } from "@/lib/search-context";
+import { NotificationProvider } from "@/lib/notification-context";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
+import SearchModal from "@/components/SearchModal";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
 import HelpWidget from "@/components/HelpWidget";
 import ScrollProgress from "@/components/ScrollProgress";
@@ -42,6 +45,7 @@ function AppLayout() {
       <PremiumCursor />
       <Navbar />
       <CartDrawer />
+      <SearchModal />
       <main className="flex-1">
         <Switch>
           <Route path="/" component={HomePage} />
@@ -90,14 +94,18 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <CartProvider>
-            <TooltipProvider>
-              <LanguageGate>
-                <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-                  <Router />
-                </WouterRouter>
-              </LanguageGate>
-              <Toaster richColors position="top-right" />
-            </TooltipProvider>
+            <NotificationProvider>
+              <SearchProvider>
+                <TooltipProvider>
+                  <LanguageGate>
+                    <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                      <Router />
+                    </WouterRouter>
+                  </LanguageGate>
+                  <Toaster richColors position="top-right" />
+                </TooltipProvider>
+              </SearchProvider>
+            </NotificationProvider>
           </CartProvider>
         </AuthProvider>
       </QueryClientProvider>

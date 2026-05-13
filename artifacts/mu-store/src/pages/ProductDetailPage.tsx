@@ -1,6 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import { Heart, ShoppingBag, Share2, Minus, Plus, Star, ChevronLeft, ChevronRight, Send, Truck, RotateCcw, Shield } from "lucide-react";
+import { addRecentlyViewed } from "@/lib/recently-viewed";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetProduct, useGetProductReviews, useListProducts, useAddToWishlist, useRemoveFromWishlist, useCreateReview, getGetProductQueryKey, getGetProductReviewsQueryKey, getListProductsQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,18 @@ export default function ProductDetailPage() {
   const { data: product, isLoading } = useGetProduct(productId, { query: { enabled: !!productId, queryKey: getGetProductQueryKey(productId) } });
   const { data: reviews } = useGetProductReviews(productId, { query: { enabled: !!productId, queryKey: getGetProductReviewsQueryKey(productId) } });
   const { data: related } = useListProducts({ category: product?.categoryName?.toLowerCase(), limit: 4 }, { query: { enabled: !!product, queryKey: getListProductsQueryKey({ category: product?.categoryName?.toLowerCase(), limit: 4 }) } });
+
+  useEffect(() => {
+    if (!product) return;
+    addRecentlyViewed({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      salePrice: product.salePrice,
+      images: product.images ?? [],
+      categoryName: product.categoryName,
+    });
+  }, [product?.id]);
 
   const { addItem } = useCart();
   const { isLoggedIn } = useAuth();

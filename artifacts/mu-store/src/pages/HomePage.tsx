@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { ArrowRight, Shield, Truck, RotateCcw, Star, Sparkles } from "lucide-react";
+import { ArrowRight, Shield, Truck, RotateCcw, Star, Sparkles, Clock } from "lucide-react";
 import { useListProducts } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import BrandsCarousel from "@/components/BrandsCarousel";
 import TestimonialsSection from "@/components/TestimonialsSection";
+import { getRecentlyViewed, type RecentProduct } from "@/lib/recently-viewed";
 
 const CATEGORIES = [
   { slug: "heels", label: "Heels", labelAr: "كعب عالي", image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600" },
@@ -403,10 +404,87 @@ function PromoBanner() {
   );
 }
 
+function RecentlyViewedSection() {
+  const [items, setItems] = useState<RecentProduct[]>([]);
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+
+  useEffect(() => {
+    const load = () => setItems(getRecentlyViewed());
+    load();
+    window.addEventListener("mu_recently_viewed_updated", load);
+    return () => window.removeEventListener("mu_recently_viewed_updated", load);
+  }, []);
+
+  if (items.length === 0) return null;
+
+  return (
+    <motion.section
+      ref={ref}
+      initial={{ opacity: 0, y: 32 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6 }}
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
+    >
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-[#C9A96E]/10 flex items-center justify-center">
+            <Clock size={16} className="text-[#C9A96E]" />
+          </div>
+          <div>
+            <h2 className="font-serif text-2xl font-bold">Recently Viewed</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Pick up where you left off</p>
+          </div>
+        </div>
+        <Link href="/products" className="text-sm text-[#C9A96E] font-medium hover:underline flex items-center gap-1">
+          See all <ArrowRight size={14} />
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {items.slice(0, 4).map((item, i) => (
+          <motion.div
+            key={item.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: i * 0.07, duration: 0.45 }}
+          >
+            <Link href={`/products/${item.id}`}>
+              <div className="group rounded-2xl border border-border overflow-hidden bg-card hover:border-[#C9A96E]/40 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                <div className="aspect-square overflow-hidden bg-muted relative">
+                  <img
+                    src={item.images?.[0] ?? "/placeholder.jpg"}
+                    alt={item.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="p-3">
+                  <p className="text-sm font-medium truncate leading-tight">{item.name}</p>
+                  {item.categoryName && <p className="text-xs text-muted-foreground mt-0.5">{item.categoryName}</p>}
+                  <div className="mt-1.5 flex items-baseline gap-1.5">
+                    {item.salePrice ? (
+                      <>
+                        <span className="text-sm font-bold text-[#C9A96E]">{item.salePrice.toLocaleString()} EGP</span>
+                        <span className="text-xs text-muted-foreground line-through">{item.price.toLocaleString()}</span>
+                      </>
+                    ) : (
+                      <span className="text-sm font-bold">{item.price.toLocaleString()} EGP</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </motion.div>
+        ))}
+      </div>
+    </motion.section>
+  );
+}
+
 export default function HomePage() {
   return (
     <div>
       <HeroSection />
+      <RecentlyViewedSection />
       <NewArrivalsSection />
       <CategoriesSection />
       <TrustSection />

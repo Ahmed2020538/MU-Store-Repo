@@ -5,14 +5,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
+import { useSearch } from "@/lib/search-context";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
+import NotificationBell from "@/components/NotificationBell";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { isLoggedIn, isAdmin, logout, user } = useAuth();
   const { itemCount, openCart } = useCart();
+  const { setOpen: openSearch } = useSearch();
   const [location, setLocation] = useLocation();
   const { t } = useTranslation();
 
@@ -89,13 +92,15 @@ export default function Navbar() {
             <LanguageSwitcher />
 
             <button
-              onClick={() => setLocation("/products")}
+              onClick={() => openSearch(true)}
               className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50"
               aria-label="Search"
               data-testid="button-search"
             >
               <Search size={18} />
             </button>
+
+            {isLoggedIn && <NotificationBell />}
 
             {isLoggedIn && (
               <Link

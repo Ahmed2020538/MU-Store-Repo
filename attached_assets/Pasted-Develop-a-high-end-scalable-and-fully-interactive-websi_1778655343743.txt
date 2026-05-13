@@ -1,0 +1,100 @@
+Develop a high-end, scalable, and fully interactive website that delivers a premium user experience similar to top-tier platforms (e.g., Apple, Amazon, Zara).
+
+The website should not be a static interface, but a smart, user-centered product with advanced features, strong performance, and a consistent design system.
+
+Core Requirements:
+
+1. Clean Architecture & No Redundancy (Critical):
+- Avoid duplicating components, logic, or features across the system.
+- Ensure every feature is implemented once and reused wherever needed.
+- Use reusable components and modular architecture.
+- Prevent overlapping functionalities between features.
+- Maintain a single source of truth for shared logic and data.
+- Refactor any repeated code into shared modules or services.
+- Ensure consistency across all pages without re-implementing the same UI or logic.
+
+2. Authentication & Security:
+- Implement secure authentication (Login/Register).
+- Support social login (Google, Apple).
+- Add Two-Factor Authentication (2FA).
+- Provide session management (view active devices).
+- Include password strength indicators and validation.
+- Ensure full security best practices (HTTPS, input validation, rate limiting).
+
+3. Personalization & AI:
+- Deliver personalized user experiences based on behavior.
+- Show "Recommended for You" sections.
+- Track and store user preferences (e.g., size, interests).
+- Display recently viewed items.
+- Integrate AI-based recommendation system.
+
+4. Smart Assistant:
+- Implement an AI-powered chatbot or assistant.
+- Help users navigate the platform and find products.
+- Answer FAQs (shipping, returns, policies).
+- Provide smart suggestions and guidance.
+
+5. Advanced Search System:
+- Build a powerful, intelligent search feature.
+- Include auto-suggestions and real-time results.
+- Support typo tolerance and fuzzy search.
+- Add dynamic filters (category, price, size, etc.).
+
+6. Admin Dashboard (Critical):
+- Develop a full-featured admin panel.
+- Allow dynamic control over all website content.
+- Manage users, products, and settings.
+- Include analytics dashboard (user behavior, clicks, conversions).
+- Enable content updates without code changes.
+
+7. Performance Optimization:
+- Ensure fast load times and smooth interactions.
+- Implement lazy loading and image optimization (WebP).
+- Use CDN for asset delivery.
+- Add skeleton loaders and smooth loading states.
+
+8. Design System & UI/UX:
+- Create a consistent and reusable design system.
+- Maintain unified colors, typography, spacing, and components.
+- Use modern UI principles (clean, minimal, premium feel).
+- Include smooth animations and micro-interactions.
+- Ensure mobile-first, fully responsive design.
+
+9. Social Media Integration:
+- Add dynamic "Follow Us" section controlled via admin panel.
+- Allow enabling/disabling platforms and editing links.
+- Maintain consistent layout regardless of number of icons.
+
+10. E-commerce Features (if applicable):
+- Order tracking system with clear status timeline.
+- Notifications (email, in-app).
+- Reviews & ratings system with user-generated content.
+- Verified purchase badges.
+
+11. Notifications System:
+- Implement in-app and email notifications.
+- Provide real-time updates (orders, offers, alerts).
+
+12. Multi-language & Localization:
+- Support multiple languages (e.g., English, Arabic).
+- Enable multi-currency support (e.g., USD, EGP).
+
+13. SEO Optimization:
+- Optimize for search engines (meta tags, structured data).
+- Ensure fast performance and accessibility.
+
+14. Scalability & Architecture:
+- Use modern architecture (e.g., microservices).
+- Backend: Node.js (or similar scalable framework).
+- Frontend: React / Next.js.
+- Database: scalable (PostgreSQL / MongoDB).
+- Caching: Redis.
+- Ensure modular, reusable, and maintainable code.
+
+15. User Experience Enhancements:
+- Add micro-interactions across all components.
+- Provide real-time feedback for all user actions.
+- Ensure intuitive navigation and guided flows.
+
+Final Goal:
+Build a professional, intelligent, and scalable digital product that goes beyond a traditional website — delivering a premium, interactive, highly efficient, and non-redundant user experience.
