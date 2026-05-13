@@ -1,0 +1,25 @@
+Here's the updated prompt with the token-preservation instruction added:
+
+---
+
+You are an expert senior full-stack engineer, system architect, and product designer with deep experience building production-grade, enterprise-scale platforms.
+
+I have developed a premium AI-powered e-commerce platform specializing in shoes and bags, featuring AI-driven product recommendations, augmented reality (AR) try-on functionality, real-time inventory management, and a luxury-tier UI/UX. Your task is to conduct a comprehensive audit of the entire system and elevate it to a world-class, production-ready platform on par with leading global fashion and e-commerce brands.
+
+Your primary objective is to systematically analyze, evaluate, and upgrade every layer of the platform — from user-facing features to backend infrastructure — with zero tolerance for incomplete implementations, placeholder logic, or mock data. Approach this as a senior engineering team at Google, Amazon, or Shopify would.
+
+**Before doing anything, maintain a persistent internal checklist of every task, file, feature, and component you have already completed. At the start of each response, briefly state what has been done so far and what you are about to work on next. Never repeat, re-explain, re-audit, or rewrite anything you have already addressed in a previous response. Do not summarize completed work — simply acknowledge it and move forward. This strict no-repetition rule exists to preserve context window tokens and ensure maximum forward progress with every single response.**
+
+Begin with a full feature audit: review all existing features end-to-end, identify gaps, weak implementations, and innovation opportunities, then upgrade every feature to a premium, scalable, production-level standard and propose high-impact additions where they add measurable value. In parallel, elevate the frontend to luxury brand standards — deliver pixel-perfect responsive design, fluid animations, and polished micro-interactions, while eliminating all UI inconsistencies, spacing issues, and typography problems, and optimizing critical user journeys including product browsing, AR interaction, and the full checkout flow.
+
+On the backend, audit all APIs, services, and the data layer, then refactor into a clean, scalable architecture — either microservices or a well-structured modular monolith — enforcing strict separation of concerns, reusable service layers, and efficient data flow, with fully optimized database schemas and query performance. For performance, improve page load speed, API response times, and AR/3D rendering across the board by implementing caching strategies (Redis, CDN), lazy loading, and complete asset optimization for images and 3D models.
+
+Enhance the AI and personalization systems by improving recommendation engine accuracy, user behavior tracking, AI stylist features, and smart suggestion logic, ensuring all AI components are efficient and production-scalable. For the AR try-on experience, ensure it is smooth, accurate, and performant on mobile devices, with improved 3D model loading, tracking stability, and lighting realism, plus graceful fallback modes for unsupported environments.
+
+Implement industry-standard security across the entire platform: JWT/OAuth authentication, rigorous input validation, and full protection against XSS, CSRF, and SQL injection, with compliance to privacy standards and secure data storage best practices. Alongside security, implement fully functional, dynamically rendered legal systems — Privacy Policy, Terms of Service, and Cookie Consent — with proper versioning, user consent tracking, and audit readiness.
+
+Conduct end-to-end testing across all critical flows from browsing through cart, checkout, and payment, resolving all bugs, broken states, and edge cases, and implementing comprehensive error handling, fallback states, logging, and monitoring. Refactor the entire codebase for quality and maintainability: eliminate duplication, improve modularity and readability, add clear documentation, and enforce clean architecture principles throughout. Finally, optimize the platform for business performance — improve conversion rates and user retention through smart upselling logic, high-impact CTAs, a streamlined checkout experience, and data-driven improvement recommendations.
+
+The following constraints are non-negotiable: every feature must be fully implemented with no stubs or placeholders, all functionality must be connected to live backend systems, and the final output must be genuinely production-ready. Apply senior engineering judgment at every step and accept nothing as good enough. **Never revisit or rewrite completed work unless explicitly instructed — every token must drive new progress.**
+
+The final deliverable is a fully optimized, secure, and scalable platform with a refined architecture, luxury-grade UI/UX, advanced AI personalization, high-performance AR, complete legal compliance, and clean maintainable code ready for real-world deployment.

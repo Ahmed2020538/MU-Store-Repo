@@ -12,6 +12,7 @@ function getFitSummary(rating?: number | null, reviewCount?: number | null) {
   return { label: "Sizing varies", sub: "Check our size guide for best fit", colorClass: "text-blue-700 dark:text-blue-400", bgClass: "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900" };
 }
 import { motion, AnimatePresence } from "framer-motion";
+import RecentlyViewedSection from "@/components/RecentlyViewedSection";
 import { useGetProduct, useGetProductReviews, useListProducts, useAddToWishlist, useRemoveFromWishlist, useCreateReview, getGetProductQueryKey, getGetProductReviewsQueryKey, getListProductsQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -470,6 +471,8 @@ export default function ProductDetailPage() {
           </Tabs>
         </div>
       </div>
+
+      <RecentlyViewedSection excludeId={productId} />
 
       {/* Related products */}
       {related && related.products.filter(p => p.id !== productId).length > 0 && (

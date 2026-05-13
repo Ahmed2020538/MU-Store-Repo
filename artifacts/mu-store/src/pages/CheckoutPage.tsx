@@ -90,7 +90,6 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = () => {
-    if (!isLoggedIn) { toast.error("Please sign in to place an order"); return; }
     if (!deliveryData) return;
     createOrder.mutate({
       data: {

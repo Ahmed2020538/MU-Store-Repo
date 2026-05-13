@@ -36,10 +36,23 @@ import ProfileCompletePage from "@/pages/ProfileCompletePage";
 import AuthCallbackPage from "@/pages/AuthCallbackPage";
 import LanguageSelectPage from "@/pages/LanguageSelectPage";
 import CookieBanner from "@/components/CookieBanner";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1, staleTime: 30000 } },
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      onError: (err: unknown) => {
+        const msg = err instanceof Error ? err.message : "An error occurred";
+        console.error("[mutation error]", msg);
+      },
+    },
+  },
 });
 
 function AppLayout() {
@@ -98,26 +111,28 @@ function LanguageGate({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <CartProvider>
-            <NotificationProvider>
-              <SearchProvider>
-                <TooltipProvider>
-                  <LanguageGate>
-                    <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-                      <Router />
-                    </WouterRouter>
-                  </LanguageGate>
-                  <Toaster richColors position="top-right" />
-                </TooltipProvider>
-              </SearchProvider>
-            </NotificationProvider>
-          </CartProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <CartProvider>
+              <NotificationProvider>
+                <SearchProvider>
+                  <TooltipProvider>
+                    <LanguageGate>
+                      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                        <Router />
+                      </WouterRouter>
+                    </LanguageGate>
+                    <Toaster richColors position="top-right" />
+                  </TooltipProvider>
+                </SearchProvider>
+              </NotificationProvider>
+            </CartProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

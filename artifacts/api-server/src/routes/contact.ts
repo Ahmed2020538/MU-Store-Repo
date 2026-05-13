@@ -11,11 +11,29 @@ function genRef() {
   return "MU-" + Date.now().toString(36).toUpperCase();
 }
 
+function sanitize(val: unknown, max: number): string | null {
+  if (typeof val !== "string") return null;
+  const trimmed = val.trim().slice(0, max);
+  return trimmed.length ? trimmed : null;
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) && email.length <= 254;
+}
+
 // Public: submit contact form
 router.post("/", async (req, res) => {
-  const { name, email, phone, subject, message } = req.body;
+  const name = sanitize(req.body?.name, 100);
+  const email = sanitize(req.body?.email, 254);
+  const phone = sanitize(req.body?.phone, 20);
+  const subject = sanitize(req.body?.subject, 200);
+  const message = sanitize(req.body?.message, 2000);
+
   if (!name || !email || !subject || !message) {
     res.status(400).json({ error: "name, email, subject, message required" }); return;
+  }
+  if (!isValidEmail(email)) {
+    res.status(400).json({ error: "Invalid email address" }); return;
   }
   const trackingRef = genRef();
   const [saved] = await db.insert(contactMessagesTable).values({

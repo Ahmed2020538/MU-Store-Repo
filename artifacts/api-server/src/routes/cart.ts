@@ -5,16 +5,30 @@ import { eq } from "drizzle-orm";
 
 const router = Router();
 
-// In-memory session cart (keyed by session or user). For simplicity use
-// request-level cart stored in a Map keyed by a session cookie or user token.
-// A real implementation would persist this to DB.
+// ── Input guards ──────────────────────────────────────────────────────────────
+function isValidCartAdd(body: any): body is { productId: number; quantity: number; size: string; color: string } {
+  return (
+    Number.isInteger(body?.productId) && body.productId > 0 &&
+    Number.isInteger(body?.quantity) && body.quantity >= 1 && body.quantity <= 20 &&
+    typeof body?.size === "string" && body.size.length >= 1 && body.size.length <= 20 &&
+    typeof body?.color === "string" && body.color.length >= 1 && body.color.length <= 50
+  );
+}
+
+function isValidCartUpdate(body: any): boolean {
+  return (
+    Number.isInteger(body?.quantity) && body.quantity >= 0 && body.quantity <= 20
+  );
+}
+
+// ── In-memory session cart keyed by JWT or anonymous session ID ───────────────
 const carts = new Map<string, Array<{ productId: number; quantity: number; size: string; color: string }>>();
 
 function getCartKey(req: any): string {
   const auth = req.headers.authorization;
   if (auth?.startsWith("Bearer ")) return `user:${auth.slice(7)}`;
   let sid = req.cookies?.["cart_sid"];
-  if (!sid) { sid = Math.random().toString(36).slice(2); }
+  if (!sid) sid = Math.random().toString(36).slice(2);
   return `sid:${sid}`;
 }
 
@@ -66,12 +80,13 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  const key = getCartKey(req);
+  if (!isValidCartAdd(req.body)) { res.status(400).json({ error: "Invalid cart item" }); return; }
   const { productId, quantity, size, color } = req.body;
-  let items = carts.get(key) ?? [];
+  const key = getCartKey(req);
+  const items = carts.get(key) ?? [];
   const existing = items.find(i => i.productId === productId && i.size === size && i.color === color);
   if (existing) {
-    existing.quantity += quantity;
+    existing.quantity = Math.min(20, existing.quantity + quantity);
   } else {
     items.push({ productId, quantity, size, color });
   }
@@ -80,26 +95,38 @@ router.post("/", async (req, res) => {
 });
 
 router.put("/:productId", async (req, res) => {
-  const key = getCartKey(req);
   const productId = parseInt(req.params.productId);
-  const { quantity, size, color } = req.body;
-  let items = carts.get(key) ?? [];
-  const item = items.find(i => i.productId === productId);
-  if (item) {
-    item.quantity = quantity;
-    if (size) item.size = size;
-    if (color) item.color = color;
+  if (isNaN(productId)) { res.status(400).json({ error: "Invalid product ID" }); return; }
+  if (!isValidCartUpdate(req.body)) { res.status(400).json({ error: "Invalid update data" }); return; }
+
+  const key = getCartKey(req);
+  const items = carts.get(key) ?? [];
+  if (req.body.quantity === 0) {
+    carts.set(key, items.filter(i => i.productId !== productId));
+  } else {
+    const item = items.find(i => i.productId === productId);
+    if (item) {
+      item.quantity = req.body.quantity;
+      if (typeof req.body.size === "string") item.size = req.body.size;
+      if (typeof req.body.color === "string") item.color = req.body.color;
+    }
+    carts.set(key, items);
   }
-  carts.set(key, items);
-  res.json(await buildCartResponse(items));
+  res.json(await buildCartResponse(carts.get(key) ?? []));
 });
 
 router.delete("/:productId", async (req, res) => {
-  const key = getCartKey(req);
   const productId = parseInt(req.params.productId);
-  let items = (carts.get(key) ?? []).filter(i => i.productId !== productId);
-  carts.set(key, items);
-  res.json(await buildCartResponse(items));
+  if (isNaN(productId)) { res.status(400).json({ error: "Invalid product ID" }); return; }
+  const key = getCartKey(req);
+  carts.set(key, (carts.get(key) ?? []).filter(i => i.productId !== productId));
+  res.json(await buildCartResponse(carts.get(key) ?? []));
+});
+
+router.delete("/", async (req, res) => {
+  const key = getCartKey(req);
+  carts.delete(key);
+  res.json({ items: [], subtotal: 0, shipping: 0, discount: 0, total: 0, promoCode: null });
 });
 
 export default router;

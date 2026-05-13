@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { ordersTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
-import { requireAuth, requireAdmin } from "../lib/auth.js";
+import { ordersTable, productsTable } from "@workspace/db";
+import { eq, desc, sql } from "drizzle-orm";
+import { optionalAuth, requireAuth, requireAdmin } from "../lib/auth.js";
 import { CreateOrderBody, AdminUpdateOrderStatusBody } from "@workspace/api-zod";
 import { sendMail } from "../lib/mailer.js";
 import { orderConfirmationHtml } from "../lib/email-templates.js";
@@ -35,24 +35,34 @@ function formatOrder(o: any) {
   };
 }
 
+// Auth-required order history
 router.get("/", requireAuth, async (req, res) => {
   const userId = (req as any).user.id;
-  const orders = await db.select().from(ordersTable).where(eq(ordersTable.userId, userId)).orderBy(desc(ordersTable.createdAt));
+  const orders = await db.select().from(ordersTable)
+    .where(eq(ordersTable.userId, userId))
+    .orderBy(desc(ordersTable.createdAt));
   res.json(orders.map(formatOrder));
 });
 
-router.post("/", requireAuth, async (req, res) => {
-  const userId = (req as any).user.id;
+// Guest + authenticated checkout — optionalAuth extracts user if token present
+router.post("/", optionalAuth, async (req, res) => {
+  const userId: number | null = (req as any).user?.id ?? null;
   const result = CreateOrderBody.safeParse(req.body);
   if (!result.success) { res.status(400).json({ error: "Invalid input" }); return; }
   const data = result.data;
+
+  // Validate cart is not empty
+  if (!data.items || data.items.length === 0) {
+    res.status(400).json({ error: "Cart is empty" }); return;
+  }
+
   const isCod = data.paymentMethod === "cod";
   const codDownPayment = isCod ? ((data as any).codDownPayment ?? 50) : 0;
   const codDownPaymentStatus = isCod ? ((data as any).codDownPaymentStatus ?? "pending") : "paid";
   const amountDueOnDelivery = isCod ? Math.max(0, (data.total ?? 0) - codDownPayment) : 0;
 
   const [order] = await db.insert(ordersTable).values({
-    userId,
+    userId: userId as any,
     status: "pending",
     paymentMethod: data.paymentMethod,
     paymentStatus: isCod ? "partial" : "pending",
@@ -73,9 +83,38 @@ router.post("/", requireAuth, async (req, res) => {
     amountDueOnDelivery,
   }).returning();
 
+  // ── Stock decrement (best-effort, non-blocking) ────────────────────────────
+  setImmediate(async () => {
+    try {
+      for (const item of (data.items ?? []) as any[]) {
+        if (!item.productId || !item.quantity) continue;
+        await db.update(productsTable)
+          .set({
+            stock: sql`GREATEST(0, ${productsTable.stock} - ${item.quantity})`,
+            soldCount: sql`COALESCE(${productsTable.soldCount}, 0) + ${item.quantity}`,
+          })
+          .where(eq(productsTable.id, item.productId));
+      }
+    } catch { /* stock update is non-critical */ }
+  });
+
+  // ── Loyalty points for authenticated users ────────────────────────────────
+  if (userId) {
+    setImmediate(async () => {
+      try {
+        const pointsEarned = Math.floor((data.total ?? 0) / 10);
+        if (pointsEarned > 0) {
+          await db.execute(
+            sql`UPDATE users SET loyalty_points = COALESCE(loyalty_points, 0) + ${pointsEarned} WHERE id = ${userId}`
+          );
+        }
+      } catch { /* non-critical */ }
+    });
+  }
+
   res.status(201).json(formatOrder(order));
 
-  // Send confirmation email (non-blocking)
+  // ── Confirmation email (non-blocking) ─────────────────────────────────────
   if (order.email) {
     sendMail({
       to: order.email,
@@ -102,12 +141,19 @@ router.post("/", requireAuth, async (req, res) => {
   }
 });
 
-router.get("/:id", requireAuth, async (req, res) => {
+router.get("/:id", optionalAuth, async (req, res) => {
   const id = parseInt(String(req.params.id));
-  const userId = (req as any).user.id;
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid order ID" }); return; }
+  const userId: number | null = (req as any).user?.id ?? null;
+  const role: string = (req as any).user?.role ?? "guest";
+
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id)).limit(1);
   if (!order) { res.status(404).json({ error: "Not found" }); return; }
-  if (order.userId !== userId && (req as any).user.role !== "admin") {
+
+  // Allow: admin, the order owner, or guest orders (userId null)
+  const isOwner = userId !== null && order.userId === userId;
+  const isGuest = order.userId === null;
+  if (!isOwner && !isGuest && role !== "admin") {
     res.status(403).json({ error: "Forbidden" }); return;
   }
   res.json(formatOrder(order));
@@ -121,6 +167,7 @@ router.get("/admin/all", requireAdmin, async (_req, res) => {
 
 router.put("/admin/:id/status", requireAdmin, async (req, res) => {
   const id = parseInt(String(req.params.id));
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid order ID" }); return; }
   const result = AdminUpdateOrderStatusBody.safeParse(req.body);
   if (!result.success) { res.status(400).json({ error: "Invalid input" }); return; }
   const [order] = await db.update(ordersTable).set({ status: result.data.status }).where(eq(ordersTable.id, id)).returning();

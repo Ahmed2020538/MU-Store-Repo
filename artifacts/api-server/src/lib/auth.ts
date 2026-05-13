@@ -3,6 +3,9 @@ import bcrypt from "bcryptjs";
 import type { Request, Response, NextFunction } from "express";
 
 const JWT_SECRET = process.env["JWT_SECRET"] ?? "mu-store-secret-2025";
+if (!process.env["JWT_SECRET"]) {
+  console.warn("[auth] JWT_SECRET not set — using insecure default. Set this in production.");
+}
 
 export function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
@@ -37,6 +40,16 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     return;
   }
   (req as any).user = payload;
+  next();
+}
+
+// Extracts user from token if present, but does NOT reject unauthenticated requests
+export function optionalAuth(req: Request, _res: Response, next: NextFunction): void {
+  const header = req.headers.authorization;
+  if (header?.startsWith("Bearer ")) {
+    const payload = verifyToken(header.slice(7));
+    if (payload) (req as any).user = payload;
+  }
   next();
 }
 

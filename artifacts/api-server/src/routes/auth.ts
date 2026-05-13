@@ -59,33 +59,15 @@ router.get("/me", requireAuth, async (req, res) => {
   });
 });
 
-// ── Social Status Diagnostic ──────────────────────────────────────────────────
-router.get("/social-status", (_req, res) => {
+// ── Social Provider Status (admin-only) ───────────────────────────────────────
+router.get("/social-status", requireAuth, (req, res) => {
+  if ((req as any).user?.role !== "admin") { res.status(403).json({ error: "Forbidden" }); return; }
   const check = (...keys: string[]) => keys.every(k => !!process.env[k]);
-  const missing = (...keys: string[]) => keys.filter(k => !process.env[k]);
-
   res.json({
-    google: {
-      configured: check("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"),
-      missing: missing("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"),
-    },
-    facebook: {
-      configured: check("FACEBOOK_APP_ID", "FACEBOOK_APP_SECRET"),
-      missing: missing("FACEBOOK_APP_ID", "FACEBOOK_APP_SECRET"),
-    },
-    twitter: {
-      configured: check("TWITTER_API_KEY", "TWITTER_API_SECRET"),
-      missing: missing("TWITTER_API_KEY", "TWITTER_API_SECRET"),
-    },
-    instagram: {
-      configured: check("FACEBOOK_APP_ID", "FACEBOOK_APP_SECRET"),
-      note: "Instagram uses Facebook app credentials with Instagram Graph API",
-      missing: missing("FACEBOOK_APP_ID", "FACEBOOK_APP_SECRET"),
-    },
-    apple: {
-      configured: check("APPLE_CLIENT_ID", "APPLE_TEAM_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY"),
-      missing: missing("APPLE_CLIENT_ID", "APPLE_TEAM_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY"),
-    },
+    google: { configured: check("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") },
+    facebook: { configured: check("FACEBOOK_APP_ID", "FACEBOOK_APP_SECRET") },
+    twitter: { configured: check("TWITTER_API_KEY", "TWITTER_API_SECRET") },
+    apple: { configured: check("APPLE_CLIENT_ID", "APPLE_TEAM_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY") },
   });
 });
 
