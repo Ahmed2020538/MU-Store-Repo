@@ -30,6 +30,8 @@ export interface Product {
   stock: number;
   /** @nullable */
   material?: string | null;
+  /** @nullable */
+  modelUrl?: string | null;
   isNew?: boolean;
   isSale?: boolean;
   isFeatured?: boolean;
@@ -60,6 +62,7 @@ export interface ProductInput {
   colors?: string[];
   stock: number;
   material?: string;
+  modelUrl?: string;
   isNew?: boolean;
   isSale?: boolean;
   isFeatured?: boolean;

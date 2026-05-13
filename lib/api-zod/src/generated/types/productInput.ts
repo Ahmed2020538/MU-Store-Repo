@@ -19,6 +19,7 @@ export interface ProductInput {
   colors?: string[];
   stock: number;
   material?: string;
+  modelUrl?: string;
   isNew?: boolean;
   isSale?: boolean;
   isFeatured?: boolean;

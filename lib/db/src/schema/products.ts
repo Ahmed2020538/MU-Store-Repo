@@ -26,6 +26,7 @@ export const productsTable = pgTable("products", {
   colors: jsonb("colors").$type<string[]>().default([]),
   stock: integer("stock").notNull().default(0),
   material: text("material"),
+  modelUrl: text("model_url"),
   isNew: boolean("is_new").default(true),
   isSale: boolean("is_sale").default(false),
   isFeatured: boolean("is_featured").default(false),

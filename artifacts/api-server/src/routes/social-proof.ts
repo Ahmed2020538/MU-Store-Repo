@@ -12,7 +12,7 @@ router.get("/:id/social-proof", async (req, res) => {
     const recentResult = await db.execute(sql`
       SELECT COUNT(DISTINCT o.id)::int AS count
       FROM orders o,
-           jsonb_array_elements(o.items) AS item
+           jsonb_array_elements(COALESCE(o.items, '[]'::jsonb)) AS item
       WHERE o.created_at > NOW() - INTERVAL '24 hours'
         AND (item->>'productId')::int = ${productId}
     `);
@@ -20,7 +20,7 @@ router.get("/:id/social-proof", async (req, res) => {
     const totalResult = await db.execute(sql`
       SELECT COUNT(DISTINCT o.id)::int AS count
       FROM orders o,
-           jsonb_array_elements(o.items) AS item
+           jsonb_array_elements(COALESCE(o.items, '[]'::jsonb)) AS item
       WHERE (item->>'productId')::int = ${productId}
     `);
 

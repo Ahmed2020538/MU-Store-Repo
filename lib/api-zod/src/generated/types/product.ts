@@ -27,6 +27,8 @@ export interface Product {
   stock: number;
   /** @nullable */
   material?: string | null;
+  /** @nullable */
+  modelUrl?: string | null;
   isNew?: boolean;
   isSale?: boolean;
   isFeatured?: boolean;

@@ -554,6 +554,7 @@ components:
         colors: { type: array, items: { type: string } }
         stock: { type: integer }
         material: { type: ["string", "null"] }
+        modelUrl: { type: ["string", "null"] }
         isNew: { type: boolean }
         isSale: { type: boolean }
         isFeatured: { type: boolean }
@@ -590,6 +591,7 @@ components:
         colors: { type: array, items: { type: string } }
         stock: { type: integer }
         material: { type: string }
+        modelUrl: { type: string }
         isNew: { type: boolean }
         isSale: { type: boolean }
         isFeatured: { type: boolean }

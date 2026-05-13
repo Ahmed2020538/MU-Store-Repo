@@ -22,6 +22,7 @@ const schema = z.object({
   discountLabel: z.string().optional(),
   stock: z.coerce.number().int().min(0),
   material: z.string().optional(),
+  modelUrl: z.string().url().optional().or(z.literal("")),
   isSale: z.boolean().default(false),
   isNew: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
@@ -57,6 +58,7 @@ export default function AdminProductModal({ product, categories, onClose, onSave
       discountLabel: product?.discountLabel ?? "",
       stock: product?.stock ?? 0,
       material: product?.material ?? "",
+      modelUrl: product?.modelUrl ?? "",
       isSale: product?.isSale ?? false,
       isNew: product?.isNew ?? true,
       isFeatured: product?.isFeatured ?? false,
@@ -106,6 +108,7 @@ export default function AdminProductModal({ product, categories, onClose, onSave
       salePrice: data.isSale && data.salePrice ? Number(data.salePrice) : null,
       discountLabel: data.discountLabel || null, categoryId: cat.id,
       sizes: selectedSizes, colors, stock: data.stock, material: data.material || null,
+      modelUrl: data.modelUrl || null,
       isSale: data.isSale, isNew: data.isNew, isFeatured: data.isFeatured, isHidden: data.isHidden,
       images,
     };
@@ -231,6 +234,23 @@ export default function AdminProductModal({ product, categories, onClose, onSave
             </div>
           )}
           {!isEdit && <p className="text-xs text-muted-foreground">Images can be uploaded after creating the product.</p>}
+
+          {/* 3D Model URL */}
+          <div className="space-y-1.5">
+            <Label className="flex items-center gap-1.5">
+              3D Model URL <span className="text-[10px] bg-[#C9A96E]/20 text-[#C9A96E] px-1.5 py-0.5 rounded-full font-medium">AR / 3D Viewer</span>
+            </Label>
+            <Input
+              {...register("modelUrl")}
+              placeholder="https://example.com/model.glb (GLB/GLTF file URL)"
+              data-testid="input-model-url"
+            />
+            {errors.modelUrl && <p className="text-xs text-destructive">Must be a valid URL ending in .glb or .gltf</p>}
+            <p className="text-[11px] text-muted-foreground">
+              Paste a publicly accessible GLB/GLTF 3D model URL. This enables the interactive 3D viewer and AR try-on on the product page.
+            </p>
+          </div>
+
           <div className="flex gap-3 pt-2">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1" data-testid="button-cancel-modal">Cancel</Button>
             <Button type="submit" className="flex-1 bg-[#C9A96E] text-foreground hover:opacity-90 font-semibold" disabled={saving} data-testid="button-save-product">

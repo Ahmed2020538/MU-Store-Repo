@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, Link } from "wouter";
-import { Heart, ShoppingBag, Share2, Minus, Plus, Star, ChevronLeft, ChevronRight, Send, Truck, RotateCcw, Shield, ZoomIn, Ruler } from "lucide-react";
+import { Heart, ShoppingBag, Share2, Minus, Plus, Star, ChevronLeft, ChevronRight, Send, Truck, RotateCcw, Shield, ZoomIn, Ruler, Box } from "lucide-react";
+import AR3DViewer from "@/components/AR3DViewer";
 import { addRecentlyViewed } from "@/lib/recently-viewed";
 import { getDeliveryWindow } from "@/lib/delivery-estimate";
 
@@ -51,6 +52,7 @@ export default function ProductDetailPage() {
   const removeFromWishlist = useRemoveFromWishlist();
 
   const [imgIdx, setImgIdx] = useState(0);
+  const [viewMode, setViewMode] = useState<"photos" | "3d">("photos");
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -138,6 +140,28 @@ export default function ProductDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-14">
         {/* Gallery */}
         <div className="space-y-3">
+          {/* View mode toggle — only shown when product has a 3D model */}
+          {product.modelUrl && (
+            <div className="flex gap-2 p-1 bg-muted rounded-xl w-fit">
+              <button
+                onClick={() => setViewMode("photos")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "photos" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <ZoomIn size={12} /> Photos
+              </button>
+              <button
+                onClick={() => setViewMode("3d")}
+                data-testid="button-view-3d"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "3d" ? "bg-background shadow text-[#C9A96E]" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <Box size={12} /> 3D / AR
+              </button>
+            </div>
+          )}
+
+          {viewMode === "3d" && product.modelUrl ? (
+            <AR3DViewer modelUrl={product.modelUrl} productName={product.name} posterUrl={images[0]} />
+          ) : (<>
           <div
             ref={imgRef}
             className={`aspect-square rounded-3xl overflow-hidden bg-muted relative group shadow-lg select-none ${zoomed ? "cursor-zoom-out" : "cursor-zoom-in"}`}
@@ -205,6 +229,7 @@ export default function ProductDetailPage() {
               ))}
             </div>
           )}
+          </>)}
         </div>
 
         {/* Info */}
