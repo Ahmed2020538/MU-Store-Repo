@@ -13,6 +13,10 @@ import "./lib/passport.js";
 
 const app: Express = express();
 
+// Trust Replit's reverse proxy so X-Forwarded-* headers are correct
+// (required for passport's `proxy: true` option and accurate req.ip)
+app.set("trust proxy", 1);
+
 app.use(pinoHttp({
   logger,
   serializers: {

@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import passport from "passport";
 import { db } from "@workspace/db";
 import { usersTable } from "@workspace/db";
@@ -8,6 +8,27 @@ import { RegisterBody, LoginBody } from "@workspace/api-zod";
 
 const router = Router();
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getStoreUrl(req: Request): string {
+  if (process.env["STORE_URL"]) return process.env["STORE_URL"];
+  const proto = (req.headers["x-forwarded-proto"] as string | undefined)?.split(",")[0]?.trim() ?? "https";
+  const host = (req.headers["x-forwarded-host"] as string | undefined) ?? req.headers.host ?? "";
+  return host ? `${proto}://${host}` : "";
+}
+
+function redirectWithToken(req: Request, res: Response) {
+  const user = req.user as any;
+  if (!user) { res.redirect(`${getStoreUrl(req)}/login?error=oauth_failed`); return; }
+  const token = signToken({ id: user.id, role: user.role });
+  const userJson = encodeURIComponent(JSON.stringify({
+    id: user.id, email: user.email, name: user.name, role: user.role,
+    loyaltyPoints: user.loyaltyPoints ?? 0, avatarUrl: user.avatarUrl ?? null,
+    isProfileComplete: user.isProfileComplete,
+  }));
+  res.redirect(`${getStoreUrl(req)}/auth-callback?token=${token}&user=${userJson}`);
+}
+
+// ── Email / Password Auth ─────────────────────────────────────────────────────
 router.post("/register", async (req, res) => {
   const result = RegisterBody.safeParse(req.body);
   if (!result.success) { res.status(400).json({ error: "Invalid input" }); return; }
@@ -35,7 +56,10 @@ router.post("/login", async (req, res) => {
   const { email, password } = result.data;
   const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
   if (!user) { res.status(401).json({ error: "Invalid credentials" }); return; }
-  if (!user.passwordHash) { res.status(401).json({ error: "This account uses social login. Please sign in with Google." }); return; }
+  if (!user.passwordHash) {
+    const provider = user.authProvider ?? "social";
+    res.status(401).json({ error: `This account uses ${provider} sign-in. Please use the "${provider.charAt(0).toUpperCase() + provider.slice(1)}" button to sign in.` }); return;
+  }
   const valid = await comparePassword(password, user.passwordHash);
   if (!valid) { res.status(401).json({ error: "Invalid credentials" }); return; }
   const token = signToken({ id: user.id, role: user.role, permissions: user.permissions ?? "{}" });
@@ -71,97 +95,69 @@ router.get("/social-status", requireAuth, (req, res) => {
   });
 });
 
-// ── Google OAuth ──────────────────────────────────────────────────────────────
+// ── Google ────────────────────────────────────────────────────────────────────
 router.get("/google", (req, res, next) => {
-  if (!process.env["GOOGLE_CLIENT_ID"]) {
-    res.redirect(`${process.env["STORE_URL"] ?? ""}/login?error=google_not_configured`); return;
-  }
+  if (!process.env["GOOGLE_CLIENT_ID"]) { res.redirect(`${getStoreUrl(req)}/login?error=google_not_configured`); return; }
   passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
 });
-
 router.get("/google/callback",
   (req, res, next) => {
-    if (!process.env["GOOGLE_CLIENT_ID"]) { res.redirect("/login?error=google_not_configured"); return; }
-    passport.authenticate("google", { failureRedirect: "/login?error=oauth_failed" })(req, res, next);
+    if (!process.env["GOOGLE_CLIENT_ID"]) { res.redirect(`${getStoreUrl(req)}/login?error=google_not_configured`); return; }
+    passport.authenticate("google", { failureRedirect: `${getStoreUrl(req)}/login?error=oauth_failed` })(req, res, next);
   },
-  (req, res) => {
-    const user = req.user as any;
-    if (!user) { res.redirect("/login?error=oauth_failed"); return; }
-    const token = signToken({ id: user.id, role: user.role });
-    const userJson = encodeURIComponent(JSON.stringify({
-      id: user.id, email: user.email, name: user.name, role: user.role,
-      loyaltyPoints: user.loyaltyPoints ?? 0, avatarUrl: user.avatarUrl,
-      isProfileComplete: user.isProfileComplete,
-    }));
-    const base = process.env["STORE_URL"] ?? "";
-    res.redirect(`${base}/auth-callback?token=${token}&user=${userJson}`);
-  }
+  redirectWithToken,
 );
 
-// ── Facebook OAuth ────────────────────────────────────────────────────────────
+// ── Facebook ──────────────────────────────────────────────────────────────────
 router.get("/facebook", (req, res, next) => {
-  if (!process.env["FACEBOOK_APP_ID"]) {
-    res.redirect(`${process.env["STORE_URL"] ?? ""}/login?error=facebook_not_configured`); return;
-  }
+  if (!process.env["FACEBOOK_APP_ID"]) { res.redirect(`${getStoreUrl(req)}/login?error=facebook_not_configured`); return; }
   passport.authenticate("facebook", { scope: ["email", "public_profile"] })(req, res, next);
 });
-
 router.get("/facebook/callback",
   (req, res, next) => {
-    if (!process.env["FACEBOOK_APP_ID"]) { res.redirect("/login?error=facebook_not_configured"); return; }
-    passport.authenticate("facebook", { failureRedirect: "/login?error=oauth_failed" })(req, res, next);
+    if (!process.env["FACEBOOK_APP_ID"]) { res.redirect(`${getStoreUrl(req)}/login?error=facebook_not_configured`); return; }
+    passport.authenticate("facebook", { failureRedirect: `${getStoreUrl(req)}/login?error=oauth_failed` })(req, res, next);
   },
-  (req, res) => {
-    const user = req.user as any;
-    if (!user) { res.redirect("/login?error=oauth_failed"); return; }
-    const token = signToken({ id: user.id, role: user.role });
-    const userJson = encodeURIComponent(JSON.stringify({ id: user.id, email: user.email, name: user.name, role: user.role, loyaltyPoints: user.loyaltyPoints ?? 0, isProfileComplete: user.isProfileComplete }));
-    res.redirect(`${process.env["STORE_URL"] ?? ""}/auth-callback?token=${token}&user=${userJson}`);
-  }
+  redirectWithToken,
 );
 
-// ── Twitter / X OAuth ─────────────────────────────────────────────────────────
+// ── Instagram (routes through Meta/Facebook OAuth) ────────────────────────────
+router.get("/instagram", (req, res, next) => {
+  if (!process.env["FACEBOOK_APP_ID"]) { res.redirect(`${getStoreUrl(req)}/login?error=instagram_not_configured`); return; }
+  passport.authenticate("facebook", { scope: ["email", "public_profile"] })(req, res, next);
+});
+router.get("/instagram/callback",
+  (req, res, next) => {
+    if (!process.env["FACEBOOK_APP_ID"]) { res.redirect(`${getStoreUrl(req)}/login?error=instagram_not_configured`); return; }
+    passport.authenticate("facebook", { failureRedirect: `${getStoreUrl(req)}/login?error=oauth_failed` })(req, res, next);
+  },
+  redirectWithToken,
+);
+
+// ── Twitter / X ───────────────────────────────────────────────────────────────
 router.get("/twitter", (req, res, next) => {
-  if (!process.env["TWITTER_API_KEY"]) {
-    res.redirect(`${process.env["STORE_URL"] ?? ""}/login?error=twitter_not_configured`); return;
-  }
+  if (!process.env["TWITTER_API_KEY"]) { res.redirect(`${getStoreUrl(req)}/login?error=twitter_not_configured`); return; }
   passport.authenticate("twitter")(req, res, next);
 });
-
 router.get("/twitter/callback",
   (req, res, next) => {
-    if (!process.env["TWITTER_API_KEY"]) { res.redirect("/login?error=twitter_not_configured"); return; }
-    passport.authenticate("twitter", { failureRedirect: "/login?error=oauth_failed" })(req, res, next);
+    if (!process.env["TWITTER_API_KEY"]) { res.redirect(`${getStoreUrl(req)}/login?error=twitter_not_configured`); return; }
+    passport.authenticate("twitter", { failureRedirect: `${getStoreUrl(req)}/login?error=oauth_failed` })(req, res, next);
   },
-  (req, res) => {
-    const user = req.user as any;
-    if (!user) { res.redirect("/login?error=oauth_failed"); return; }
-    const token = signToken({ id: user.id, role: user.role });
-    const userJson = encodeURIComponent(JSON.stringify({ id: user.id, email: user.email, name: user.name, role: user.role, loyaltyPoints: user.loyaltyPoints ?? 0, isProfileComplete: user.isProfileComplete }));
-    res.redirect(`${process.env["STORE_URL"] ?? ""}/auth-callback?token=${token}&user=${userJson}`);
-  }
+  redirectWithToken,
 );
 
-// ── Apple OAuth ───────────────────────────────────────────────────────────────
+// ── Apple ─────────────────────────────────────────────────────────────────────
 router.get("/apple", (req, res, next) => {
-  if (!process.env["APPLE_CLIENT_ID"]) {
-    res.redirect(`${process.env["STORE_URL"] ?? ""}/login?error=apple_not_configured`); return;
-  }
+  if (!process.env["APPLE_CLIENT_ID"]) { res.redirect(`${getStoreUrl(req)}/login?error=apple_not_configured`); return; }
   passport.authenticate("apple")(req, res, next);
 });
-
 router.post("/apple/callback",
   (req, res, next) => {
-    if (!process.env["APPLE_CLIENT_ID"]) { res.redirect("/login?error=apple_not_configured"); return; }
-    passport.authenticate("apple", { failureRedirect: "/login?error=oauth_failed" })(req, res, next);
+    if (!process.env["APPLE_CLIENT_ID"]) { res.redirect(`${getStoreUrl(req)}/login?error=apple_not_configured`); return; }
+    passport.authenticate("apple", { failureRedirect: `${getStoreUrl(req)}/login?error=oauth_failed` })(req, res, next);
   },
-  (req, res) => {
-    const user = req.user as any;
-    if (!user) { res.redirect("/login?error=oauth_failed"); return; }
-    const token = signToken({ id: user.id, role: user.role });
-    const userJson = encodeURIComponent(JSON.stringify({ id: user.id, email: user.email, name: user.name, role: user.role, loyaltyPoints: user.loyaltyPoints ?? 0, isProfileComplete: user.isProfileComplete }));
-    res.redirect(`${process.env["STORE_URL"] ?? ""}/auth-callback?token=${token}&user=${userJson}`);
-  }
+  redirectWithToken,
 );
 
 export default router;

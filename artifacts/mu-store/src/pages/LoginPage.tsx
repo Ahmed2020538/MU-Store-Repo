@@ -1,9 +1,11 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { Loader2 } from "lucide-react";
 import { useLogin } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,23 +14,46 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { FaGoogle, FaFacebook, FaXTwitter, FaInstagram, FaApple } from "react-icons/fa6";
 
-const schema = z.object({ email: z.string().email("Invalid email"), password: z.string().min(1, "Password required") });
+const schema = z.object({
+  email: z.string().email("Invalid email"),
+  password: z.string().min(1, "Password required"),
+});
 type FormData = z.infer<typeof schema>;
 
 const SOCIAL_LOGINS = [
-  { key: "google", label: "Google", Icon: FaGoogle, color: "#DB4437", href: "/api/auth/google" },
-  { key: "facebook", label: "Facebook", Icon: FaFacebook, color: "#1877F2", href: "/api/auth/facebook" },
-  { key: "twitter", label: "X", Icon: FaXTwitter, color: "#000", href: "/api/auth/twitter" },
-  { key: "instagram", label: "Instagram", Icon: FaInstagram, color: "#E1306C", href: "/api/auth/facebook" },
-  { key: "apple", label: "Apple", Icon: FaApple, color: "#000", href: "/api/auth/apple" },
+  { key: "google",    label: "Google",    Icon: FaGoogle,   color: "#DB4437", href: "/api/auth/google"    },
+  { key: "facebook",  label: "Facebook",  Icon: FaFacebook, color: "#1877F2", href: "/api/auth/facebook"  },
+  { key: "twitter",   label: "X",         Icon: FaXTwitter, color: "#000000", href: "/api/auth/twitter"   },
+  { key: "instagram", label: "Instagram", Icon: FaInstagram,color: "#E1306C", href: "/api/auth/instagram" },
+  { key: "apple",     label: "Apple",     Icon: FaApple,    color: "#000000", href: "/api/auth/apple"     },
 ];
+
+const ERROR_MESSAGES: Record<string, string> = {
+  google_not_configured:    "Google sign-in is not configured yet.",
+  facebook_not_configured:  "Facebook sign-in is not configured yet.",
+  instagram_not_configured: "Instagram sign-in is not configured yet.",
+  twitter_not_configured:   "X/Twitter sign-in is not configured yet.",
+  apple_not_configured:     "Apple sign-in is not configured yet.",
+  oauth_failed:             "Sign-in failed. Please try again or use email.",
+};
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { login } = useAuth();
   const { t } = useTranslation();
   const loginMutation = useLogin();
+  const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) });
+
+  // Show toast for OAuth errors passed back via query string
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const errorCode = params.get("error");
+    if (errorCode) {
+      toast.error(ERROR_MESSAGES[errorCode] ?? "Sign-in failed. Please try again.");
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
 
   const onSubmit = (data: FormData) => {
     loginMutation.mutate({ data }, {
@@ -42,12 +67,13 @@ export default function LoginPage() {
   };
 
   const handleSocialClick = (provider: (typeof SOCIAL_LOGINS)[0]) => {
+    setLoadingProvider(provider.key);
     window.location.href = provider.href;
   };
 
   return (
     <div className="min-h-screen flex">
-      {/* Left panel */}
+      {/* Left decorative panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-foreground flex-col items-center justify-center p-12 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 30% 50%, #C9A96E 0%, transparent 60%)" }} />
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center relative z-10">
@@ -66,7 +92,7 @@ export default function LoginPage() {
         </motion.div>
       </div>
 
-      {/* Right panel */}
+      {/* Right form panel */}
       <div className="flex-1 flex items-center justify-center p-8">
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="w-full max-w-md space-y-6">
           <div className="lg:hidden mb-4 text-center">
@@ -81,13 +107,26 @@ export default function LoginPage() {
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground text-center">{t("auth.continueWith")}</p>
             <div className="grid grid-cols-5 gap-2">
-              {SOCIAL_LOGINS.map(s => (
-                <motion.button key={s.key} whileHover={{ y: -2, scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                  onClick={() => handleSocialClick(s)} title={`Sign in with ${s.label}`}
-                  className="h-11 rounded-xl border border-border flex items-center justify-center hover:bg-muted transition-colors">
-                  <s.Icon size={18} style={{ color: s.color }} />
-                </motion.button>
-              ))}
+              {SOCIAL_LOGINS.map(s => {
+                const isLoading = loadingProvider === s.key;
+                return (
+                  <motion.button
+                    key={s.key}
+                    whileHover={isLoading ? {} : { y: -2, scale: 1.05 }}
+                    whileTap={isLoading ? {} : { scale: 0.95 }}
+                    onClick={() => !loadingProvider && handleSocialClick(s)}
+                    title={`Sign in with ${s.label}`}
+                    disabled={!!loadingProvider}
+                    className="h-11 rounded-xl border border-border flex flex-col items-center justify-center gap-0.5 hover:bg-muted transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isLoading
+                      ? <Loader2 size={16} className="animate-spin text-muted-foreground" />
+                      : <s.Icon size={18} style={{ color: s.color }} />
+                    }
+                    <span className="text-[9px] text-muted-foreground leading-none">{s.label}</span>
+                  </motion.button>
+                );
+              })}
             </div>
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-border" />

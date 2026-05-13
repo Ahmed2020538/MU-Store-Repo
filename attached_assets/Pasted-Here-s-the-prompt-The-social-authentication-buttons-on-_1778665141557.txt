@@ -1,0 +1,32 @@
+Here's the prompt:
+
+---
+
+The social authentication buttons on the login/signup page (Google, Facebook, X/Twitter, Instagram, and Apple) are currently visible in the UI but are completely non-functional. Clicking any of them does nothing. This must be fully fixed.
+
+**Your task is to implement fully working social authentication for all five providers:**
+
+1. **Google** — via Google OAuth 2.0
+2. **Facebook** — via Facebook Login (OAuth)
+3. **X / Twitter** — via Twitter OAuth 2.0
+4. **Instagram** — via Instagram Basic Display API or Facebook Login with Instagram scope
+5. **Apple** — via Sign in with Apple (OAuth)
+
+**For each provider, you must:**
+
+- Configure the OAuth flow correctly (authorization URL, callback/redirect URI, token exchange)
+- Handle the callback and extract the user's profile (name, email, avatar where available)
+- Create a new user account if the user does not exist, or log in the existing user if they do
+- Issue a session token (JWT or session cookie) upon successful authentication
+- Handle all error states gracefully (user cancels, auth fails, permissions denied) with clear error messages
+- Ensure the redirect after successful login sends the user to the correct page (homepage or intended destination)
+
+**Additional requirements:**
+
+- Store OAuth credentials and secrets in environment variables — never hardcode them
+- Ensure all redirect URIs are properly whitelisted in each provider's developer console (document which URIs need to be added)
+- The entire flow must work on both desktop and mobile browsers
+- Add a loading state to each button while the OAuth redirect is processing
+- Ensure that if a user previously signed up with email and uses the same email via social login, the accounts are linked — not duplicated
+
+**Non-negotiable:** Every single one of the five social login buttons must result in a complete, working authentication flow from click to logged-in state with no dead ends, no silent failures, and no placeholder logic anywhere.
