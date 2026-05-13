@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "shop": "تسوق", "heels": "كعب عالي", "bags": "حقائب", "flats": "مسطح",
+    "boots": "بوت", "accessories": "اكسسوارات", "signIn": "تسجيل الدخول",
+    "signOut": "تسجيل الخروج", "myAccount": "حسابي", "admin": "لوحة التحكم",
+    "cart": "السلة", "search": "بحث"
+  },
+  "home": {
+    "tagline": "علامة مصرية فاخرة",
+    "heroSub": "أحذية وحقائب فاخرة مصنوعة يدوياً، مصممة للمرأة المصرية العصرية التي تعرف قيمتها.",
+    "shopNow": "تسوق الآن", "shopBags": "تسوق الحقائب", "newArrivals": "وصل حديثاً",
+    "freshArrivals": "وصل حديثاً", "viewAll": "عرض الكل", "shopByCategory": "تسوق حسب الفئة",
+    "explore": "استكشفي", "bestSellers": "الأكثر مبيعاً", "customerFavorites": "المفضلة لدى العملاء",
+    "freeShipping": "شحن مجاني", "freeShippingSub": "للطلبات فوق ٥٠٠ جنيه",
+    "easyReturns": "استرجاع سهل", "easyReturnsSub": "سياسة الإرجاع خلال ١٤ يوم",
+    "securePayment": "دفع آمن", "securePaymentSub": "محمي ١٠٠٪",
+    "madeInEgypt": "صنع في مصر", "madeInEgyptSub": "حرفية فائقة الجودة",
+    "brandsTitle": "الماركات المتاحة", "brandsTagline": "شركاؤنا",
+    "testimonialsTitle": "ماذا يقول عملاؤنا", "testimonialsTagline": "آراء العملاء"
+  },
+  "auth": {
+    "welcomeBack": "أهلاً بعودتك", "signInAccount": "سجلي دخولك لحساب MU",
+    "continueWith": "تابعي بـ", "orWithEmail": "أو بالبريد الإلكتروني",
+    "email": "البريد الإلكتروني", "password": "كلمة المرور",
+    "signIn": "تسجيل الدخول", "signingIn": "جاري التسجيل...",
+    "noAccount": "ليس لديك حساب؟", "createOne": "أنشئي حساباً",
+    "createAccount": "إنشاء حساب", "alreadyHave": "لديك حساب بالفعل؟",
+    "name": "الاسم الكامل", "phone": "رقم الهاتف",
+    "register": "تسجيل", "registering": "جاري إنشاء الحساب...", "signInLink": "تسجيل الدخول"
+  },
+  "products": {
+    "allProducts": "كل المنتجات", "found": "تم العثور على {{count}} منتج",
+    "filters": "الفلاتر", "category": "الفئة", "all": "الكل",
+    "priceRange": "نطاق السعر", "size": "المقاس", "color": "اللون",
+    "clearFilters": "مسح الفلاتر", "clearAll": "مسح كل الفلاتر",
+    "noProducts": "لا توجد منتجات", "noProductsHint": "جربي تعديل الفلاتر",
+    "sort": { "label": "ترتيب حسب", "newest": "الأحدث", "priceAsc": "السعر: من الأقل",
+      "priceDesc": "السعر: من الأعلى", "bestSelling": "الأكثر مبيعاً", "topRated": "الأعلى تقييماً" },
+    "quickAdd": "إضافة سريعة", "addToCart": "أضف للسلة", "outOfStock": "نفد المخزون",
+    "onlyLeft": "{{count}} قطع فقط", "new_": "جديد", "sale": "تخفيض", "hot": "رائج"
+  },
+  "cart": {
+    "title": "سلتك", "empty": "سلتك فارغة",
+    "emptySub": "تصفحي مجموعتنا وأضيفي ما يعجبك",
+    "shopNow": "تسوق الآن", "qty": "الكمية", "remove": "حذف",
+    "subtotal": "المجموع الفرعي", "shipping": "الشحن", "free": "مجاني", "total": "الإجمالي",
+    "checkout": "إتمام الشراء", "promoCode": "كود خصم", "apply": "تطبيق"
+  },
+  "checkout": {
+    "delivery": "التوصيل", "payment": "الدفع", "confirm": "التأكيد",
+    "fullName": "الاسم الكامل", "phone": "الهاتف", "governorate": "المحافظة",
+    "address": "العنوان التفصيلي", "city": "المدينة / المنطقة", "notes": "ملاحظات الطلب",
+    "paymentMethod": "طريقة الدفع", "cod": "الدفع عند الاستلام",
+    "placeOrder": "إتمام الطلب", "orderPlaced": "تم إرسال الطلب!",
+    "thankYou": "شكراً لطلبك", "back": "رجوع", "next": "التالي"
+  },
+  "account": {
+    "myAccount": "حسابي", "profile": "الملف الشخصي", "orders": "طلباتي",
+    "wishlist": "قائمة الأمنيات", "loyalty": "نقاط الولاء", "settings": "الإعدادات",
+    "editProfile": "تعديل الملف", "save": "حفظ التغييرات", "logout": "تسجيل الخروج",
+    "noOrders": "لا توجد طلبات بعد", "points": "نقطة"
+  },
+  "admin": {
+    "dashboard": "لوحة التحكم", "orders": "الطلبات", "products": "المنتجات",
+    "customers": "العملاء", "brands": "الماركات", "reviews": "التقييمات",
+    "coupons": "الكوبونات", "messages": "الرسائل", "settings": "الإعدادات",
+    "revenue": "إجمالي الإيرادات", "totalOrders": "إجمالي الطلبات", "today": "اليوم",
+    "addProduct": "إضافة منتج",
+    "status": { "pending": "قيد الانتظار", "confirmed": "مؤكد", "packed": "تم التعبئة",
+      "shipped": "تم الشحن", "delivered": "تم التوصيل", "cancelled": "ملغي" }
+  },
+  "footer": {
+    "tagline": "كل خطوة تحكي قصتك",
+    "description": "أحذية وحقائب فاخرة للمرأة المصرية، مصنوعة بعناية لتجعل كل لحظة لا تُنسى.",
+    "followUs": "تابعينا", "shop": "تسوق", "help": "المساعدة",
+    "contact": "اتصلي بنا", "sizeGuide": "دليل المقاسات", "shipping": "سياسة الشحن",
+    "returns": "الإرجاع", "privacy": "سياسة الخصوصية", "terms": "شروط الخدمة",
+    "madeWithLove": "صُنع بحب في مصر", "rights": "جميع الحقوق محفوظة"
+  },
+  "common": {
+    "save": "حفظ", "cancel": "إلغاء", "delete": "حذف", "edit": "تعديل", "add": "إضافة",
+    "refresh": "تحديث", "loading": "جاري التحميل...", "close": "إغلاق", "back": "رجوع",
+    "next": "التالي", "yes": "نعم", "no": "لا", "search": "بحث", "required": "مطلوب",
+    "error": "حدث خطأ ما", "success": "تم الحفظ بنجاح"
+  },
+  "breadcrumb": { "home": "الرئيسية", "shop": "تسوق" },
+  "lang": {
+    "select": "اختاري لغتك", "continue": "متابعة",
+    "subtitle": "اختاري لغتك المفضلة للبدء", "change": "تغيير اللغة"
+  }
+}

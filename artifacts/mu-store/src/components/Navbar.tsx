@@ -2,21 +2,24 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { ShoppingBag, User, Heart, Menu, X, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { isLoggedIn, isAdmin, logout, user } = useAuth();
   const { itemCount, openCart } = useCart();
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   const navLinks = [
-    { href: "/products", label: "Shop" },
-    { href: "/products?category=heels", label: "Heels" },
-    { href: "/products?category=bags", label: "Bags" },
-    { href: "/products?category=flats", label: "Flats" },
-    { href: "/products?category=boots", label: "Boots" },
+    { href: "/products", label: t("nav.shop") },
+    { href: "/products?category=heels", label: t("nav.heels") },
+    { href: "/products?category=bags", label: t("nav.bags") },
+    { href: "/products?category=flats", label: t("nav.flats") },
+    { href: "/products?category=boots", label: t("nav.boots") },
   ];
 
   return (
@@ -39,7 +42,9 @@ export default function Navbar() {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+
             <button onClick={() => setLocation("/products")} className="p-2 text-muted-foreground hover:text-foreground transition-colors" data-testid="button-search">
               <Search size={20} />
             </button>
@@ -64,19 +69,19 @@ export default function Navbar() {
                 <button className="p-2 text-muted-foreground hover:text-foreground transition-colors" data-testid="button-user">
                   <User size={20} />
                 </button>
-                <div className="absolute right-0 mt-1 w-48 bg-card border border-border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity invisible group-hover:visible">
+                <div className="absolute right-0 mt-1 w-48 bg-card border border-border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity invisible group-hover:visible z-50">
                   <div className="p-3 border-b border-border">
                     <p className="text-sm font-medium">{user?.name}</p>
                     <p className="text-xs text-muted-foreground">{user?.email}</p>
                   </div>
-                  <Link href="/account" className="block px-3 py-2 text-sm hover:bg-muted transition-colors">My Account</Link>
-                  {isAdmin && <Link href="/admin" className="block px-3 py-2 text-sm hover:bg-muted transition-colors">Admin Dashboard</Link>}
-                  <button onClick={() => { logout(); setLocation("/"); }} className="w-full text-left px-3 py-2 text-sm text-destructive hover:bg-muted transition-colors">Sign Out</button>
+                  <Link href="/account" className="block px-3 py-2 text-sm hover:bg-muted transition-colors">{t("nav.myAccount")}</Link>
+                  {isAdmin && <Link href="/admin" className="block px-3 py-2 text-sm hover:bg-muted transition-colors">{t("nav.admin")}</Link>}
+                  <button onClick={() => { logout(); setLocation("/"); }} className="w-full text-left px-3 py-2 text-sm text-destructive hover:bg-muted transition-colors">{t("nav.signOut")}</button>
                 </div>
               </div>
             ) : (
               <Link href="/login" className="text-sm font-medium px-3 py-1.5 bg-foreground text-background rounded-md hover:opacity-90 transition-opacity" data-testid="link-login">
-                Sign In
+                {t("nav.signIn")}
               </Link>
             )}
 

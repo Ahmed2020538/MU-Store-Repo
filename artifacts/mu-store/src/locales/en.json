@@ -1,0 +1,89 @@
+{
+  "nav": {
+    "shop": "Shop", "heels": "Heels", "bags": "Bags", "flats": "Flats", "boots": "Boots",
+    "accessories": "Accessories", "signIn": "Sign In", "signOut": "Sign Out",
+    "myAccount": "My Account", "admin": "Admin Dashboard", "cart": "Cart", "search": "Search"
+  },
+  "home": {
+    "tagline": "Premium Egyptian Brand",
+    "heroSub": "Handcrafted luxury shoes and bags, designed for the modern Egyptian woman who knows her worth.",
+    "shopNow": "Shop Now", "shopBags": "Shop Bags", "newArrivals": "New Arrivals",
+    "freshArrivals": "Fresh Arrivals", "viewAll": "View All", "shopByCategory": "Shop by Category",
+    "explore": "Explore", "bestSellers": "Best Sellers", "customerFavorites": "Customer Favorites",
+    "freeShipping": "Free Shipping", "freeShippingSub": "On orders over 500 EGP",
+    "easyReturns": "Easy Returns", "easyReturnsSub": "14-day return policy",
+    "securePayment": "Secure Payment", "securePaymentSub": "100% protected",
+    "madeInEgypt": "Made in Egypt", "madeInEgyptSub": "Premium craftsmanship",
+    "brandsTitle": "Brands We Carry", "brandsTagline": "Our Partners",
+    "testimonialsTitle": "What Our Customers Say", "testimonialsTagline": "Reviews"
+  },
+  "auth": {
+    "welcomeBack": "Welcome back", "signInAccount": "Sign in to your MU account",
+    "continueWith": "Continue with", "orWithEmail": "or with email",
+    "email": "Email", "password": "Password", "signIn": "Sign In", "signingIn": "Signing in...",
+    "noAccount": "Don't have an account?", "createOne": "Create one",
+    "createAccount": "Create Account", "alreadyHave": "Already have an account?",
+    "name": "Full Name", "phone": "Phone Number", "register": "Register", "registering": "Creating account...",
+    "signInLink": "Sign in"
+  },
+  "products": {
+    "allProducts": "All Products", "found": "{{count}} products found",
+    "filters": "Filters", "category": "Category", "all": "All",
+    "priceRange": "Price Range", "size": "Size", "color": "Color",
+    "clearFilters": "Clear Filters", "clearAll": "Clear All Filters",
+    "noProducts": "No products found", "noProductsHint": "Try adjusting your filters",
+    "sort": { "label": "Sort by", "newest": "Newest", "priceAsc": "Price: Low to High",
+      "priceDesc": "Price: High to Low", "bestSelling": "Best Selling", "topRated": "Top Rated" },
+    "quickAdd": "Quick Add", "addToCart": "Add to Cart", "outOfStock": "Out of Stock",
+    "onlyLeft": "Only {{count}} left", "new_": "New", "sale": "Sale", "hot": "Hot"
+  },
+  "cart": {
+    "title": "Your Cart", "empty": "Your cart is empty",
+    "emptySub": "Browse our collection and add your favorites",
+    "shopNow": "Shop Now", "qty": "Qty", "remove": "Remove",
+    "subtotal": "Subtotal", "shipping": "Shipping", "free": "Free", "total": "Total",
+    "checkout": "Proceed to Checkout", "promoCode": "Promo code", "apply": "Apply"
+  },
+  "checkout": {
+    "delivery": "Delivery", "payment": "Payment", "confirm": "Confirm",
+    "fullName": "Full Name", "phone": "Phone", "governorate": "Governorate",
+    "address": "Detailed Address", "city": "City / Area", "notes": "Order Notes",
+    "paymentMethod": "Payment Method", "cod": "Cash on Delivery",
+    "placeOrder": "Place Order", "orderPlaced": "Order Placed!", "thankYou": "Thank you for your order",
+    "back": "Back", "next": "Next"
+  },
+  "account": {
+    "myAccount": "My Account", "profile": "Profile", "orders": "My Orders",
+    "wishlist": "Wishlist", "loyalty": "Loyalty Points", "settings": "Settings",
+    "editProfile": "Edit Profile", "save": "Save Changes", "logout": "Sign Out",
+    "noOrders": "No orders yet", "points": "points"
+  },
+  "admin": {
+    "dashboard": "Dashboard", "orders": "Orders", "products": "Products",
+    "customers": "Customers", "brands": "Brands", "reviews": "Reviews",
+    "coupons": "Coupons", "messages": "Messages", "settings": "Settings",
+    "revenue": "Total Revenue", "totalOrders": "Total Orders", "today": "today",
+    "addProduct": "Add Product",
+    "status": { "pending": "Pending", "confirmed": "Confirmed", "packed": "Packed",
+      "shipped": "Shipped", "delivered": "Delivered", "cancelled": "Cancelled" }
+  },
+  "footer": {
+    "tagline": "Where Every Step Tells Your Story",
+    "description": "Premium Egyptian women's shoes and bags, crafted with care and designed to make every moment unforgettable.",
+    "followUs": "Follow Us", "shop": "Shop", "help": "Help",
+    "contact": "Contact Us", "sizeGuide": "Size Guide", "shipping": "Shipping Policy",
+    "returns": "Returns", "privacy": "Privacy Policy", "terms": "Terms of Service",
+    "madeWithLove": "Made with love in Egypt", "rights": "All rights reserved"
+  },
+  "common": {
+    "save": "Save", "cancel": "Cancel", "delete": "Delete", "edit": "Edit", "add": "Add",
+    "refresh": "Refresh", "loading": "Loading...", "close": "Close", "back": "Back",
+    "next": "Next", "yes": "Yes", "no": "No", "search": "Search", "required": "Required",
+    "error": "Something went wrong", "success": "Saved successfully"
+  },
+  "breadcrumb": { "home": "Home", "shop": "Shop" },
+  "lang": {
+    "select": "Select Your Language", "continue": "Continue",
+    "subtitle": "Choose your preferred language to get started", "change": "Change Language"
+  }
+}

@@ -1,3 +1,5 @@
+import "./i18n";
+import { useState } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +21,7 @@ import AdminPage from "@/pages/AdminPage";
 import ContactPage from "@/pages/ContactPage";
 import ProfileCompletePage from "@/pages/ProfileCompletePage";
 import AuthCallbackPage from "@/pages/AuthCallbackPage";
+import LanguageSelectPage from "@/pages/LanguageSelectPage";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -60,15 +63,25 @@ function Router() {
   );
 }
 
+function LanguageGate({ children }: { children: React.ReactNode }) {
+  const [langChosen, setLangChosen] = useState(() => !!localStorage.getItem("mu_language"));
+  if (!langChosen) {
+    return <LanguageSelectPage onSelect={() => setLangChosen(true)} />;
+  }
+  return <>{children}</>;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CartProvider>
           <TooltipProvider>
-            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-              <Router />
-            </WouterRouter>
+            <LanguageGate>
+              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                <Router />
+              </WouterRouter>
+            </LanguageGate>
             <Toaster richColors position="top-right" />
           </TooltipProvider>
         </CartProvider>

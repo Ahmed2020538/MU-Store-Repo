@@ -59,6 +59,36 @@ router.get("/me", requireAuth, async (req, res) => {
   });
 });
 
+// ── Social Status Diagnostic ──────────────────────────────────────────────────
+router.get("/social-status", (_req, res) => {
+  const check = (...keys: string[]) => keys.every(k => !!process.env[k]);
+  const missing = (...keys: string[]) => keys.filter(k => !process.env[k]);
+
+  res.json({
+    google: {
+      configured: check("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"),
+      missing: missing("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"),
+    },
+    facebook: {
+      configured: check("FACEBOOK_APP_ID", "FACEBOOK_APP_SECRET"),
+      missing: missing("FACEBOOK_APP_ID", "FACEBOOK_APP_SECRET"),
+    },
+    twitter: {
+      configured: check("TWITTER_API_KEY", "TWITTER_API_SECRET"),
+      missing: missing("TWITTER_API_KEY", "TWITTER_API_SECRET"),
+    },
+    instagram: {
+      configured: check("FACEBOOK_APP_ID", "FACEBOOK_APP_SECRET"),
+      note: "Instagram uses Facebook app credentials with Instagram Graph API",
+      missing: missing("FACEBOOK_APP_ID", "FACEBOOK_APP_SECRET"),
+    },
+    apple: {
+      configured: check("APPLE_CLIENT_ID", "APPLE_TEAM_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY"),
+      missing: missing("APPLE_CLIENT_ID", "APPLE_TEAM_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY"),
+    },
+  });
+});
+
 // ── Google OAuth ──────────────────────────────────────────────────────────────
 router.get("/google", (req, res, next) => {
   if (!process.env["GOOGLE_CLIENT_ID"]) {
@@ -83,6 +113,72 @@ router.get("/google/callback",
     }));
     const base = process.env["STORE_URL"] ?? "";
     res.redirect(`${base}/auth-callback?token=${token}&user=${userJson}`);
+  }
+);
+
+// ── Facebook OAuth ────────────────────────────────────────────────────────────
+router.get("/facebook", (req, res, next) => {
+  if (!process.env["FACEBOOK_APP_ID"]) {
+    res.redirect(`${process.env["STORE_URL"] ?? ""}/login?error=facebook_not_configured`); return;
+  }
+  passport.authenticate("facebook", { scope: ["email", "public_profile"] })(req, res, next);
+});
+
+router.get("/facebook/callback",
+  (req, res, next) => {
+    if (!process.env["FACEBOOK_APP_ID"]) { res.redirect("/login?error=facebook_not_configured"); return; }
+    passport.authenticate("facebook", { failureRedirect: "/login?error=oauth_failed" })(req, res, next);
+  },
+  (req, res) => {
+    const user = req.user as any;
+    if (!user) { res.redirect("/login?error=oauth_failed"); return; }
+    const token = signToken({ id: user.id, role: user.role });
+    const userJson = encodeURIComponent(JSON.stringify({ id: user.id, email: user.email, name: user.name, role: user.role, loyaltyPoints: user.loyaltyPoints ?? 0, isProfileComplete: user.isProfileComplete }));
+    res.redirect(`${process.env["STORE_URL"] ?? ""}/auth-callback?token=${token}&user=${userJson}`);
+  }
+);
+
+// ── Twitter / X OAuth ─────────────────────────────────────────────────────────
+router.get("/twitter", (req, res, next) => {
+  if (!process.env["TWITTER_API_KEY"]) {
+    res.redirect(`${process.env["STORE_URL"] ?? ""}/login?error=twitter_not_configured`); return;
+  }
+  passport.authenticate("twitter")(req, res, next);
+});
+
+router.get("/twitter/callback",
+  (req, res, next) => {
+    if (!process.env["TWITTER_API_KEY"]) { res.redirect("/login?error=twitter_not_configured"); return; }
+    passport.authenticate("twitter", { failureRedirect: "/login?error=oauth_failed" })(req, res, next);
+  },
+  (req, res) => {
+    const user = req.user as any;
+    if (!user) { res.redirect("/login?error=oauth_failed"); return; }
+    const token = signToken({ id: user.id, role: user.role });
+    const userJson = encodeURIComponent(JSON.stringify({ id: user.id, email: user.email, name: user.name, role: user.role, loyaltyPoints: user.loyaltyPoints ?? 0, isProfileComplete: user.isProfileComplete }));
+    res.redirect(`${process.env["STORE_URL"] ?? ""}/auth-callback?token=${token}&user=${userJson}`);
+  }
+);
+
+// ── Apple OAuth ───────────────────────────────────────────────────────────────
+router.get("/apple", (req, res, next) => {
+  if (!process.env["APPLE_CLIENT_ID"]) {
+    res.redirect(`${process.env["STORE_URL"] ?? ""}/login?error=apple_not_configured`); return;
+  }
+  passport.authenticate("apple")(req, res, next);
+});
+
+router.post("/apple/callback",
+  (req, res, next) => {
+    if (!process.env["APPLE_CLIENT_ID"]) { res.redirect("/login?error=apple_not_configured"); return; }
+    passport.authenticate("apple", { failureRedirect: "/login?error=oauth_failed" })(req, res, next);
+  },
+  (req, res) => {
+    const user = req.user as any;
+    if (!user) { res.redirect("/login?error=oauth_failed"); return; }
+    const token = signToken({ id: user.id, role: user.role });
+    const userJson = encodeURIComponent(JSON.stringify({ id: user.id, email: user.email, name: user.name, role: user.role, loyaltyPoints: user.loyaltyPoints ?? 0, isProfileComplete: user.isProfileComplete }));
+    res.redirect(`${process.env["STORE_URL"] ?? ""}/auth-callback?token=${token}&user=${userJson}`);
   }
 );
 
