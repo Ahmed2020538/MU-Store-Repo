@@ -12,6 +12,10 @@ import adminRouter from "./admin.js";
 import adminsRouter from "./admins.js";
 import settingsRouter from "./settings.js";
 import uploadsRouter from "./uploads.js";
+import profileRouter from "./profile.js";
+import contactRouter from "./contact.js";
+import couponsUserRouter from "./coupons-user.js";
+import adminCouponsRouter from "./admin-coupons.js";
 
 const router: IRouter = Router();
 
@@ -26,7 +30,11 @@ router.use("/reviews", reviewsRouter);
 router.use("/promo", promoRouter);
 router.use("/admin", adminRouter);
 router.use("/admin/admins", adminsRouter);
+router.use("/admin/coupons", adminCouponsRouter);
 router.use("/settings", settingsRouter);
 router.use("/products", uploadsRouter);
+router.use("/profile", profileRouter);
+router.use("/contact", contactRouter);
+router.use("/coupons", couponsUserRouter);
 
 export default router;

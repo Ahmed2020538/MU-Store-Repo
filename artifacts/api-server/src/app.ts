@@ -4,24 +4,22 @@ import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
 import path from "path";
 import fs from "fs";
+import session from "express-session";
+import passport from "passport";
 import router from "./routes/index.js";
 import { logger } from "./lib/logger.js";
+import "./lib/passport.js";
 
 const app: Express = express();
 
-app.use(
-  pinoHttp({
-    logger,
-    serializers: {
-      req(req) {
-        return { id: req.id, method: req.method, url: req.url?.split("?")[0] };
-      },
-      res(res) {
-        return { statusCode: res.statusCode };
-      },
-    },
-  }),
-);
+app.use(pinoHttp({
+  logger,
+  serializers: {
+    req(req) { return { id: req.id, method: req.method, url: req.url?.split("?")[0] }; },
+    res(res) { return { statusCode: res.statusCode }; },
+  },
+}));
+
 const uploadDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
@@ -30,6 +28,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use("/uploads", express.static(uploadDir));
+
+// Session (used by passport OAuth state verification only — we use JWT for auth)
+app.use(session({
+  secret: process.env["SESSION_SECRET"] ?? "mu-session-dev",
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 10 * 60 * 1000 }, // 10 min — only needed during OAuth handshake
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use("/api", router);
 

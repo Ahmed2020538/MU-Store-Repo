@@ -11,9 +11,9 @@ router.get("/dashboard", requireAdmin, async (_req, res) => {
   const [{ totalOrders }] = await db.select({ totalOrders: sql<number>`count(*)` }).from(ordersTable);
   const [{ totalProducts }] = await db.select({ totalProducts: sql<number>`count(*)` }).from(productsTable);
   const [{ totalCustomers }] = await db.select({ totalCustomers: sql<number>`count(*)` }).from(usersTable).where(eq(usersTable.role, "customer"));
+  const [{ priorityCount }] = await db.select({ priorityCount: sql<number>`count(*)` }).from(usersTable).where(eq(usersTable.isPriority, 1));
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+  const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
   const [{ ordersToday }] = await db.select({ ordersToday: sql<number>`count(*)` }).from(ordersTable).where(gte(ordersTable.createdAt, todayStart));
 
   const categories = await db.select({ id: categoriesTable.id, name: categoriesTable.name }).from(categoriesTable);
@@ -24,11 +24,8 @@ router.get("/dashboard", requireAdmin, async (_req, res) => {
     if (pids.length > 0) {
       const orders = await db.select({ items: ordersTable.items }).from(ordersTable);
       for (const o of orders) {
-        const items = (o.items as any[]) ?? [];
-        for (const item of items) {
-          if (pids.includes(item.productId)) {
-            revenue += (item.price ?? 0) * (item.quantity ?? 1);
-          }
+        for (const item of ((o.items as any[]) ?? [])) {
+          if (pids.includes(item.productId)) revenue += (item.price ?? 0) * (item.quantity ?? 1);
         }
       }
     }
@@ -43,19 +40,14 @@ router.get("/dashboard", requireAdmin, async (_req, res) => {
   }));
 
   res.json({
-    totalRevenue: Number(totalRevenue),
-    totalOrders: Number(totalOrders),
-    totalProducts: Number(totalProducts),
-    totalCustomers: Number(totalCustomers),
-    ordersToday: Number(ordersToday),
+    totalRevenue: Number(totalRevenue), totalOrders: Number(totalOrders),
+    totalProducts: Number(totalProducts), totalCustomers: Number(totalCustomers),
+    priorityCount: Number(priorityCount), ordersToday: Number(ordersToday),
     revenueByCategory,
     recentOrders: recentOrders.map(o => ({
       id: o.id, userId: o.userId, status: o.status,
-      paymentMethod: o.paymentMethod ?? null, paymentStatus: o.paymentStatus ?? null,
-      items: o.items ?? [], fullName: o.fullName ?? null, phone: o.phone ?? null,
-      email: o.email ?? null, governorate: o.governorate ?? null, address: o.address ?? null,
-      subtotal: o.subtotal, shipping: o.shipping, discount: o.discount, total: o.total,
-      promoCode: o.promoCode ?? null,
+      paymentMethod: o.paymentMethod ?? null, items: o.items ?? [],
+      fullName: o.fullName ?? null, total: o.total,
       createdAt: o.createdAt instanceof Date ? o.createdAt.toISOString() : o.createdAt,
     })),
     ordersByStatus,
@@ -71,6 +63,9 @@ router.get("/orders", requireAdmin, async (_req, res) => {
     email: o.email ?? null, governorate: o.governorate ?? null, address: o.address ?? null,
     subtotal: o.subtotal, shipping: o.shipping, discount: o.discount, total: o.total,
     promoCode: o.promoCode ?? null,
+    codDownPayment: (o as any).codDownPayment ?? null,
+    codDownPaymentStatus: (o as any).codDownPaymentStatus ?? null,
+    amountDueOnDelivery: (o as any).amountDueOnDelivery ?? null,
     createdAt: o.createdAt instanceof Date ? o.createdAt.toISOString() : o.createdAt,
   })));
 });
@@ -88,8 +83,23 @@ router.get("/customers", requireAdmin, async (_req, res) => {
   res.json(users.map(u => ({
     id: u.id, email: u.email, name: u.name, phone: u.phone ?? null,
     role: u.role, loyaltyPoints: u.loyaltyPoints ?? 0,
+    isPriority: u.isPriority ?? 0, isProfileComplete: u.isProfileComplete ?? 0,
+    avatarUrl: u.avatarUrl ?? null,
     createdAt: u.createdAt instanceof Date ? u.createdAt.toISOString() : u.createdAt,
   })));
+});
+
+// Toggle priority member status
+router.put("/customers/:id/priority", requireAdmin, async (req, res) => {
+  const id = parseInt(String(req.params.id));
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);
+  if (!user) { res.status(404).json({ error: "Not found" }); return; }
+  const newPriority = user.isPriority ? 0 : 1;
+  const [updated] = await db.update(usersTable).set({
+    isPriority: newPriority,
+    ...(newPriority ? { priorityGrantedAt: new Date().toISOString() } : {}),
+  }).where(eq(usersTable.id, id)).returning();
+  res.json({ id: updated.id, isPriority: updated.isPriority });
 });
 
 export default router;

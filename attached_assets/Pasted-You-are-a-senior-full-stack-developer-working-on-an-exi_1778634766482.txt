@@ -1,0 +1,268 @@
+You are a senior full-stack developer working on an existing 
+e-commerce website called MU — a premium Egyptian women's shoes 
+and bags brand. Your task is to add and enhance multiple features 
+to the current codebase WITHOUT regenerating the project from scratch.
+Modify only the files that require changes.
+
+════════════════════════════════════════════════════════
+FEATURE 1: SOCIAL LOGIN SYSTEM
+════════════════════════════════════════════════════════
+
+Upgrade the current login and registration page to support 
+multiple sign-in methods. The page should present the user 
+with a clean, branded layout that offers email registration 
+as the primary option, followed by social login buttons for 
+Google, Facebook, X (Twitter), Instagram, and Apple — each 
+styled with its official brand color and logo.
+
+On the backend, integrate passport.js to handle OAuth 
+authentication for each provider. When a user logs in 
+via a social account for the first time, the system should 
+check whether their email or provider ID already exists in 
+the database. If they are a returning user, log them in 
+immediately and return a JWT token. If they are new, create 
+their account using the name, email, and avatar pulled from 
+the provider profile, mark their email as verified, and 
+redirect them to the profile completion page.
+
+All provider credentials (client IDs, secrets, API keys) 
+must be stored securely in Replit Secrets and never 
+hardcoded in the source files.
+
+Update the users table in the database to store the 
+authentication provider name, the provider's user ID, 
+and the user's avatar URL.
+
+════════════════════════════════════════════════════════
+FEATURE 2: EXTENDED CUSTOMER PROFILE
+════════════════════════════════════════════════════════
+
+Expand the users table to store additional personal 
+information including phone number, city, governorate, 
+detailed address, birth date, social media handles for 
+Instagram, Facebook, TikTok, WhatsApp, and X, as well 
+as flags for profile completion status and priority 
+membership.
+
+Create a dedicated profile completion page that appears 
+automatically after any user's first login if their profile 
+is not yet complete. This page should be divided into three 
+progressive steps with a visual progress bar at the top.
+
+The first step collects the user's full name (pre-filled 
+from social login if available), Egyptian phone number, 
+and birth date. The birth date field must be required and 
+should display a friendly tooltip informing the user that 
+they will receive a special birthday discount as a gift.
+
+The second step asks for the user's location using a 
+dropdown of all 27 Egyptian governorates, a city text 
+field, and an optional detailed address.
+
+The third step invites the user to optionally connect 
+their social media accounts. At the top of this step, 
+display a visually prominent gold-bordered card that 
+explains the exclusive benefits of being a priority 
+member — including early access to offers, personalized 
+discounts, a birthday gift coupon, first notification 
+of new arrivals, and double loyalty points on the first 
+three orders. The fields in this step are all optional 
+and include WhatsApp number, Instagram handle, Facebook 
+URL, TikTok handle, and X handle. A skip option should 
+be available at the bottom.
+
+When the user completes all three steps, mark their 
+profile as complete, elevate them to priority member 
+status, award them 100 bonus loyalty points, and send 
+them a warm welcome email confirming their VIP status 
+and points balance.
+
+════════════════════════════════════════════════════════
+FEATURE 3: AUTOMATED BIRTHDAY COUPON SYSTEM
+════════════════════════════════════════════════════════
+
+Create a coupons table in the database to store all 
+generated coupon codes along with their discount value, 
+type, associated user, usage status, expiry date, and 
+source (birthday or manual).
+
+Set up a scheduled background job that runs automatically 
+every day at one minute past midnight. This job should 
+query all users whose birth date matches today's day and 
+month and who have not yet received a birthday coupon 
+this year. For each matched user, the system must 
+automatically generate a unique coupon code, insert it 
+into the coupons table with a seven-day expiry, and 
+immediately send the user a beautifully designed birthday 
+email containing their personal coupon code. Priority 
+members should receive a 25 percent discount while 
+regular members receive 20 percent. After sending, 
+update the user's record to prevent duplicate coupons 
+in the same year.
+
+The coupon validation logic at checkout must verify that 
+the code exists, belongs to the currently logged-in user, 
+has not been used, and has not expired before applying 
+the discount. The coupon should only be marked as used 
+after the order is successfully placed.
+
+In the customer's account area, add a section titled 
+"كوبوناتي" that displays all their active coupons as 
+cards with a one-click copy button for each code.
+
+════════════════════════════════════════════════════════
+FEATURE 4: PRIORITY MEMBER SYSTEM
+════════════════════════════════════════════════════════
+
+A user automatically becomes a priority member when they 
+complete all three profile steps. Admins should also be 
+able to manually grant or revoke this status from the 
+customer management panel.
+
+Priority members receive exclusive benefits enforced in 
+the backend — they get access to new offers 24 hours 
+before regular customers, a higher birthday discount, 
+double loyalty points on their first three orders, and 
+exclusive coupon codes.
+
+In the admin customer list, display a gold VIP badge 
+next to every priority member's name. Add a filter 
+toggle to show only priority members, allow the admin 
+to manually toggle the status per customer, and show 
+a summary stat on the dashboard indicating how many 
+priority members exist out of the total customer base.
+
+Create a dedicated offer management page in the admin 
+panel where the admin can create new offers by specifying 
+a title, discount value, applicable scope, coupon code, 
+expiry date, and notification strategy. The recommended 
+strategy should send the offer to priority members 
+immediately and schedule delivery to all remaining 
+customers exactly 24 hours later using a background job. 
+All notification sends must be tracked in a dedicated 
+table in the database.
+
+Also create an admin coupons management page that displays 
+all coupons in a filterable table with columns for code, 
+customer, discount, source, usage status, and expiry. 
+The admin should be able to mark coupons as used or 
+unused, extend their expiry, delete individual coupons, 
+and bulk-delete all expired ones. Summary stat cards 
+should appear at the top showing totals for generated, 
+active birthday, used, and expired coupons.
+
+════════════════════════════════════════════════════════
+FEATURE 5: SOCIAL MEDIA ICONS MAPPED TO DATABASE
+════════════════════════════════════════════════════════
+
+Install react-icons and create a centralized social media 
+configuration file that maps every supported platform to 
+its corresponding icon component, official brand color, 
+display label, and a URL builder function. Supported 
+platforms are WhatsApp, Instagram, Facebook, TikTok, 
+YouTube, Snapchat, Pinterest, and X. The URL builder 
+for each platform must intelligently handle both raw 
+handles and full URLs and produce the correct deep link.
+
+Build a reusable SocialIconsBar component that fetches 
+the active social media settings from the database on 
+mount and renders only the platforms that are toggled 
+on by the admin, in the order the admin has set. The 
+component must accept props for icon size (small, 
+medium, or large), layout direction (row or column), 
+and whether to show text labels alongside icons. Each 
+icon should be displayed inside a colored circle using 
+the platform's brand color with a white icon inside, 
+and should animate smoothly on hover.
+
+In the customer's profile or account page, add a 
+dedicated section that shows the user's own connected 
+social media accounts. Each platform should display 
+its icon, the handle or URL the user entered, a 
+clickable link that opens their profile in a new tab, 
+and an inline edit button. For platforms the user has 
+not connected yet, show a grayed-out icon with a prompt 
+to add their account.
+
+════════════════════════════════════════════════════════
+FEATURE 6: CONTACT US PAGE WITH LIVE SOCIAL LINKS
+════════════════════════════════════════════════════════
+
+Rebuild the contact page entirely with five distinct 
+sections, all powered by live data from the database.
+
+The first section displays the brand's contact 
+information fetched from the admin contact settings — 
+phone number as a clickable call link, email as a 
+mailto link, physical address linking to Google Maps, 
+and working hours as plain text. Each item should be 
+presented as a clean icon card.
+
+The second section displays the brand's active social 
+media platforms using the SocialIconsBar component in 
+large size with labels. Each platform should appear as 
+a prominent card showing the platform icon, the 
+account handle or name, and a call-to-action button 
+in Arabic. Clicking anywhere on the card opens the 
+platform link in a new tab. Only active platforms are 
+shown and in the admin-defined order.
+
+The third section contains a contact form with fields 
+for name, email, phone, subject, and message. On 
+submission the message should be saved to the database 
+and trigger two emails — one notification to the admin 
+at mubrand2050@gmail.com with all form details, and one 
+auto-reply to the customer confirming receipt with a 
+tracking reference number.
+
+The fourth section shows a large prominent WhatsApp 
+contact button if WhatsApp is active in the admin 
+settings. It should display the working hours and 
+open a pre-filled WhatsApp conversation using the 
+phone number and message template configured by the 
+admin.
+
+The fifth section renders an embedded Google Maps 
+iframe using the URL saved in admin settings. If no 
+URL has been configured, this section should be 
+hidden automatically.
+
+Replace any hardcoded social media links in the 
+footer with the SocialIconsBar component in small 
+size without labels, so the footer always reflects 
+the current active platforms and URLs from the 
+database.
+
+Create a new admin page for managing incoming contact 
+messages. Display them in a table with name, email, 
+subject, date, and read status. Unread messages 
+should be visually distinct with a bold style and 
+a blue indicator dot. The admin should be able to 
+view the full message, mark it as read, and delete 
+it. Show summary stats for total messages and 
+unread messages received today.
+
+════════════════════════════════════════════════════════
+EXECUTION RULES
+════════════════════════════════════════════════════════
+
+Execute all changes in the following strict order:
+First apply all database schema changes including 
+table creation and column additions. Then install 
+all required packages. Then build all backend API 
+endpoints and background jobs. Then build all 
+frontend components and pages. Finally restart 
+the server and confirm everything is running.
+
+Required packages to install:
+passport, passport-google-oauth20, passport-facebook,
+passport-twitter, node-cron, nodemailer, react-icons
+
+After completing each file print a confirmation 
+line showing the filename. Keep each file under 
+250 lines and split into sub-components when needed. 
+Do not modify any file that is not directly related 
+to the features listed above. End the session with 
+a complete list of all modified and newly created files.
+
+BEGIN with the database schema changes.

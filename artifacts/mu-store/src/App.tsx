@@ -15,6 +15,9 @@ import AccountPage from "@/pages/AccountPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import AdminPage from "@/pages/AdminPage";
+import ContactPage from "@/pages/ContactPage";
+import ProfileCompletePage from "@/pages/ProfileCompletePage";
+import AuthCallbackPage from "@/pages/AuthCallbackPage";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -33,6 +36,7 @@ function AppLayout() {
           <Route path="/products/:id" component={ProductDetailPage} />
           <Route path="/checkout" component={CheckoutPage} />
           <Route path="/account" component={AccountPage} />
+          <Route path="/contact" component={ContactPage} />
           <Route path="/admin" component={AdminPage} />
           <Route component={NotFound} />
         </Switch>
@@ -42,20 +46,13 @@ function AppLayout() {
   );
 }
 
-function AuthLayout() {
-  return (
-    <Switch>
-      <Route path="/login" component={LoginPage} />
-      <Route path="/register" component={RegisterPage} />
-    </Switch>
-  );
-}
-
 function Router() {
   return (
     <Switch>
       <Route path="/login" component={LoginPage} />
       <Route path="/register" component={RegisterPage} />
+      <Route path="/auth-callback" component={AuthCallbackPage} />
+      <Route path="/complete-profile" component={ProfileCompletePage} />
       <Route component={AppLayout} />
     </Switch>
   );

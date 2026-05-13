@@ -7,6 +7,7 @@ export const couponsTable = pgTable("coupons", {
   userId: integer("user_id"),
   expiresAt: text("expires_at"),
   used: boolean("used").default(false),
+  source: text("source").default("manual"), // 'birthday' | 'manual' | 'offer'
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
