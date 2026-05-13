@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, Link } from "wouter";
-import { Heart, ShoppingBag, Share2, Minus, Plus, Star, ChevronLeft, ChevronRight, Send } from "lucide-react";
-import { motion } from "framer-motion";
+import { Heart, ShoppingBag, Share2, Minus, Plus, Star, ChevronLeft, ChevronRight, Send, Truck, RotateCcw, Shield } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useGetProduct, useGetProductReviews, useListProducts, useAddToWishlist, useRemoveFromWishlist, useCreateReview, getGetProductQueryKey, getGetProductReviewsQueryKey, getListProductsQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,8 +10,6 @@ import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-const GOVERNORATES = ["Cairo", "Giza", "Alexandria", "Dakahlia", "Red Sea", "Beheira", "Fayoum", "Gharbiya", "Ismailia", "Menofia", "Minya", "Qaliubiya", "New Valley", "Suez", "Aswan", "Assiut", "Beni Suef", "Port Said", "Damietta", "Sharqia", "South Sinai", "Kafr El Sheikh", "Matrouh", "Luxor", "Qena", "Sohag", "North Sinai"];
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -36,20 +34,40 @@ export default function ProductDetailPage() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const qc = useQueryClient();
   const createReview = useCreateReview();
+  const imgRef = useRef<HTMLDivElement>(null);
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <Skeleton className="aspect-square rounded-2xl" />
-          <div className="space-y-4"><Skeleton className="h-8 w-3/4" /><Skeleton className="h-6 w-1/3" /><Skeleton className="h-32 w-full" /></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-14">
+          <div className="space-y-3">
+            <Skeleton className="aspect-square rounded-2xl" />
+            <div className="flex gap-2">{Array(4).fill(0).map((_,i) => <Skeleton key={i} className="w-16 h-16 rounded-xl" />)}</div>
+          </div>
+          <div className="space-y-5">
+            <Skeleton className="h-4 w-24 rounded-full" />
+            <Skeleton className="h-10 w-3/4 rounded-xl" />
+            <Skeleton className="h-8 w-1/3 rounded-xl" />
+            <Skeleton className="h-20 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-xl" />
+          </div>
         </div>
       </div>
     );
   }
 
   if (!product) {
-    return <div className="text-center py-24"><p>Product not found.</p><Link href="/products" className="text-[#C9A96E] mt-4 block">Back to Shop</Link></div>;
+    return (
+      <div className="text-center py-28">
+        <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+          <ShoppingBag size={28} className="text-muted-foreground" />
+        </div>
+        <p className="text-lg font-semibold mb-2">Product not found</p>
+        <Link href="/products" className="text-[#C9A96E] text-sm hover:underline flex items-center gap-1 justify-center mt-2">
+          <ChevronLeft size={14} /> Back to Shop
+        </Link>
+      </div>
+    );
   }
 
   const images = product.images ?? [];
@@ -64,7 +82,7 @@ export default function ProductDetailPage() {
       productId: product.id, quantity, size: selectedSize || "One Size", color: selectedColor || "Standard",
       product: { id: product.id, name: product.name, price: product.price, salePrice: product.salePrice, images: product.images, stock: product.stock },
     });
-    toast.success("Added to cart");
+    toast.success("Added to cart ✓");
   };
 
   const handleWishlist = () => {
@@ -72,39 +90,69 @@ export default function ProductDetailPage() {
     if (wishlisted) {
       removeFromWishlist.mutate({ productId }, { onSuccess: () => { setWishlisted(false); toast.success("Removed from wishlist"); } });
     } else {
-      addToWishlist.mutate({ productId }, { onSuccess: () => { setWishlisted(true); toast.success("Saved to wishlist"); } });
+      addToWishlist.mutate({ productId }, { onSuccess: () => { setWishlisted(true); toast.success("Saved to wishlist ♥"); } });
     }
   };
 
+  const MICRO_BADGES = [
+    { icon: Truck, label: "Free shipping over 500 EGP" },
+    { icon: RotateCcw, label: "14-day returns" },
+    { icon: Shield, label: "Secure checkout" },
+  ];
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <Link href="/products" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
-        <ChevronLeft size={16} /> Back to Shop
+      <Link href="/products" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors group">
+        <ChevronLeft size={15} className="group-hover:-translate-x-0.5 transition-transform" /> Back to Shop
       </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-14">
         {/* Gallery */}
         <div className="space-y-3">
-          <div className="aspect-square rounded-2xl overflow-hidden bg-muted relative group">
-            {images[imgIdx] && <img src={images[imgIdx]} alt={product.name} className="w-full h-full object-cover" data-testid="img-product-main" />}
+          <div ref={imgRef} className="aspect-square rounded-3xl overflow-hidden bg-muted relative group shadow-lg">
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={imgIdx}
+                src={images[imgIdx]}
+                alt={product.name}
+                initial={{ opacity: 0, scale: 1.04 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className="w-full h-full object-cover"
+                data-testid="img-product-main"
+              />
+            </AnimatePresence>
             {images.length > 1 && (
               <>
                 <button onClick={() => setImgIdx(i => (i - 1 + images.length) % images.length)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" data-testid="button-img-prev">
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-background hover:scale-105"
+                  data-testid="button-img-prev">
                   <ChevronLeft size={18} />
                 </button>
                 <button onClick={() => setImgIdx(i => (i + 1) % images.length)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" data-testid="button-img-next">
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-background hover:scale-105"
+                  data-testid="button-img-next">
                   <ChevronRight size={18} />
                 </button>
               </>
+            )}
+            {/* Dot indicator */}
+            {images.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+                {images.map((_, i) => (
+                  <button key={i} onClick={() => setImgIdx(i)}
+                    className={`rounded-full transition-all duration-300 ${i === imgIdx ? "w-5 h-2 bg-[#C9A96E]" : "w-2 h-2 bg-white/50 hover:bg-white/80"}`} />
+                ))}
+              </div>
             )}
           </div>
           {images.length > 1 && (
             <div className="flex gap-2 overflow-x-auto pb-1">
               {images.map((img, i) => (
                 <button key={i} onClick={() => setImgIdx(i)}
-                  className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${imgIdx === i ? "border-foreground" : "border-transparent"}`} data-testid={`button-thumb-${i}`}>
+                  className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all duration-200 hover:scale-105 ${imgIdx === i ? "border-[#C9A96E] shadow-md shadow-[#C9A96E]/20" : "border-transparent hover:border-border"}`}
+                  data-testid={`button-thumb-${i}`}>
                   <img src={img} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
@@ -113,24 +161,26 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Info */}
-        <div className="space-y-5">
-          {product.categoryName && <p className="text-xs tracking-widest uppercase text-[#C9A96E]">{product.categoryName}</p>}
+        <div className="space-y-6">
+          {product.categoryName && (
+            <p className="text-xs tracking-[0.25em] uppercase text-[#C9A96E] font-medium">{product.categoryName}</p>
+          )}
           <h1 className="font-serif text-3xl sm:text-4xl font-bold leading-tight" data-testid="text-product-name">{product.name}</h1>
 
           {avgRating && (
             <div className="flex items-center gap-2">
-              <div className="flex">{Array(5).fill(0).map((_, i) => <Star key={i} size={16} className={i < Math.round(avgRating) ? "text-[#C9A96E] fill-[#C9A96E]" : "text-muted-foreground/30"} />)}</div>
+              <div className="flex gap-0.5">{Array(5).fill(0).map((_, i) => <Star key={i} size={15} className={i < Math.round(avgRating) ? "text-[#C9A96E] fill-[#C9A96E]" : "text-muted-foreground/20 fill-muted-foreground/20"} />)}</div>
               <span className="text-sm text-muted-foreground">({product.reviewCount} reviews)</span>
             </div>
           )}
 
-          <div className="flex items-center gap-3" data-testid="text-product-price">
+          <div className="flex items-baseline gap-3" data-testid="text-product-price">
             {product.salePrice ? (
               <>
                 <span className="text-3xl font-bold text-[#D4608A]">{product.salePrice.toLocaleString()} EGP</span>
                 <span className="text-lg text-muted-foreground line-through">{product.price.toLocaleString()}</span>
-                <span className="text-sm bg-[#D4608A]/10 text-[#D4608A] px-2 py-0.5 rounded font-medium">
-                  -{Math.round((1 - product.salePrice / product.price) * 100)}%
+                <span className="text-xs bg-[#D4608A]/10 text-[#D4608A] px-2.5 py-1 rounded-full font-semibold">
+                  -{Math.round((1 - product.salePrice / product.price) * 100)}% OFF
                 </span>
               </>
             ) : (
@@ -141,12 +191,14 @@ export default function ProductDetailPage() {
           {/* Sizes */}
           {(product.sizes ?? []).length > 0 && (
             <div>
-              <p className="font-semibold text-sm mb-2">Size {selectedSize && <span className="font-normal text-muted-foreground">— {selectedSize}</span>}</p>
+              <p className="font-semibold text-sm mb-2.5">
+                Size {selectedSize && <span className="font-normal text-[#C9A96E]">— {selectedSize}</span>}
+              </p>
               <div className="flex flex-wrap gap-2">
                 {(product.sizes ?? []).map(s => (
-                  <button key={s} onClick={() => setSelectedSize(s)}
-                    className={`w-12 h-12 rounded-lg text-sm border-2 font-medium transition-colors ${selectedSize === s ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground"}`}
-                    data-testid={`button-size-${s}`}>{s}</button>
+                  <motion.button key={s} onClick={() => setSelectedSize(s)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                    className={`w-12 h-12 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${selectedSize === s ? "border-foreground bg-foreground text-background shadow-md" : "border-border hover:border-foreground/50"}`}
+                    data-testid={`button-size-${s}`}>{s}</motion.button>
                 ))}
               </div>
             </div>
@@ -155,12 +207,14 @@ export default function ProductDetailPage() {
           {/* Colors */}
           {(product.colors ?? []).length > 0 && (
             <div>
-              <p className="font-semibold text-sm mb-2">Color {selectedColor && <span className="font-normal text-muted-foreground">— {selectedColor}</span>}</p>
+              <p className="font-semibold text-sm mb-2.5">
+                Color {selectedColor && <span className="font-normal text-[#C9A96E]">— {selectedColor}</span>}
+              </p>
               <div className="flex flex-wrap gap-2">
                 {(product.colors ?? []).map(c => (
-                  <button key={c} onClick={() => setSelectedColor(c)}
-                    className={`px-3 py-1.5 rounded-lg text-sm border-2 font-medium transition-colors ${selectedColor === c ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground"}`}
-                    data-testid={`button-color-${c.toLowerCase()}`}>{c}</button>
+                  <motion.button key={c} onClick={() => setSelectedColor(c)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                    className={`px-3.5 py-2 rounded-xl text-sm font-medium border-2 transition-all duration-200 ${selectedColor === c ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/50"}`}
+                    data-testid={`button-color-${c.toLowerCase()}`}>{c}</motion.button>
                 ))}
               </div>
             </div>
@@ -168,57 +222,85 @@ export default function ProductDetailPage() {
 
           {/* Quantity */}
           <div>
-            <p className="font-semibold text-sm mb-2">Quantity</p>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center border border-border rounded-lg">
-                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="p-3 hover:bg-muted transition-colors" data-testid="button-qty-minus"><Minus size={16} /></button>
-                <span className="px-4 font-medium" data-testid="text-quantity">{quantity}</span>
-                <button onClick={() => setQuantity(q => Math.min(product.stock, q + 1))} className="p-3 hover:bg-muted transition-colors" data-testid="button-qty-plus"><Plus size={16} /></button>
+            <p className="font-semibold text-sm mb-2.5">Quantity</p>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center border-2 border-border rounded-xl overflow-hidden">
+                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-3 hover:bg-muted transition-colors" data-testid="button-qty-minus"><Minus size={15} /></button>
+                <span className="px-5 font-bold" data-testid="text-quantity">{quantity}</span>
+                <button onClick={() => setQuantity(q => Math.min(product.stock, q + 1))} className="px-4 py-3 hover:bg-muted transition-colors" data-testid="button-qty-plus"><Plus size={15} /></button>
               </div>
-              {product.stock <= 5 && product.stock > 0 && <span className="text-sm text-amber-600 font-medium">Only {product.stock} left!</span>}
+              {product.stock <= 5 && product.stock > 0 && (
+                <span className="text-sm text-amber-600 font-semibold bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 rounded-lg">
+                  Only {product.stock} left!
+                </span>
+              )}
             </div>
           </div>
 
           {/* CTAs */}
           <div className="flex gap-3">
-            <Button onClick={handleAddToCart} className="flex-1 bg-foreground text-background hover:opacity-90 h-12" disabled={product.stock === 0} data-testid="button-add-to-cart">
-              <ShoppingBag size={18} className="mr-2" /> {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
-            </Button>
-            <Button onClick={handleWishlist} variant="outline" size="icon" className={`h-12 w-12 ${wishlisted ? "border-[#D4608A] text-[#D4608A]" : ""}`} data-testid="button-wishlist">
+            <motion.div className="flex-1" whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+              <Button
+                onClick={handleAddToCart}
+                className="w-full h-13 bg-foreground text-background hover:opacity-90 text-base font-semibold shadow-lg hover:shadow-xl transition-all rounded-2xl"
+                disabled={product.stock === 0}
+                data-testid="button-add-to-cart"
+              >
+                <ShoppingBag size={18} className="mr-2" />
+                {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+              </Button>
+            </motion.div>
+            <Button onClick={handleWishlist} variant="outline" size="icon"
+              className={`h-13 w-13 rounded-2xl border-2 transition-all hover:scale-105 ${wishlisted ? "border-[#D4608A] text-[#D4608A] bg-[#D4608A]/5" : "hover:border-[#D4608A] hover:text-[#D4608A]"}`}
+              data-testid="button-wishlist">
               <Heart size={18} className={wishlisted ? "fill-current" : ""} />
             </Button>
-            <Button variant="outline" size="icon" className="h-12 w-12" onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success("Link copied!"); }} data-testid="button-share">
+            <Button variant="outline" size="icon" className="h-13 w-13 rounded-2xl border-2 hover:scale-105 transition-all"
+              onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success("Link copied!"); }}
+              data-testid="button-share">
               <Share2 size={18} />
             </Button>
           </div>
 
+          {/* Trust micro-badges */}
+          <div className="flex gap-4 pt-1 border-t border-border/50">
+            {MICRO_BADGES.map(({ icon: Icon, label }) => (
+              <div key={label} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Icon size={13} className="text-[#C9A96E] flex-shrink-0" />
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+
           {/* Tabs */}
-          <Tabs defaultValue="description" className="mt-6">
-            <TabsList className="w-full">
-              <TabsTrigger value="description" className="flex-1">Description</TabsTrigger>
-              <TabsTrigger value="reviews" className="flex-1">Reviews ({product.reviewCount})</TabsTrigger>
-              <TabsTrigger value="shipping" className="flex-1">Shipping</TabsTrigger>
+          <Tabs defaultValue="description" className="mt-2">
+            <TabsList className="w-full rounded-2xl">
+              <TabsTrigger value="description" className="flex-1 rounded-xl">Description</TabsTrigger>
+              <TabsTrigger value="reviews" className="flex-1 rounded-xl">Reviews ({product.reviewCount})</TabsTrigger>
+              <TabsTrigger value="shipping" className="flex-1 rounded-xl">Shipping</TabsTrigger>
             </TabsList>
-            <TabsContent value="description" className="text-sm text-muted-foreground mt-4 leading-relaxed">
-              {product.description ?? "Handcrafted with premium Egyptian leather and fine attention to detail."}
-              {product.material && <p className="mt-2"><span className="font-medium text-foreground">Material:</span> {product.material}</p>}
+            <TabsContent value="description" className="text-sm text-muted-foreground mt-5 leading-relaxed space-y-3">
+              <p>{product.description ?? "Handcrafted with premium Egyptian leather and fine attention to detail."}</p>
+              {product.material && <p className="pt-1"><span className="font-semibold text-foreground">Material:</span> {product.material}</p>}
             </TabsContent>
-            <TabsContent value="reviews" className="mt-4 space-y-4">
+            <TabsContent value="reviews" className="mt-5 space-y-4">
               {(reviews ?? []).length === 0
-                ? <p className="text-sm text-muted-foreground">No reviews yet. Be the first!</p>
+                ? <p className="text-sm text-muted-foreground py-4 text-center">No reviews yet. Be the first!</p>
                 : (reviews ?? []).map(r => (
-                  <div key={r.id} className="border border-border rounded-lg p-3" data-testid={`review-${r.id}`}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="flex">{Array(5).fill(0).map((_, i) => <Star key={i} size={12} className={i < r.rating ? "text-[#C9A96E] fill-[#C9A96E]" : "text-muted-foreground/30"} />)}</div>
-                      <span className="text-xs text-muted-foreground">{r.userName ?? "Verified Buyer"}</span>
+                  <motion.div key={r.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    className="border border-border rounded-2xl p-4 hover:border-[#C9A96E]/30 transition-colors"
+                    data-testid={`review-${r.id}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex gap-0.5">{Array(5).fill(0).map((_, i) => <Star key={i} size={12} className={i < r.rating ? "text-[#C9A96E] fill-[#C9A96E]" : "text-muted-foreground/20 fill-muted-foreground/20"} />)}</div>
+                      <span className="text-xs font-semibold">{r.userName ?? "Verified Buyer"}</span>
                       <span className="text-xs text-muted-foreground ml-auto">{new Date(r.createdAt).toLocaleDateString()}</span>
                     </div>
-                    {r.comment && <p className="text-sm">{r.comment}</p>}
-                  </div>
+                    {r.comment && <p className="text-sm leading-relaxed">{r.comment}</p>}
+                  </motion.div>
                 ))}
               {isLoggedIn ? (
-                <div className="border border-border rounded-xl p-4 bg-muted/20 space-y-3" data-testid="review-form">
-                  <p className="font-semibold text-sm">Write a Review</p>
+                <div className="border border-border rounded-2xl p-5 bg-muted/20 space-y-4" data-testid="review-form">
+                  <p className="font-semibold">Write a Review</p>
                   <div className="flex items-center gap-1">
                     {Array(5).fill(0).map((_, i) => (
                       <button key={i} type="button"
@@ -226,17 +308,18 @@ export default function ProductDetailPage() {
                         onMouseEnter={() => setReviewHover(i + 1)}
                         onMouseLeave={() => setReviewHover(0)}
                         data-testid={`star-${i + 1}`}
-                        className="transition-transform hover:scale-110">
-                        <Star size={22} className={(reviewHover || reviewRating) > i ? "text-[#C9A96E] fill-[#C9A96E]" : "text-muted-foreground/30"} />
+                        className="transition-transform hover:scale-125">
+                        <Star size={24} className={(reviewHover || reviewRating) > i ? "text-[#C9A96E] fill-[#C9A96E]" : "text-muted-foreground/20 fill-muted-foreground/20"} />
                       </button>
                     ))}
-                    {reviewRating > 0 && <span className="text-xs text-muted-foreground ml-2">{["", "Poor", "Fair", "Good", "Very Good", "Excellent"][reviewRating]}</span>}
+                    {reviewRating > 0 && <span className="text-xs text-muted-foreground ml-2 font-medium">{["","Poor","Fair","Good","Very Good","Excellent"][reviewRating]}</span>}
                   </div>
                   <textarea value={reviewComment} onChange={e => setReviewComment(e.target.value)} rows={3} maxLength={500}
-                    placeholder="Share your experience with this product..." data-testid="input-review-comment"
-                    className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background resize-none focus:outline-none focus:ring-1 focus:ring-ring" />
+                    placeholder="Share your experience with this product..."
+                    data-testid="input-review-comment"
+                    className="w-full border-2 border-border rounded-xl px-4 py-3 text-sm bg-background resize-none focus:outline-none focus:border-ring/50 transition-colors" />
                   <Button size="sm" disabled={reviewRating === 0 || submittingReview}
-                    className="bg-[#C9A96E] text-foreground hover:opacity-90"
+                    className="bg-[#C9A96E] text-foreground hover:opacity-90 rounded-xl font-semibold"
                     data-testid="button-submit-review"
                     onClick={async () => {
                       if (!reviewRating) { toast.error("Please select a rating"); return; }
@@ -251,19 +334,28 @@ export default function ProductDetailPage() {
                         onSettled: () => setSubmittingReview(false),
                       });
                     }}>
-                    <Send size={14} className="mr-1.5" />{submittingReview ? "Submitting..." : "Submit Review"}
+                    <Send size={13} className="mr-1.5" />{submittingReview ? "Submitting…" : "Submit Review"}
                   </Button>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground border border-border rounded-lg p-3">
-                  <Link href="/login" className="text-[#C9A96E] font-medium hover:underline">Sign in</Link> to leave a review.
+                <p className="text-sm text-muted-foreground border-2 border-border rounded-xl p-4 text-center">
+                  <Link href="/login" className="text-[#C9A96E] font-semibold hover:underline">Sign in</Link> to leave a review.
                 </p>
               )}
             </TabsContent>
-            <TabsContent value="shipping" className="text-sm text-muted-foreground mt-4 space-y-2">
-              <p>Free shipping on orders over 500 EGP. Standard delivery 2-5 business days.</p>
-              <p>Cash on Delivery available (20 EGP fee applies).</p>
-              <p>Easy 14-day returns — unused items in original packaging.</p>
+            <TabsContent value="shipping" className="text-sm text-muted-foreground mt-5 space-y-3 leading-relaxed">
+              <div className="grid grid-cols-1 gap-2.5">
+                {[
+                  { icon: Truck, text: "Free shipping on orders over 500 EGP. Standard delivery 2-5 business days." },
+                  { icon: Shield, text: "Cash on Delivery available with a 20 EGP service fee." },
+                  { icon: RotateCcw, text: "Easy 14-day returns — unused items in original packaging." },
+                ].map(({ icon: Icon, text }) => (
+                  <div key={text} className="flex gap-3 p-3 rounded-xl bg-muted/40">
+                    <Icon size={15} className="text-[#C9A96E] mt-0.5 flex-shrink-0" />
+                    <p>{text}</p>
+                  </div>
+                ))}
+              </div>
             </TabsContent>
           </Tabs>
         </div>
@@ -271,17 +363,28 @@ export default function ProductDetailPage() {
 
       {/* Related products */}
       {related && related.products.filter(p => p.id !== productId).length > 0 && (
-        <div className="mt-16">
-          <h2 className="font-serif text-2xl font-bold mb-6">Complete the Look</h2>
+        <div className="mt-20">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <p className="text-xs tracking-[0.25em] uppercase text-[#C9A96E] mb-1 font-medium">You Might Also Love</p>
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold">Complete the Look</h2>
+            </div>
+            <Link href="/products" className="text-sm text-muted-foreground hover:text-[#C9A96E] flex items-center gap-1 transition-colors group">
+              View all <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {related.products.filter(p => p.id !== productId).slice(0, 4).map(p => (
-              <Link key={p.id} href={`/products/${p.id}`} className="group" data-testid={`card-related-${p.id}`}>
-                <div className="aspect-[3/4] rounded-xl overflow-hidden bg-muted">
-                  {p.images[0] && <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />}
-                </div>
-                <p className="font-medium text-sm mt-2">{p.name}</p>
-                <p className="text-sm text-muted-foreground">{(p.salePrice ?? p.price).toLocaleString()} EGP</p>
-              </Link>
+            {related.products.filter(p => p.id !== productId).slice(0, 4).map((p, i) => (
+              <motion.div key={p.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+                whileHover={{ y: -5 }} className="group" data-testid={`card-related-${p.id}`}>
+                <Link href={`/products/${p.id}`}>
+                  <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-muted shadow-sm group-hover:shadow-lg transition-all duration-400">
+                    {p.images[0] && <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-600" loading="lazy" />}
+                  </div>
+                  <p className="font-medium text-sm mt-2.5 group-hover:text-[#C9A96E] transition-colors">{p.name}</p>
+                  <p className="text-sm text-muted-foreground font-medium">{(p.salePrice ?? p.price).toLocaleString()} EGP</p>
+                </Link>
+              </motion.div>
             ))}
           </div>
         </div>

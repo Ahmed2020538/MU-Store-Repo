@@ -12,6 +12,8 @@ import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
 import HelpWidget from "@/components/HelpWidget";
+import ScrollProgress from "@/components/ScrollProgress";
+import PremiumCursor from "@/components/PremiumCursor";
 import HomePage from "@/pages/HomePage";
 import ProductsPage from "@/pages/ProductsPage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
@@ -36,6 +38,8 @@ const queryClient = new QueryClient({
 function AppLayout() {
   return (
     <div className="min-h-screen flex flex-col">
+      <ScrollProgress />
+      <PremiumCursor />
       <Navbar />
       <CartDrawer />
       <main className="flex-1">
