@@ -4,13 +4,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ChevronRight, Package, CreditCard, FileText } from "lucide-react";
+import { Check, ChevronRight, Package, CreditCard, FileText, Truck } from "lucide-react";
 import { useCreateOrder, useValidatePromo } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
+import { useNotifications } from "@/lib/notification-context";
+import { getDeliveryWindow, getEstimatedDeliveryDate } from "@/lib/delivery-estimate";
 import { toast } from "sonner";
 
 const GOVERNORATES = ["Cairo","Giza","Alexandria","Dakahlia","Red Sea","Beheira","Fayoum","Gharbiya","Ismailia","Menofia","Minya","Qaliubiya","New Valley","Suez","Aswan","Assiut","Beni Suef","Port Said","Damietta","Sharqia","South Sinai","Kafr El Sheikh","Matrouh","Luxor","Qena","Sohag","North Sinai"];
@@ -62,6 +64,7 @@ export default function CheckoutPage() {
 
   const { items, total, clearCart } = useCart();
   const { isLoggedIn } = useAuth();
+  const { addNotification } = useNotifications();
   const createOrder = useCreateOrder();
   const validatePromo = useValidatePromo();
 
@@ -103,7 +106,17 @@ export default function CheckoutPage() {
         } : {}),
       } as any
     }, {
-      onSuccess: (order) => { clearCart(); setPlacedOrderId(order.id); },
+      onSuccess: (order) => {
+        clearCart();
+        setPlacedOrderId(order.id);
+        const deliveryDate = getEstimatedDeliveryDate(deliveryData?.governorate);
+        addNotification({
+          type: "order",
+          title: "Order Confirmed! 🎉",
+          body: `Order #${order.id} placed successfully. Estimated delivery: ${deliveryDate}.`,
+          href: "/account",
+        });
+      },
       onError: () => toast.error("Failed to place order. Try again."),
     });
   };

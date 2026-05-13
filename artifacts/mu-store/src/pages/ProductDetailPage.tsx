@@ -1,7 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, Link } from "wouter";
-import { Heart, ShoppingBag, Share2, Minus, Plus, Star, ChevronLeft, ChevronRight, Send, Truck, RotateCcw, Shield } from "lucide-react";
+import { Heart, ShoppingBag, Share2, Minus, Plus, Star, ChevronLeft, ChevronRight, Send, Truck, RotateCcw, Shield, ZoomIn, Ruler } from "lucide-react";
 import { addRecentlyViewed } from "@/lib/recently-viewed";
+import { getDeliveryWindow } from "@/lib/delivery-estimate";
+
+function getFitSummary(rating?: number | null, reviewCount?: number | null) {
+  if (!rating || !reviewCount || reviewCount < 3) return null;
+  if (rating >= 4.2) return { label: "Fits true to size", sub: `Based on ${reviewCount} verified reviews`, colorClass: "text-green-700 dark:text-green-400", bgClass: "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900" };
+  if (rating >= 3.5) return { label: "Runs slightly small", sub: "Most customers recommend sizing up", colorClass: "text-amber-700 dark:text-amber-400", bgClass: "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900" };
+  return { label: "Sizing varies", sub: "Check our size guide for best fit", colorClass: "text-blue-700 dark:text-blue-400", bgClass: "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900" };
+}
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetProduct, useGetProductReviews, useListProducts, useAddToWishlist, useRemoveFromWishlist, useCreateReview, getGetProductQueryKey, getGetProductReviewsQueryKey, getListProductsQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -41,6 +49,8 @@ export default function ProductDetailPage() {
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [wishlisted, setWishlisted] = useState(false);
+  const [zoomed, setZoomed] = useState(false);
+  const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHover, setReviewHover] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
@@ -122,21 +132,39 @@ export default function ProductDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-14">
         {/* Gallery */}
         <div className="space-y-3">
-          <div ref={imgRef} className="aspect-square rounded-3xl overflow-hidden bg-muted relative group shadow-lg">
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={imgIdx}
-                src={images[imgIdx]}
-                alt={product.name}
-                initial={{ opacity: 0, scale: 1.04 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
-                className="w-full h-full object-cover"
-                data-testid="img-product-main"
-              />
-            </AnimatePresence>
-            {images.length > 1 && (
+          <div
+            ref={imgRef}
+            className={`aspect-square rounded-3xl overflow-hidden bg-muted relative group shadow-lg select-none ${zoomed ? "cursor-zoom-out" : "cursor-zoom-in"}`}
+            onMouseEnter={() => setZoomed(true)}
+            onMouseLeave={() => setZoomed(false)}
+            onMouseMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setZoomOrigin({
+                x: ((e.clientX - rect.left) / rect.width) * 100,
+                y: ((e.clientY - rect.top) / rect.height) * 100,
+              });
+            }}
+          >
+            <div
+              className="w-full h-full transition-transform duration-150 ease-out"
+              style={zoomed ? { transform: "scale(2.2)", transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%` } : {}}
+            >
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={imgIdx}
+                  src={images[imgIdx]}
+                  alt={product.name}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  className="w-full h-full object-cover pointer-events-none"
+                  data-testid="img-product-main"
+                />
+              </AnimatePresence>
+            </div>
+            {!zoomed && <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"><ZoomIn size={14} className="text-foreground/70" /></div>}
+            {images.length > 1 && !zoomed && (
               <>
                 <button onClick={() => setImgIdx(i => (i - 1 + images.length) % images.length)}
                   className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-background hover:scale-105"
@@ -160,7 +188,7 @@ export default function ProductDetailPage() {
               </div>
             )}
           </div>
-          {images.length > 1 && (
+          {images.length > 1 && !zoomed && (
             <div className="flex gap-2 overflow-x-auto pb-1">
               {images.map((img, i) => (
                 <button key={i} onClick={() => setImgIdx(i)}
@@ -204,9 +232,14 @@ export default function ProductDetailPage() {
           {/* Sizes */}
           {(product.sizes ?? []).length > 0 && (
             <div>
-              <p className="font-semibold text-sm mb-2.5">
-                Size {selectedSize && <span className="font-normal text-[#C9A96E]">— {selectedSize}</span>}
-              </p>
+              <div className="flex items-center justify-between mb-2.5">
+                <p className="font-semibold text-sm">
+                  Size {selectedSize && <span className="font-normal text-[#C9A96E]">— {selectedSize}</span>}
+                </p>
+                <Link href="/size-guide" className="text-xs text-[#C9A96E] hover:underline flex items-center gap-1">
+                  <Ruler size={11} /> Size guide
+                </Link>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {(product.sizes ?? []).map(s => (
                   <motion.button key={s} onClick={() => setSelectedSize(s)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -214,6 +247,13 @@ export default function ProductDetailPage() {
                     data-testid={`button-size-${s}`}>{s}</motion.button>
                 ))}
               </div>
+              {(() => { const fit = getFitSummary(product.rating, product.reviewCount); return fit ? (
+                <div className={`flex items-center gap-2 mt-3 px-3 py-2 rounded-xl border text-xs font-medium ${fit.bgClass}`}>
+                  <span className={`${fit.colorClass} font-semibold`}>✓ {fit.label}</span>
+                  <span className="text-muted-foreground">·</span>
+                  <span className="text-muted-foreground">{fit.sub}</span>
+                </div>
+              ) : null; })()}
             </div>
           )}
 
@@ -357,9 +397,25 @@ export default function ProductDetailPage() {
               )}
             </TabsContent>
             <TabsContent value="shipping" className="text-sm text-muted-foreground mt-5 space-y-3 leading-relaxed">
+              <div className="p-4 rounded-2xl border border-[#C9A96E]/20 bg-[#C9A96E]/5 mb-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Truck size={15} className="text-[#C9A96E]" />
+                  <span className="font-semibold text-foreground text-sm">Delivery Estimate</span>
+                </div>
+                {(() => {
+                  const win = getDeliveryWindow();
+                  return (
+                    <div className="space-y-1">
+                      <p className="text-xs"><span className="font-medium text-foreground">Cairo / Giza / Alexandria:</span> 1–2 business days</p>
+                      <p className="text-xs"><span className="font-medium text-foreground">All other governorates:</span> 3–5 business days</p>
+                      <p className="text-xs"><span className="font-medium text-foreground">Remote areas:</span> 5–7 business days</p>
+                    </div>
+                  );
+                })()}
+              </div>
               <div className="grid grid-cols-1 gap-2.5">
                 {[
-                  { icon: Truck, text: "Free shipping on orders over 500 EGP. Standard delivery 2-5 business days." },
+                  { icon: Truck, text: "Free shipping on orders over 500 EGP." },
                   { icon: Shield, text: "Cash on Delivery available with a 20 EGP service fee." },
                   { icon: RotateCcw, text: "Easy 14-day returns — unused items in original packaging." },
                 ].map(({ icon: Icon, text }) => (

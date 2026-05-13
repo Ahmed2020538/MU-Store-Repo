@@ -101,6 +101,31 @@ export default function AccountPage() {
     fetch("/api/auth/me", h).then(r => r.json()).then(setProfile).catch(() => {});
   }, [isLoggedIn]);
 
+  // Price drop detection — compares wishlist prices from API with cached prices
+  useEffect(() => {
+    if (!wishlist?.length) return;
+    const CACHE_KEY = "mu_wishlist_price_cache";
+    try {
+      const cache: Record<number, { price: number; salePrice: number | null }> = JSON.parse(localStorage.getItem(CACHE_KEY) ?? "{}");
+      const drops: string[] = [];
+      wishlist.forEach(p => {
+        const cached = cache[p.id];
+        const currentEffective = p.salePrice ?? p.price;
+        if (cached) {
+          const cachedEffective = cached.salePrice ?? cached.price;
+          if (currentEffective < cachedEffective) {
+            drops.push(`${p.name}: ${cachedEffective.toLocaleString()} → ${currentEffective.toLocaleString()} EGP`);
+          }
+        }
+        cache[p.id] = { price: p.price, salePrice: p.salePrice ?? null };
+      });
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+      if (drops.length > 0) {
+        toast.success(`Price drop on ${drops.length} wishlist item${drops.length > 1 ? "s" : ""}! 🎉`, { duration: 6000 });
+      }
+    } catch {}
+  }, [wishlist]);
+
   if (!isLoggedIn) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-4">

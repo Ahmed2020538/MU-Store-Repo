@@ -1,0 +1,73 @@
+Develop a high-end, fully interactive e-commerce website specifically for shoes and bags, focusing on premium user experience, smart recommendations, and fashion-oriented features.
+
+The system must be a complete, production-ready product where all features are fully functional, connected to the backend, and not مجرد واجهات شكلية.
+
+Key Requirements:
+
+1. Product Experience:
+- Provide high-quality product images with zoom and 360° view.
+- Support multiple variants (size, color, material).
+- Update product visuals dynamically when selecting variants.
+- Disable unavailable options automatically.
+
+2. Smart Size System:
+- Implement a size recommendation feature based on user input or previous selections.
+- Display "Fits true to size" indicators based on real user reviews stored in the backend.
+
+3. AI Recommendations:
+- Suggest related products (e.g., matching bags for shoes).
+- Add "Complete the Look" feature.
+- Provide personalized suggestions based on real user behavior and stored data.
+
+4. Filtering & Search:
+- Advanced filters (price, size, color, brand, material, style).
+- Real-time filtering without page reload.
+- Ensure filters query real backend data efficiently.
+
+5. User Engagement:
+- Wishlist and favorites system (persisted in database).
+- Quick view modal for fast browsing.
+- Notifications for price drops and restocks (connected to backend logic).
+
+6. Stock & Urgency:
+- Show real-time stock availability from backend.
+- Display urgency messages (e.g., "Only 2 left") based on actual inventory data.
+
+7. Reviews & Trust:
+- Enable user reviews with image uploads.
+- Store and retrieve ratings and feedback from backend.
+- Display fit/comfort insights dynamically.
+
+8. Shipping & Returns:
+- Provide estimated delivery time dynamically.
+- Calculate shipping cost based on user location.
+- Implement a full return system with backend tracking.
+
+9. Cart & Checkout:
+- Smart cart with backend-synced items.
+- Save for later functionality.
+- Fully functional checkout process (no mockups).
+- Integrate payment system (or ready for integration).
+
+10. Fashion Experience:
+- Create a lookbook or inspiration section.
+- Allow users to explore styled outfits with clickable, linked products.
+
+11. Full Backend Integration (Critical):
+- Ensure every feature is fully connected to backend services.
+- No static or placeholder functionality is allowed.
+- All data must be stored, retrieved, and updated through APIs.
+- Use a structured database for products, users, orders, and interactions.
+
+12. Validation & Testing:
+- Verify that every feature works end-to-end (frontend + backend).
+- Prevent broken flows or incomplete implementations.
+- Handle edge cases (out of stock, invalid inputs, etc.).
+
+13. Clean Architecture:
+- Follow modular, scalable architecture (e.g., microservices or well-structured monolith).
+- Avoid code duplication and repeated logic.
+- Use reusable components and shared services.
+
+Goal:
+Build a premium, production-ready fashion e-commerce platform where every feature is real, functional, and seamlessly integrated, delivering a complete and professional user experience similar to global fashion brands.

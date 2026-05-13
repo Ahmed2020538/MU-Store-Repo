@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearch, useLocation, Link } from "wouter";
-import { SlidersHorizontal, Grid, List, X, ShoppingBag, ArrowRight } from "lucide-react";
+import { SlidersHorizontal, Grid, List, X, ShoppingBag, ArrowRight, Eye } from "lucide-react";
 import { motion, useInView } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useListProducts, useListCategories } from "@workspace/api-client-react";
@@ -10,11 +10,12 @@ import { Slider } from "@/components/ui/slider";
 import { useCart } from "@/lib/cart-context";
 import Breadcrumb from "@/components/Breadcrumb";
 import { toast } from "sonner";
+import QuickViewModal from "@/components/QuickViewModal";
 
 const SIZES = ["35", "36", "37", "38", "39", "40", "41", "42"];
 const COLORS = ["Black", "Champagne", "Nude", "Rose", "Gold", "Brown", "Navy", "White", "Ivory", "Sand"];
 
-function ProductCard({ p, index = 0 }: { p: any; index?: number }) {
+function ProductCard({ p, index = 0, onQuickView }: { p: any; index?: number; onQuickView?: (id: number) => void }) {
   const { addItem } = useCart();
   const { t } = useTranslation();
   const [hovered, setHovered] = useState(false);
@@ -63,16 +64,28 @@ function ProductCard({ p, index = 0 }: { p: any; index?: number }) {
             {p.isSale && <span className="bg-[#D4608A] text-white text-[10px] px-2.5 py-0.5 rounded-full font-semibold">{t("products.sale")}</span>}
             {p.stock <= 3 && p.stock > 0 && <span className="bg-amber-500/90 backdrop-blur-sm text-white text-[10px] px-2.5 py-0.5 rounded-full font-semibold">{t("products.onlyLeft", { count: p.stock })}</span>}
           </div>
-          {/* Quick add - slides up */}
-          <div className="absolute inset-x-2.5 bottom-2.5 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out">
+          {/* Quick actions - slides up */}
+          <div className="absolute inset-x-2.5 bottom-2.5 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out flex gap-1.5">
             <Button
               onClick={handleQuickAdd}
               size="sm"
-              className="w-full bg-background/95 backdrop-blur-sm text-foreground hover:bg-background text-xs font-semibold shadow-lg rounded-xl"
+              className="flex-1 bg-background/95 backdrop-blur-sm text-foreground hover:bg-background text-xs font-semibold shadow-lg rounded-xl"
               data-testid={`button-quick-add-${p.id}`}
             >
               <ShoppingBag size={12} className="mr-1.5" /> {t("products.quickAdd")}
             </Button>
+            {onQuickView && (
+              <Button
+                onClick={e => { e.preventDefault(); e.stopPropagation(); onQuickView(p.id); }}
+                size="sm"
+                variant="outline"
+                className="w-9 bg-background/95 backdrop-blur-sm hover:bg-background shadow-lg rounded-xl flex-shrink-0 px-0"
+                data-testid={`button-quick-view-${p.id}`}
+                title="Quick view"
+              >
+                <Eye size={13} />
+              </Button>
+            )}
           </div>
         </div>
         <div className="mt-3.5 space-y-1">
@@ -111,6 +124,7 @@ export default function ProductsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [page, setPage] = useState(1);
+  const [quickViewId, setQuickViewId] = useState<number | null>(null);
 
   useEffect(() => {
     const p = new URLSearchParams(searchStr);
@@ -202,6 +216,7 @@ export default function ProductsPage() {
   );
 
   return (
+    <>
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Breadcrumb items={[
         { label: t("breadcrumb.home"), href: "/" },
@@ -277,7 +292,7 @@ export default function ProductsPage() {
           ) : (
             <>
               <div className={viewMode === "grid" ? "grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4" : "space-y-4"}>
-                {products.map((p, i) => <ProductCard key={p.id} p={p} index={i} />)}
+                {products.map((p, i) => <ProductCard key={p.id} p={p} index={i} onQuickView={setQuickViewId} />)}
               </div>
               {Math.ceil(total / 12) > 1 && (
                 <div className="flex justify-center gap-2 mt-12">
@@ -300,5 +315,7 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
+    <QuickViewModal productId={quickViewId} onClose={() => setQuickViewId(null)} />
+    </>
   );
 }
