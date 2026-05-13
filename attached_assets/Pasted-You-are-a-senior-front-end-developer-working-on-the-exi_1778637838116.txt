@@ -1,0 +1,357 @@
+You are a senior front-end developer working on the existing MU 
+e-commerce website. Add and upgrade the following three visual 
+features to a world-class professional standard. Do NOT regenerate 
+the project. Modify only the files that require changes.
+
+════════════════════════════════════════════════════════
+FEATURE 1: PROFESSIONAL BRANDS CAROUSEL
+════════════════════════════════════════════════════════
+
+Build an animated, interactive brands showcase section that 
+displays the fashion brands available on the MU platform. 
+This section must feel premium, smooth, and fully dynamic — 
+powered by data from the database so the admin can manage 
+brands without touching any code.
+
+── Database ────────────────────────────────────────────
+Create a new table to store brand data:
+
+CREATE TABLE IF NOT EXISTS brands (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  logo_url TEXT,
+  website_url TEXT,
+  display_order INTEGER DEFAULT 0,
+  active INTEGER DEFAULT 1,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+Seed with these initial brands:
+Baldinini, Zitrone Berlin, Enni Marco, 
+Mario Rossi Collezioni, Steve Madden, 
+Aldo, Nine West, Charles & Keith,
+Guess, Michael Kors
+
+── Backend API ─────────────────────────────────────────
+GET /api/brands
+→ Returns all active brands ordered by display_order
+→ Cache result in memory for 10 minutes
+
+POST /api/admin/brands       → create brand (admin only)
+PUT  /api/admin/brands/:id   → update brand (admin only)
+DELETE /api/admin/brands/:id → delete brand (admin only)
+POST /api/admin/brands/reorder → update display_order 
+                                 for all brands (admin only)
+
+── Frontend Component ──────────────────────────────────
+Build a BrandsCarousel component with these 
+professional characteristics:
+
+Visual Design:
+- Dark background (#1A1A2E) with a subtle grain texture overlay
+- Section title: "Brands We Carry" in English + 
+  "الماركات المتاحة" in Arabic — elegant serif font
+- Decorative gold divider line under the title
+- Each brand card: warm cream (#F9F5F0) background, 
+  soft shadow, rounded corners (12px)
+- Brand logo centered inside the card with object-fit contain
+- Brand name in elegant typography below the logo
+- On hover: card lifts with translateY(-6px), 
+  gold border appears, shadow deepens
+- Clicking a card opens the brand's website in a new tab
+
+Animation — Infinite Auto-Scroll:
+- Two identical rows of brand cards running in opposite 
+  directions simultaneously (left-to-right and right-to-left)
+- Speed: smooth and continuous — not jumpy
+- On mouse hover over the carousel: 
+  pause animation with ease-out deceleration
+- On mouse leave: resume with ease-in acceleration
+- Seamless loop — clone the brand list to fill gaps
+- No visible jump or reset point ever
+
+Responsive Behavior:
+- Desktop: show 6 brand cards visible at once per row
+- Tablet: show 4 cards
+- Mobile: show 2.5 cards (hint at scrollability)
+- Touch support: swipeable on mobile with momentum
+
+── Admin Panel — Brands Manager (/admin/brands) ────────
+Build a full brand management interface:
+
+- Grid view of all brands with drag-and-drop reordering
+- Each brand card shows: logo preview, name, active toggle
+- Add Brand modal: name input, logo upload (multer), 
+  website URL, display order
+- Edit and delete per brand with confirm dialog
+- Bulk activate / deactivate selected brands
+- "Preview Carousel" button shows live preview of 
+  how the carousel will look on the homepage
+
+════════════════════════════════════════════════════════
+FEATURE 2: WORLD-CLASS CUSTOMER TESTIMONIALS SECTION
+════════════════════════════════════════════════════════
+
+Build a stunning, fully dynamic testimonials section that 
+displays real verified customer reviews in a cinematic, 
+emotionally engaging layout. All data must come from the 
+database and the admin must have full control over 
+which reviews are featured.
+
+── Database ────────────────────────────────────────────
+Add these columns to the existing reviews table or 
+create a featured_testimonials table:
+
+CREATE TABLE IF NOT EXISTS testimonials (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  customer_name TEXT NOT NULL,
+  customer_city TEXT,
+  customer_avatar_url TEXT,
+  rating INTEGER DEFAULT 5,
+  review_text TEXT NOT NULL,
+  review_text_ar TEXT,
+  product_name TEXT,
+  verified_purchase INTEGER DEFAULT 1,
+  featured INTEGER DEFAULT 1,
+  display_order INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+Seed with 8 diverse realistic Egyptian customer reviews 
+across different cities (Cairo, Alexandria, Hurghada, 
+Mansoura, Aswan) with ratings between 4 and 5 stars.
+
+── Backend API ─────────────────────────────────────────
+GET /api/testimonials
+→ Returns all featured testimonials ordered by display_order
+→ Cache for 5 minutes
+
+POST /api/admin/testimonials       → create (admin only)
+PUT  /api/admin/testimonials/:id   → update (admin only)
+DELETE /api/admin/testimonials/:id → delete (admin only)
+POST /api/admin/testimonials/reorder → reorder (admin only)
+
+── Frontend Component ──────────────────────────────────
+Build a Testimonials component with a cinematic layout:
+
+Visual Design:
+- Full-width dark section with a subtle diagonal 
+  gradient: #1A1A2E to #0d0d1a
+- Decorative large quotation mark (") in gold 
+  (#C9A96E) at very low opacity (0.08) as background 
+  watermark — creates depth
+- Section header: "What Our Customers Say" / 
+  "ماذا يقول عملاؤنا" in large elegant serif font
+- Gold underline accent only under 2-3 words of the title
+
+Card Design (one featured review displayed at a time):
+- The review text is displayed in a large cinematic 
+  font size (28–32px) centered, with generous line height
+- Quotation marks in gold before and after the text
+- Star rating displayed as filled gold stars
+- Customer info below: circular avatar (or initials 
+  fallback with gradient background), full name in 
+  bold, city in muted gold, verified purchase badge
+- If the review mentions a product, show the product 
+  name with a small shoe/bag emoji
+
+Navigation:
+- Left and right arrow buttons with gold color + 
+  hover animation to move between testimonials
+- Dot indicators below — active dot is gold and 
+  slightly larger, inactive are muted
+- Auto-advance every 5 seconds with a smooth 
+  fade-and-slide transition
+- Pause auto-advance on hover or when user interacts
+- Keyboard navigation: left/right arrow keys work 
+  when section is in viewport
+
+Side Previews (desktop only):
+- Show a blurred, scaled-down preview of the 
+  previous and next testimonials on either side 
+  of the active card — creates a 3D depth effect
+- Clicking a side preview slides it into focus
+
+Rating Summary Bar (above the carousel):
+- Show overall average rating with a large number 
+  (e.g., "4.9") in gold
+- Five gold stars next to it
+- Text: "Based on [X] verified reviews"
+- Small animated count-up effect when section 
+  enters the viewport
+
+── Admin Panel — Testimonials Manager ──────────────────
+Add a /admin/testimonials page with:
+
+- List of all testimonials in a sortable table
+- Toggle featured status per review
+- Drag to reorder featured testimonials
+- Add new testimonial manually with all fields
+- Import from existing product reviews:
+  show a list of top-rated product reviews and 
+  allow the admin to promote them to featured 
+  testimonials with one click
+- Edit and delete any testimonial
+- Live preview of how the testimonial will 
+  appear on the homepage before saving
+
+════════════════════════════════════════════════════════
+FEATURE 3: PROFESSIONAL FOOTER SOCIAL ICONS
+════════════════════════════════════════════════════════
+
+Upgrade the footer's social media icons section to a 
+premium, fully dynamic implementation that reads from 
+the database and renders beautifully on all devices.
+
+── Visual Redesign ─────────────────────────────────────
+Replace any existing hardcoded or basic social icons 
+with this professional implementation:
+
+Layout — Two variations based on context:
+
+Variation A — Compact Footer Row (bottom of every page):
+- Icons displayed horizontally in a row
+- Each icon inside a circle (36px diameter)
+- Default state: dark circle with muted icon
+- Hover state: circle fills with the platform's 
+  official brand color, icon turns white, 
+  circle scales up to 110% with smooth 300ms transition
+- Tooltip appears on hover showing the platform name
+- Only active platforms shown (from admin settings)
+- Platforms sorted by admin-defined order
+
+Variation B — Expanded Social Section (in footer body):
+- Section title: "Follow Us" / "تابعينا"
+- Icons in a row with platform names below each icon
+- Each item has the icon in brand color on transparent 
+  background, platform name below in small muted text
+- On hover: entire item gets a subtle background glow 
+  in the platform's color at 15% opacity
+- Animated entrance: icons fade in one by one with 
+  staggered delay when footer enters viewport
+
+Icon Quality:
+- Use react-icons for crisp SVG icons (not images)
+- Platforms: WhatsApp (FaWhatsapp), Instagram (FaInstagram), 
+  Facebook (FaFacebook), TikTok (FaTiktok), 
+  YouTube (FaYoutube), Snapchat (FaSnapchatGhost), 
+  Pinterest (FaPinterest), X/Twitter (FaXTwitter from fa6)
+- Each platform mapped to its exact official color:
+    WhatsApp:  #25D366
+    Instagram: linear-gradient(#833AB4, #E1306C, #F77737)
+    Facebook:  #1877F2
+    TikTok:    #000000 with #EE1D52 accent
+    YouTube:   #FF0000
+    Snapchat:  #FFFC00
+    Pinterest: #E60023
+    X:         #000000
+
+── Dynamic Data Binding ────────────────────────────────
+The SocialIconsBar component must:
+- Fetch active platforms from GET /api/settings/social 
+  on mount with a 10-minute client-side cache
+- Build the correct URL per platform using the 
+  value stored by the admin:
+    WhatsApp → https://wa.me/[number]?text=[auto-message]
+    Instagram → https://instagram.com/[handle]
+    Facebook → https://facebook.com/[page]
+    TikTok → https://tiktok.com/@[handle]
+    YouTube → https://youtube.com/[channel]
+    Snapchat → https://snapchat.com/add/[handle]
+    Pinterest → https://pinterest.com/[handle]
+    X → https://x.com/[handle]
+- Open all links in a new tab with 
+  rel="noopener noreferrer" for security
+- If no platforms are active, hide the section 
+  entirely — never show an empty row
+
+── Floating WhatsApp Button ────────────────────────────
+Add a floating WhatsApp button that appears on every 
+page if WhatsApp is active in the admin settings:
+
+- Fixed position: bottom-right corner (24px from edges)
+- Size: 56px diameter circle in #25D366
+- WhatsApp icon in white, 28px
+- Subtle pulse animation to draw attention (scale 
+  1.0 → 1.08 → 1.0, repeating every 2 seconds)
+- On hover: stops pulse, shows tooltip with 
+  "تواصلي معنا على واتساب" and working hours 
+  from admin settings
+- On click: opens WhatsApp with the pre-configured 
+  auto-message from admin settings
+- On mobile: button slightly smaller (48px)
+- Scroll behavior: button fades in after user 
+  scrolls down 300px from the top
+
+── Admin Control ───────────────────────────────────────
+All social icons are controlled from the existing 
+admin contact settings page. Ensure it has:
+- Toggle per platform (show/hide)
+- URL or handle input per platform
+- Drag to reorder platforms
+- Live preview showing exactly how the icons will 
+  appear in the footer as the admin types
+- WhatsApp auto-message template textarea
+- Floating button enable/disable toggle
+
+════════════════════════════════════════════════════════
+HOMEPAGE INTEGRATION
+════════════════════════════════════════════════════════
+
+Place the three features on the homepage in this order 
+from top to bottom after the existing hero and 
+products sections:
+
+  1. Brands Carousel section
+  2. Testimonials section  
+  3. Footer (containing upgraded social icons)
+
+Each section must have a smooth scroll-triggered 
+entrance animation using Intersection Observer:
+- Elements fade in and slide up (translateY 40px → 0)
+- Duration: 600ms with ease-out timing
+- Staggered delay for child elements (100ms apart)
+- Animation plays only once per session
+
+════════════════════════════════════════════════════════
+EXECUTION ORDER
+════════════════════════════════════════════════════════
+
+Execute in this exact order:
+
+  1.  Database: CREATE TABLE brands + testimonials
+      + seed initial data
+  2.  Install: npm install react-icons multer
+  3.  Create: src/config/socialIcons.js 
+      with full platform config map
+  4.  Backend: GET /api/brands + admin CRUD routes
+  5.  Backend: GET /api/testimonials + admin CRUD routes
+  6.  Backend: verify GET /api/settings/social exists 
+      and returns correct data
+  7.  Frontend: BrandsCarousel component 
+      with infinite dual-row animation
+  8.  Frontend: Testimonials component 
+      with cinematic carousel
+  9.  Frontend: SocialIconsBar component 
+      (both compact and expanded variations)
+  10. Frontend: Floating WhatsApp button component
+  11. Frontend: integrate all three into homepage 
+      in correct order with scroll animations
+  12. Frontend: Footer upgrade — replace hardcoded 
+      icons with SocialIconsBar compact variation
+  13. Admin: /admin/brands management page
+  14. Admin: /admin/testimonials management page
+  15. Admin: verify social settings panel has 
+      live preview and all required controls
+  16. Restart server
+
+Rules:
+- Print "✅ Done: [filename]" after each file
+- Max 250 lines per file — split into sub-components 
+  when needed
+- Never modify files unrelated to these three features
+- Ensure all three features work perfectly on mobile
+- At the end print the full list of modified 
+  and newly created files
+
+BEGIN with Step 1: database changes.

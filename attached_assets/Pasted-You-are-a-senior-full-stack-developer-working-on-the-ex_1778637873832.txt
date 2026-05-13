@@ -1,0 +1,369 @@
+You are a senior full-stack developer working on the existing MU 
+e-commerce website. Apply the following three major features and fixes 
+to the current codebase. Do NOT regenerate the project. Modify only 
+what is needed, file by file.
+
+════════════════════════════════════════════════════════
+FEATURE 1: MULTI-LANGUAGE SUPPORT SYSTEM
+════════════════════════════════════════════════════════
+
+Build a complete internationalization (i18n) system that 
+supports language selection across the entire website with 
+no exceptions. Every piece of text, label, placeholder, 
+error message, toast notification, email template, and 
+UI element must respond to the selected language instantly 
+without a page reload.
+
+── Supported Languages ─────────────────────────────────
+Include these primary languages with full RTL/LTR support:
+
+  Arabic (العربية)     → RTL  [default]
+  English              → LTR
+  French (Français)    → LTR
+  German (Deutsch)     → LTR
+  Spanish (Español)    → LTR
+  Italian (Italiano)   → LTR
+  Turkish (Türkçe)     → LTR
+  Persian (فارسی)      → RTL
+  Urdu (اردو)          → RTL
+  Chinese (中文)        → LTR
+  Japanese (日本語)     → LTR
+  Russian (Русский)    → LTR
+
+── Language Selection UI ───────────────────────────────
+The language selection screen must appear as the very first 
+page the user sees — before the login or registration page. 
+Design it as a full-screen elegant landing with the MU logo 
+centered at the top, a subtitle in the currently hovered 
+language, and a clean grid of language options. Each option 
+displays the language's native name, its flag emoji, and 
+an English subtitle. The selected language gets a gold 
+border highlight. A "Continue" button appears after 
+selection and navigates to the login page.
+
+Store the user's language choice in localStorage under 
+the key "mu_language" and apply it on every subsequent 
+visit so the user is never shown the language screen again 
+unless they explicitly change it from settings.
+
+── Technical Implementation ────────────────────────────
+Install and configure: npm install i18next react-i18next 
+i18next-browser-languagedetector
+
+Create a translations folder at src/locales/ with one JSON 
+file per language (e.g., ar.json, en.json, fr.json, etc.). 
+Each JSON file must contain translations for every string 
+in the application organized by section:
+
+  navigation, auth, profile, products, cart, checkout,
+  orders, account, admin, contact, footer, errors, 
+  toasts, emails, buttons, placeholders, validation
+
+Create an i18n config file at src/i18n.js that initializes 
+i18next with all language resources, sets Arabic as the 
+default, and detects the stored preference from localStorage.
+
+Wrap the entire application in the I18nextProvider at 
+the root level. Use the useTranslation hook in every 
+component to replace all hardcoded strings with translation 
+keys.
+
+── RTL / LTR Layout Switching ──────────────────────────
+When a RTL language is selected (Arabic, Persian, Urdu), 
+apply these changes globally and instantly:
+- Set document direction to rtl
+- Flip all flex directions and margins
+- Reverse icon positions and padding
+- Align all text to the right
+- Flip dropdown arrows and navigation chevrons
+
+When a LTR language is selected, reverse all of the above.
+Use a global CSS class on the body element (class="rtl" 
+or class="ltr") and define CSS variables for direction, 
+text-align, and spacing that all components inherit.
+
+── Language Switcher in Settings ───────────────────────
+Add a language switcher dropdown in the website header 
+showing the current language's flag and name. Clicking 
+it opens a dropdown list of all supported languages. 
+Selecting a new one applies the change instantly across 
+the entire page with no reload. Also add the same 
+switcher in the user's account settings page and in 
+the admin panel header.
+
+── Admin Panel Localization ────────────────────────────
+The admin panel must also be fully translated. All 
+dashboard labels, table headers, form fields, buttons, 
+status badges, and error messages must use the 
+translation system. The admin can switch language 
+independently from the customer-facing site.
+
+════════════════════════════════════════════════════════
+FEATURE 2: FIX SOCIAL LOGIN — FULL DIAGNOSIS AND REPAIR
+════════════════════════════════════════════════════════
+
+The social login buttons for Google, Facebook, Instagram, 
+X (Twitter), and Apple (iCloud) are currently not working. 
+Perform a complete diagnosis and fix for each provider 
+following these steps precisely.
+
+── Root Cause Diagnosis ────────────────────────────────
+Before writing any fix, check and print the status of 
+each of the following:
+
+  1. Are the OAuth credentials present in environment 
+     variables? Print which ones are missing.
+  2. Are the passport strategies correctly initialized 
+     before the Express routes are defined?
+  3. Are the OAuth callback URLs registered correctly 
+     in the backend routes and do they match exactly 
+     what is configured in each provider's developer 
+     console?
+  4. Is the session middleware configured before passport 
+     middleware in the Express app?
+  5. Are CORS settings blocking the OAuth redirects?
+  6. Is the frontend correctly redirecting to the backend 
+     OAuth route (e.g., /api/auth/google) rather than 
+     trying to handle OAuth in the browser?
+
+── Fix for Each Provider ───────────────────────────────
+
+Google:
+Configure passport-google-oauth20 strategy with clientID 
+and clientSecret from environment variables. Set the 
+callback URL to /api/auth/google/callback. Request scopes 
+for profile and email. On success, find or create the user 
+in the database using their Google ID and email.
+
+Facebook + Instagram:
+Configure passport-facebook strategy with appID and 
+appSecret. Request profile and email fields. Instagram 
+login uses the same Facebook app through the Instagram 
+Graph API — configure this as a separate strategy using 
+the Facebook app with Instagram permissions enabled. 
+Set callback URLs to /api/auth/facebook/callback and 
+/api/auth/instagram/callback respectively.
+
+X (Twitter):
+Configure passport-twitter strategy using API key and 
+API secret. Note that Twitter OAuth 1.0a does not return 
+email by default — request the email permission explicitly 
+and handle the case where it may still be undefined by 
+generating a placeholder. Set callback URL to 
+/api/auth/twitter/callback.
+
+Apple (iCloud):
+Configure passport-apple strategy using clientID, teamID, 
+keyID, and the private key file. Apple only sends the 
+user's name on the very first login — store it immediately. 
+Set callback URL to /api/auth/apple/callback. Apple 
+requires HTTPS so ensure the Replit deployment URL is used.
+
+── Callback Handler (same logic for all providers) ─────
+For every provider's callback route, apply this unified 
+logic: check if a user exists in the database by provider 
+ID first, then by email as a fallback. If found, generate 
+a JWT token and redirect the browser to the frontend with 
+the token as a URL parameter. If not found, create a new 
+user record with the provider's data, then redirect to 
+the profile completion page with the token. Never expose 
+the JWT in a way that is visible in browser history.
+
+── Frontend OAuth Flow Fix ─────────────────────────────
+The social login buttons must redirect the user's browser 
+to the backend OAuth initiation URL (e.g., 
+window.location.href = '/api/auth/google'). Do not attempt 
+to use fetch or axios for OAuth — it must be a full 
+browser redirect.
+
+Create a dedicated OAuth callback landing page at 
+/auth/callback that reads the JWT token from the URL 
+parameters, stores it in localStorage, determines the 
+user's role and profile completion status, and redirects 
+accordingly — to the admin panel, profile completion 
+page, or home page.
+
+── Validation Layer ────────────────────────────────────
+Add the following validation checks to the social auth 
+flow:
+
+  - If the provider returns no email, show a clear error 
+    message asking the user to use email registration 
+    instead and do not create an incomplete account.
+
+  - If the account already exists with a different 
+    provider (e.g., user tries Google but registered 
+    with email), detect this and show a message telling 
+    them which method they originally used to sign up.
+
+  - If the OAuth state parameter is missing or invalid 
+    on the callback, reject the request with a 403 error 
+    to prevent CSRF attacks.
+
+  - Validate that the JWT returned in the callback is 
+    properly signed before storing it.
+
+  - Rate limit the OAuth initiation endpoints to prevent 
+    abuse — maximum 10 attempts per IP per minute.
+
+  - Log all OAuth errors to the server console with 
+    enough detail to diagnose future issues without 
+    exposing sensitive data.
+
+── Testing Checklist ───────────────────────────────────
+After applying all fixes, add a diagnostic endpoint at 
+GET /api/auth/social-status that returns a JSON object 
+showing which providers are correctly configured (have 
+valid credentials in environment variables) and which 
+are missing configuration. This helps identify issues 
+without checking the code manually.
+
+════════════════════════════════════════════════════════
+FEATURE 3: FIX CATEGORY FILTERING — FULL BACKEND SYNC
+════════════════════════════════════════════════════════
+
+The category selection (Heels, Bags, Flats, Boots, 
+Accessories) is currently not interactive and does not 
+filter products correctly across the website. Fix this 
+completely so that selecting any category anywhere on 
+the site triggers a real backend query and updates all 
+relevant UI instantly.
+
+── Database Layer ──────────────────────────────────────
+Ensure the products table has a category column that 
+stores normalized lowercase English values matching 
+the URL parameters exactly: heels, bags, flats, boots, 
+accessories. If any products have inconsistent or 
+missing category values, write a one-time migration 
+script that normalizes them and run it on server start.
+
+Create a dedicated categories table if it does not 
+exist with columns for id, slug, name in Arabic, name 
+in English, display order, and active status. Seed it 
+with the five main categories.
+
+── Backend API Fix ─────────────────────────────────────
+Fix the GET /api/products endpoint to correctly accept 
+and apply these query parameters:
+
+  category   → filter by exact category slug
+  sort       → newest, price_asc, price_desc, top_rated
+  minPrice   → minimum price filter
+  maxPrice   → maximum price filter
+  size       → filter by available size
+  color      → filter by available color
+  page       → pagination page number
+  limit      → results per page (default 12)
+  search     → full text search on name and description
+
+The endpoint must build the SQL query dynamically based 
+on whichever parameters are present, apply all filters 
+simultaneously, and return the paginated results along 
+with the total count and total pages for the frontend 
+to render pagination correctly.
+
+Add a separate endpoint GET /api/categories that returns 
+all active categories with their slugs, display names 
+in both languages, and product count per category.
+
+── Navigation Links Fix ────────────────────────────────
+Every category link across the entire website must use 
+React Router's Link component with the correct path and 
+query parameter. Fix all occurrences in the navbar, 
+mobile menu, footer, homepage category grid, and any 
+sidebar or promotional banners. The correct format is 
+/products?category=heels for example.
+
+── Products Page Fix ───────────────────────────────────
+The products page must read the category parameter from 
+the URL using useSearchParams on every render and re-fetch 
+products from the backend whenever any parameter changes. 
+The useEffect hook must list all filter parameters as 
+dependencies so it reacts to every change automatically.
+
+The active category must be visually highlighted in the 
+navigation and in any sidebar category list using the 
+brand's gold color. When the user clicks a different 
+category the URL must update, the highlight must move, 
+and the product grid must reload with the new results 
+without a full page refresh.
+
+── Homepage Category Grid Fix ──────────────────────────
+Each category card on the homepage must be wrapped in 
+a React Router Link pointing to the correct filtered 
+products URL. The cards must also display the live 
+product count fetched from GET /api/categories so the 
+customer can see how many products are in each category 
+before clicking.
+
+── Breadcrumb Trail ────────────────────────────────────
+Add a breadcrumb component on the products page that 
+shows the current navigation context. For example when 
+browsing heels it should display: Home > Shop > Heels. 
+Each breadcrumb item is clickable and navigates to the 
+correct page. The breadcrumb must update automatically 
+when the category changes.
+
+── Admin Product Management Sync ───────────────────────
+When the admin adds or edits a product, the category 
+field must save using the exact normalized slug. The 
+admin categories dropdown must be populated from the 
+GET /api/categories endpoint so it always stays in 
+sync with the database and never has hardcoded values.
+
+── Performance ─────────────────────────────────────────
+Add server-side caching for the categories list since 
+it rarely changes — cache it in memory for 10 minutes 
+before re-querying the database. For product queries 
+with the same parameters, use a short cache of 60 
+seconds to reduce database load during high traffic.
+
+════════════════════════════════════════════════════════
+EXECUTION ORDER
+════════════════════════════════════════════════════════
+
+Execute all changes in this exact sequence:
+
+  1.  Database: add categories table + normalize 
+      product category values
+  2.  Install: i18next react-i18next 
+      i18next-browser-languagedetector
+  3.  Create: src/locales/ folder with all 12 
+      language JSON files fully translated
+  4.  Create: src/i18n.js configuration file
+  5.  Backend: fix GET /api/products with full 
+      filter support
+  6.  Backend: add GET /api/categories endpoint
+  7.  Backend: fix all five OAuth strategies 
+      with unified callback handler
+  8.  Backend: add GET /api/auth/social-status 
+      diagnostic endpoint
+  9.  Backend: add OAuth rate limiting middleware
+  10. Frontend: wrap app in I18nextProvider
+  11. Frontend: create language selection page
+  12. Frontend: add language switcher to header 
+      and account settings
+  13. Frontend: apply RTL/LTR switching globally
+  14. Frontend: fix all category Link components 
+      across navbar, footer, homepage, sidebar
+  15. Frontend: fix products page filter and 
+      useSearchParams logic
+  16. Frontend: fix social login buttons to use 
+      full browser redirect
+  17. Frontend: create /auth/callback landing page
+  18. Frontend: add breadcrumb component
+  19. Frontend: translate all components using 
+      useTranslation hook
+  20. Restart server and run diagnostic checks
+
+Rules:
+- Print "✅ Done: [filename]" after completing each file
+- Keep every file under 250 lines and split into 
+  sub-components or sub-files when needed
+- Never modify files unrelated to the three features above
+- At the end print a complete list of all modified 
+  files and all newly created files
+- Run the social-status diagnostic endpoint and print 
+  its output before finishing
+
+BEGIN with Step 1: database changes.

@@ -1,35 +1,39 @@
 import { Link } from "wouter";
 import { useEffect, useState } from "react";
-import { MessageCircle } from "lucide-react";
 import SocialIconsBar from "./SocialIconsBar";
 
 export default function Footer() {
-  const [contact, setContact] = useState<any>({});
   const [social, setSocial] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    fetch("/api/settings/contact").then(r => r.json()).then(setContact).catch(() => {});
-    fetch("/api/settings/social").then(r => r.json()).then(setSocial).catch(() => {});
+    const cached = sessionStorage.getItem("mu_social_v2");
+    if (cached) { setSocial(JSON.parse(cached)); return; }
+    fetch("/api/settings/social").then(r => r.json()).then(d => {
+      setSocial(d);
+      sessionStorage.setItem("mu_social_v2", JSON.stringify(d));
+    }).catch(() => {});
   }, []);
-
-  const whatsappNum = (contact.whatsappNumber ?? social.whatsapp?.value ?? "201000000000").replace(/\D/g, "");
-  const whatsappMsg = encodeURIComponent(contact.whatsappMessage ?? "مرحباً، أريد الاستفسار");
 
   return (
     <footer className="bg-foreground text-background mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Brand */}
           <div className="md:col-span-2">
             <span className="font-serif text-3xl font-bold tracking-widest text-[#C9A96E]">MU</span>
             <p className="mt-2 text-sm text-background/70 italic">Where Every Step Tells Your Story</p>
             <p className="mt-4 text-sm text-background/60 max-w-sm">
               Premium Egyptian women's shoes and bags, crafted with care and designed to make every moment unforgettable.
             </p>
-            <div className="mt-5">
-              <SocialIconsBar size="sm" direction="row" data={social} />
+
+            {/* Follow Us — expanded social icons with labels */}
+            <div className="mt-6">
+              <p className="text-xs tracking-widest uppercase text-[#C9A96E] mb-3">Follow Us · تابعينا</p>
+              <SocialIconsBar size="sm" variant="expanded" showLabels data={social} />
             </div>
           </div>
 
+          {/* Shop */}
           <div>
             <h4 className="text-sm font-semibold tracking-widest uppercase text-[#C9A96E] mb-4">Shop</h4>
             <ul className="space-y-2 text-sm text-background/70">
@@ -39,6 +43,7 @@ export default function Footer() {
             </ul>
           </div>
 
+          {/* Help */}
           <div>
             <h4 className="text-sm font-semibold tracking-widest uppercase text-[#C9A96E] mb-4">Help</h4>
             <ul className="space-y-2 text-sm text-background/70">
@@ -59,13 +64,6 @@ export default function Footer() {
           </div>
         </div>
       </div>
-
-      {/* WhatsApp FAB */}
-      <a href={`https://wa.me/${whatsappNum}?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full bg-green-500 text-white flex items-center justify-center shadow-lg hover:bg-green-600 transition-colors"
-        data-testid="button-whatsapp">
-        <MessageCircle size={24} />
-      </a>
     </footer>
   );
 }

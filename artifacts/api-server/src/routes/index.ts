@@ -16,6 +16,8 @@ import profileRouter from "./profile.js";
 import contactRouter from "./contact.js";
 import couponsUserRouter from "./coupons-user.js";
 import adminCouponsRouter from "./admin-coupons.js";
+import brandsRouter from "./brands.js";
+import testimonialsRouter from "./testimonials.js";
 
 const router: IRouter = Router();
 
@@ -36,5 +38,7 @@ router.use("/products", uploadsRouter);
 router.use("/profile", profileRouter);
 router.use("/contact", contactRouter);
 router.use("/coupons", couponsUserRouter);
+router.use("/", brandsRouter);
+router.use("/", testimonialsRouter);
 
 export default router;

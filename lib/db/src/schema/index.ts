@@ -5,3 +5,5 @@ export * from "./reviews";
 export * from "./settings";
 export * from "./coupons";
 export * from "./contact_messages";
+export * from "./brands";
+export * from "./testimonials";
