@@ -1,4 +1,4 @@
-import { FaWhatsapp, FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaSnapchat, FaPinterest, FaXTwitter } from "react-icons/fa6";
+import { FaWhatsapp, FaInstagram, FaFacebook, FaTiktok, FaYoutube, FaSnapchat, FaPinterest, FaXTwitter, FaLinkedin } from "react-icons/fa6";
 import type { ComponentType } from "react";
 
 export interface SocialPlatform {
@@ -7,6 +7,8 @@ export interface SocialPlatform {
   Icon: ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>;
   color: string;
   bgColor: string;
+  gradientFrom?: string;
+  gradientTo?: string;
   buildUrl: (value: string) => string;
 }
 
@@ -25,6 +27,8 @@ export const SOCIAL_PLATFORMS: SocialPlatform[] = [
     Icon: FaInstagram as any,
     color: "#E1306C",
     bgColor: "#E1306C",
+    gradientFrom: "#f09433",
+    gradientTo: "#bc1888",
     buildUrl: v => v.startsWith("http") ? v : `https://instagram.com/${v.replace("@", "")}`,
   },
   {
@@ -39,9 +43,25 @@ export const SOCIAL_PLATFORMS: SocialPlatform[] = [
     key: "tiktok",
     label: "TikTok",
     Icon: FaTiktok as any,
-    color: "#010101",
+    color: "#ff0050",
     bgColor: "#010101",
     buildUrl: v => v.startsWith("http") ? v : `https://tiktok.com/@${v.replace("@", "")}`,
+  },
+  {
+    key: "twitter",
+    label: "X (Twitter)",
+    Icon: FaXTwitter as any,
+    color: "#000000",
+    bgColor: "#000000",
+    buildUrl: v => v.startsWith("http") ? v : `https://x.com/${v.replace("@", "")}`,
+  },
+  {
+    key: "linkedin",
+    label: "LinkedIn",
+    Icon: FaLinkedin as any,
+    color: "#0A66C2",
+    bgColor: "#0A66C2",
+    buildUrl: v => v.startsWith("http") ? v : `https://linkedin.com/company/${v}`,
   },
   {
     key: "youtube",
@@ -52,14 +72,6 @@ export const SOCIAL_PLATFORMS: SocialPlatform[] = [
     buildUrl: v => v.startsWith("http") ? v : `https://youtube.com/${v}`,
   },
   {
-    key: "snapchat",
-    label: "Snapchat",
-    Icon: FaSnapchat as any,
-    color: "#FFFC00",
-    bgColor: "#FFFC00",
-    buildUrl: v => v.startsWith("http") ? v : `https://snapchat.com/add/${v}`,
-  },
-  {
     key: "pinterest",
     label: "Pinterest",
     Icon: FaPinterest as any,
@@ -68,12 +80,12 @@ export const SOCIAL_PLATFORMS: SocialPlatform[] = [
     buildUrl: v => v.startsWith("http") ? v : `https://pinterest.com/${v}`,
   },
   {
-    key: "twitter",
-    label: "X",
-    Icon: FaXTwitter as any,
-    color: "#000000",
-    bgColor: "#000000",
-    buildUrl: v => v.startsWith("http") ? v : `https://x.com/${v.replace("@", "")}`,
+    key: "snapchat",
+    label: "Snapchat",
+    Icon: FaSnapchat as any,
+    color: "#FFFC00",
+    bgColor: "#FFFC00",
+    buildUrl: v => v.startsWith("http") ? v : `https://snapchat.com/add/${v}`,
   },
 ];
 

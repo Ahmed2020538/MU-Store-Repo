@@ -25,13 +25,14 @@ const DEFAULT_CONTACT: Record<string, any> = {
 
 const DEFAULT_SOCIAL: Record<string, any> = {
   whatsapp:  { active: true,  value: "+201000000000", order: 1 },
-  instagram: { active: true,  value: "", order: 2 },
-  facebook:  { active: true,  value: "", order: 3 },
-  tiktok:    { active: false, value: "", order: 4 },
-  pinterest: { active: false, value: "", order: 5 },
-  youtube:   { active: false, value: "", order: 6 },
-  snapchat:  { active: false, value: "", order: 7 },
-  twitter:   { active: false, value: "", order: 8 },
+  instagram: { active: true,  value: "mustore.eg",    order: 2 },
+  facebook:  { active: true,  value: "mustore.eg",    order: 3 },
+  tiktok:    { active: true,  value: "mustore.eg",    order: 4 },
+  twitter:   { active: true,  value: "mustore_eg",    order: 5 },
+  linkedin:  { active: true,  value: "mu-store-eg",   order: 6 },
+  pinterest: { active: false, value: "", order: 7 },
+  youtube:   { active: false, value: "", order: 8 },
+  snapchat:  { active: false, value: "", order: 9 },
 };
 
 router.get("/contact", async (_req, res) => {
