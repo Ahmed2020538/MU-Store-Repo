@@ -23,6 +23,7 @@ import type {
   CartItemUpdate,
   Category,
   DashboardSummary,
+  GetOrderParams,
   HealthStatus,
   ListProductsParams,
   LoginInput,
@@ -1122,22 +1123,35 @@ export const useCreateOrder = <
 /**
  * @summary Get order by ID
  */
-export const getGetOrderUrl = (id: number) => {
-  return `/api/orders/${id}`;
+export const getGetOrderUrl = (id: number, params?: GetOrderParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/orders/${id}?${stringifiedParams}`
+    : `/api/orders/${id}`;
 };
 
 export const getOrder = async (
   id: number,
+  params?: GetOrderParams,
   options?: RequestInit,
 ): Promise<Order> => {
-  return customFetch<Order>(getGetOrderUrl(id), {
+  return customFetch<Order>(getGetOrderUrl(id, params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetOrderQueryKey = (id: number) => {
-  return [`/api/orders/${id}`] as const;
+export const getGetOrderQueryKey = (id: number, params?: GetOrderParams) => {
+  return [`/api/orders/${id}`, ...(params ? [params] : [])] as const;
 };
 
 export const getGetOrderQueryOptions = <
@@ -1145,6 +1159,7 @@ export const getGetOrderQueryOptions = <
   TError = ErrorType<unknown>,
 >(
   id: number,
+  params?: GetOrderParams,
   options?: {
     query?: UseQueryOptions<
       Awaited<ReturnType<typeof getOrder>>,
@@ -1156,11 +1171,11 @@ export const getGetOrderQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetOrderQueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getGetOrderQueryKey(id, params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrder>>> = ({
     signal,
-  }) => getOrder(id, { signal, ...requestOptions });
+  }) => getOrder(id, params, { signal, ...requestOptions });
 
   return {
     queryKey,
@@ -1186,6 +1201,7 @@ export function useGetOrder<
   TError = ErrorType<unknown>,
 >(
   id: number,
+  params?: GetOrderParams,
   options?: {
     query?: UseQueryOptions<
       Awaited<ReturnType<typeof getOrder>>,
@@ -1195,7 +1211,7 @@ export function useGetOrder<
     request?: SecondParameter<typeof customFetch>;
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetOrderQueryOptions(id, options);
+  const queryOptions = getGetOrderQueryOptions(id, params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

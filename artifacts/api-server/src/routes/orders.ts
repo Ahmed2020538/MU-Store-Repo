@@ -1,7 +1,9 @@
 import { Router } from "express";
+import { randomUUID } from "crypto";
 import { db } from "@workspace/db";
-import { ordersTable, productsTable } from "@workspace/db";
-import { eq, desc, sql } from "drizzle-orm";
+import { ordersTable, productsTable, discountCodesTable, couponsTable, settingsTable } from "@workspace/db";
+import type { Order } from "@workspace/db";
+import { eq, desc, sql, inArray } from "drizzle-orm";
 import { optionalAuth, requireAuth, requireAdmin, isActiveAdmin } from "../lib/auth.js";
 import { CreateOrderBody, AdminUpdateOrderStatusBody } from "@workspace/api-zod";
 import { sendMail } from "../lib/mailer.js";
@@ -9,7 +11,17 @@ import { orderConfirmationHtml } from "../lib/email-templates.js";
 
 const router = Router();
 
-function formatOrder(o: any) {
+type StoredItem = {
+  productId: number;
+  productName: string;
+  quantity: number;
+  size: string;
+  color: string;
+  price: number;
+  image?: string;
+};
+
+function formatOrder(o: Order, includeToken = false) {
   return {
     id: o.id,
     userId: o.userId,
@@ -32,16 +44,17 @@ function formatOrder(o: any) {
     codDownPaymentMethod: o.codDownPaymentMethod ?? null,
     amountDueOnDelivery: o.amountDueOnDelivery ?? 0,
     createdAt: o.createdAt instanceof Date ? o.createdAt.toISOString() : o.createdAt,
+    ...(includeToken && o.lookupToken ? { lookupToken: o.lookupToken } : {}),
   };
 }
 
 // Auth-required order history
 router.get("/", requireAuth, async (req, res) => {
-  const userId = (req as any).user.id;
+  const userId = (req as any).user.id as number;
   const orders = await db.select().from(ordersTable)
     .where(eq(ordersTable.userId, userId))
     .orderBy(desc(ordersTable.createdAt));
-  res.json(orders.map(formatOrder));
+  res.json(orders.map(o => formatOrder(o)));
 });
 
 // Guest + authenticated checkout — optionalAuth extracts user if token present
@@ -51,43 +64,125 @@ router.post("/", optionalAuth, async (req, res) => {
   if (!result.success) { res.status(400).json({ error: "Invalid input" }); return; }
   const data = result.data;
 
-  // Validate cart is not empty
-  if (!data.items || data.items.length === 0) {
+  if (data.items.length === 0) {
     res.status(400).json({ error: "Cart is empty" }); return;
   }
 
+  // ── Server-side pricing recalculation ─────────────────────────────────────
+  const productIds = data.items.map(i => i.productId);
+  const dbProducts = await db.select().from(productsTable).where(inArray(productsTable.id, productIds));
+  const productMap = new Map(dbProducts.map(p => [p.id, p]));
+
+  for (const item of data.items) {
+    if (!productMap.has(item.productId)) {
+      res.status(400).json({ error: `Product ${item.productId} not found` }); return;
+    }
+  }
+
+  const serverItems: StoredItem[] = data.items.map(item => {
+    const product = productMap.get(item.productId)!;
+    return {
+      productId: item.productId,
+      productName: product.name,
+      quantity: item.quantity,
+      size: item.size,
+      color: item.color,
+      price: product.salePrice ?? product.price,
+      image: product.images?.[0] ?? undefined,
+    };
+  });
+
+  const subtotal = serverItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const baseShipping = subtotal > 0 && subtotal < 500 ? 50 : 0;
   const isCod = data.paymentMethod === "cod";
-  const codDownPayment = isCod ? ((data as any).codDownPayment ?? 50) : 0;
-  const codDownPaymentStatus = isCod ? ((data as any).codDownPaymentStatus ?? "pending") : "paid";
-  const amountDueOnDelivery = isCod ? Math.max(0, (data.total ?? 0) - codDownPayment) : 0;
+  const codFee = isCod ? 20 : 0;
+  const shippingTotal = baseShipping + codFee;
+
+  // ── Validate promo code server-side ──────────────────────────────────────
+  let discount = 0;
+  let validPromoCode: string | null = null;
+  let appliedCouponId: number | null = null;
+  if (data.promoCode) {
+    const upper = data.promoCode.toUpperCase();
+    const [promo] = await db.select().from(discountCodesTable).where(eq(discountCodesTable.code, upper)).limit(1);
+    if (promo && promo.isActive) {
+      if (promo.discountType === "percentage") {
+        discount = subtotal * (promo.discountValue / 100);
+      } else if (promo.discountType === "fixed") {
+        discount = promo.discountValue;
+      } else if (promo.discountType === "free_shipping") {
+        discount = shippingTotal;
+      }
+      validPromoCode = promo.code;
+    } else {
+      const [coupon] = await db.select().from(couponsTable).where(eq(couponsTable.code, upper)).limit(1);
+      if (coupon && !coupon.used && (!coupon.expiresAt || new Date(coupon.expiresAt) >= new Date())) {
+        discount = subtotal * ((coupon.discountPercent ?? 20) / 100);
+        validPromoCode = coupon.code;
+        appliedCouponId = coupon.id;
+      }
+    }
+  }
+
+  const total = Math.max(0, subtotal + shippingTotal - discount);
+
+  // ── COD down payment from settings (fallback 50 EGP) ─────────────────────
+  let codDownPayment = 0;
+  let codDownPaymentStatus = "paid";
+  let amountDueOnDelivery = 0;
+  if (isCod) {
+    let codSetting: { key: string; value: string } | undefined;
+    try {
+      const rows = await db.select().from(settingsTable)
+        .where(eq(settingsTable.key, "cod_down_payment")).limit(1);
+      codSetting = rows[0];
+    } catch {
+      // settings unavailable — use default
+    }
+    codDownPayment = codSetting ? Number(codSetting.value) : 50;
+    codDownPaymentStatus = "pending";
+    amountDueOnDelivery = Math.max(0, total - codDownPayment);
+  }
+
+  // ── Generate lookup token for guest order access ──────────────────────────
+  const lookupToken = randomUUID();
 
   const [order] = await db.insert(ordersTable).values({
-    userId: userId as any,
+    lookupToken,
+    userId: userId ?? undefined,
     status: "pending",
     paymentMethod: data.paymentMethod,
     paymentStatus: isCod ? "partial" : "pending",
-    items: data.items as any,
+    items: serverItems,
     fullName: data.fullName,
     phone: data.phone,
     email: data.email,
     governorate: data.governorate,
     address: data.address,
-    subtotal: data.subtotal ?? 0,
-    shipping: data.shipping ?? 0,
-    discount: data.discount ?? 0,
-    total: data.total ?? 0,
-    promoCode: data.promoCode ?? null,
+    subtotal,
+    shipping: shippingTotal,
+    discount,
+    total,
+    promoCode: validPromoCode,
     codDownPayment,
     codDownPaymentStatus,
-    codDownPaymentMethod: isCod ? ((data as any).codDownPaymentMethod ?? null) : null,
+    codDownPaymentMethod: isCod ? (data.codDownPaymentMethod ?? null) : null,
     amountDueOnDelivery,
   }).returning();
 
-  // ── Stock decrement (best-effort, non-blocking) ────────────────────────────
+  // ── Mark one-time user coupon as used ────────────────────────────────────
+  if (appliedCouponId !== null) {
+    setImmediate(async () => {
+      try {
+        await db.update(couponsTable).set({ used: true }).where(eq(couponsTable.id, appliedCouponId!));
+      } catch { /* non-critical but logged best-effort */ }
+    });
+  }
+
+  // ── Stock decrement (best-effort, non-blocking) ───────────────────────────
   setImmediate(async () => {
     try {
-      for (const item of (data.items ?? []) as any[]) {
-        if (!item.productId || !item.quantity) continue;
+      for (const item of serverItems) {
         await db.update(productsTable)
           .set({
             stock: sql`GREATEST(0, ${productsTable.stock} - ${item.quantity})`,
@@ -99,10 +194,10 @@ router.post("/", optionalAuth, async (req, res) => {
   });
 
   // ── Loyalty points for authenticated users ────────────────────────────────
-  if (userId) {
+  if (userId !== null) {
     setImmediate(async () => {
       try {
-        const pointsEarned = Math.floor((data.total ?? 0) / 10);
+        const pointsEarned = Math.floor(total / 10);
         if (pointsEarned > 0) {
           await db.execute(
             sql`UPDATE users SET loyalty_points = COALESCE(loyalty_points, 0) + ${pointsEarned} WHERE id = ${userId}`
@@ -112,7 +207,8 @@ router.post("/", optionalAuth, async (req, res) => {
     });
   }
 
-  res.status(201).json(formatOrder(order));
+  // Include lookupToken in the creation response so the client can store it
+  res.status(201).json(formatOrder(order, true));
 
   // ── Confirmation email (non-blocking) ─────────────────────────────────────
   if (order.email) {
@@ -131,7 +227,7 @@ router.post("/", optionalAuth, async (req, res) => {
         shipping: order.shipping,
         discount: order.discount,
         total: order.total,
-        items: (order.items ?? []) as any[],
+        items: order.items ?? [],
         promoCode: order.promoCode ?? undefined,
         codDownPayment: order.codDownPayment ?? 0,
         codDownPaymentMethod: order.codDownPaymentMethod ?? undefined,
@@ -149,20 +245,28 @@ router.get("/:id", optionalAuth, async (req, res) => {
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id)).limit(1);
   if (!order) { res.status(404).json({ error: "Not found" }); return; }
 
-  // Allow: active admin (verified against DB), the order owner, or guest orders (userId null)
   const isOwner = userId !== null && order.userId === userId;
-  const isGuest = order.userId === null;
   const adminAccess = await isActiveAdmin(userId);
-  if (!isOwner && !isGuest && !adminAccess) {
-    res.status(403).json({ error: "Forbidden" }); return;
+
+  if (!isOwner && !adminAccess) {
+    if (order.userId === null) {
+      // Guest orders require a valid lookup token to prevent enumeration
+      const providedToken = String(req.query.token ?? "");
+      if (!providedToken || providedToken !== order.lookupToken) {
+        res.status(403).json({ error: "Forbidden" }); return;
+      }
+    } else {
+      res.status(403).json({ error: "Forbidden" }); return;
+    }
   }
+
   res.json(formatOrder(order));
 });
 
 // Admin routes
 router.get("/admin/all", requireAdmin, async (_req, res) => {
   const orders = await db.select().from(ordersTable).orderBy(desc(ordersTable.createdAt));
-  res.json(orders.map(formatOrder));
+  res.json(orders.map(o => formatOrder(o)));
 });
 
 router.put("/admin/:id/status", requireAdmin, async (req, res) => {

@@ -5,10 +5,10 @@
  * MU Store API
  * OpenAPI spec version: 0.1.0
  */
-import type { OrderItem } from "./orderItem";
+import type { OrderItemInput } from "./orderItemInput";
 
 export interface OrderInput {
-  items: OrderItem[];
+  items: OrderItemInput[];
   fullName: string;
   phone: string;
   email: string;
@@ -16,11 +16,5 @@ export interface OrderInput {
   address: string;
   paymentMethod: string;
   promoCode?: string;
-  subtotal?: number;
-  shipping?: number;
-  discount?: number;
-  total?: number;
-  codDownPayment?: number;
-  codDownPaymentStatus?: string;
   codDownPaymentMethod?: string;
 }

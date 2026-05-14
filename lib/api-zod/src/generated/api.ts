@@ -424,6 +424,7 @@ export const ListOrdersResponseItem = zod.object({
   discount: zod.number().optional(),
   total: zod.number(),
   promoCode: zod.string().nullish(),
+  lookupToken: zod.string().nullish(),
   createdAt: zod.string(),
 });
 export const ListOrdersResponse = zod.array(ListOrdersResponseItem);
@@ -431,16 +432,16 @@ export const ListOrdersResponse = zod.array(ListOrdersResponseItem);
 /**
  * @summary Create a new order
  */
+
+export const createOrderBodyItemsItemQuantityMax = 100;
+
 export const CreateOrderBody = zod.object({
   items: zod.array(
     zod.object({
-      productId: zod.number(),
-      productName: zod.string(),
-      quantity: zod.number(),
-      size: zod.string(),
-      color: zod.string(),
-      price: zod.number(),
-      image: zod.string().nullish(),
+      productId: zod.number().min(1),
+      quantity: zod.number().min(1).max(createOrderBodyItemsItemQuantityMax),
+      size: zod.string().min(1),
+      color: zod.string().min(1),
     }),
   ),
   fullName: zod.string(),
@@ -450,12 +451,6 @@ export const CreateOrderBody = zod.object({
   address: zod.string(),
   paymentMethod: zod.string(),
   promoCode: zod.string().optional(),
-  subtotal: zod.number().optional(),
-  shipping: zod.number().optional(),
-  discount: zod.number().optional(),
-  total: zod.number().optional(),
-  codDownPayment: zod.number().optional(),
-  codDownPaymentStatus: zod.string().optional(),
   codDownPaymentMethod: zod.string().optional(),
 });
 
@@ -464,6 +459,13 @@ export const CreateOrderBody = zod.object({
  */
 export const GetOrderParams = zod.object({
   id: zod.coerce.number(),
+});
+
+export const GetOrderQueryParams = zod.object({
+  token: zod.coerce
+    .string()
+    .optional()
+    .describe("Lookup token required for guest order access"),
 });
 
 export const GetOrderResponse = zod.object({
@@ -500,6 +502,7 @@ export const GetOrderResponse = zod.object({
   discount: zod.number().optional(),
   total: zod.number(),
   promoCode: zod.string().nullish(),
+  lookupToken: zod.string().nullish(),
   createdAt: zod.string(),
 });
 
@@ -681,6 +684,7 @@ export const AdminListOrdersResponseItem = zod.object({
   discount: zod.number().optional(),
   total: zod.number(),
   promoCode: zod.string().nullish(),
+  lookupToken: zod.string().nullish(),
   createdAt: zod.string(),
 });
 export const AdminListOrdersResponse = zod.array(AdminListOrdersResponseItem);
@@ -737,6 +741,7 @@ export const AdminUpdateOrderStatusResponse = zod.object({
   discount: zod.number().optional(),
   total: zod.number(),
   promoCode: zod.string().nullish(),
+  lookupToken: zod.string().nullish(),
   createdAt: zod.string(),
 });
 
@@ -790,6 +795,7 @@ export const AdminDashboardResponse = zod.object({
       discount: zod.number().optional(),
       total: zod.number(),
       promoCode: zod.string().nullish(),
+      lookupToken: zod.string().nullish(),
       createdAt: zod.string(),
     }),
   ),

@@ -33,5 +33,7 @@ export interface Order {
   total: number;
   /** @nullable */
   promoCode?: string | null;
+  /** @nullable */
+  lookupToken?: string | null;
   createdAt: string;
 }

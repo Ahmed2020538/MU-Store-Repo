@@ -157,11 +157,27 @@ export interface Order {
   total: number;
   /** @nullable */
   promoCode?: string | null;
+  /** @nullable */
+  lookupToken?: string | null;
   createdAt: string;
 }
 
+export interface OrderItemInput {
+  /** @minimum 1 */
+  productId: number;
+  /**
+   * @minimum 1
+   * @maximum 100
+   */
+  quantity: number;
+  /** @minLength 1 */
+  size: string;
+  /** @minLength 1 */
+  color: string;
+}
+
 export interface OrderInput {
-  items: OrderItem[];
+  items: OrderItemInput[];
   fullName: string;
   phone: string;
   email: string;
@@ -169,12 +185,6 @@ export interface OrderInput {
   address: string;
   paymentMethod: string;
   promoCode?: string;
-  subtotal?: number;
-  shipping?: number;
-  discount?: number;
-  total?: number;
-  codDownPayment?: number;
-  codDownPaymentStatus?: string;
   codDownPaymentMethod?: string;
 }
 
@@ -316,3 +326,10 @@ export const ListProductsSort = {
   best_selling: "best_selling",
   most_reviewed: "most_reviewed",
 } as const;
+
+export type GetOrderParams = {
+  /**
+   * Lookup token required for guest order access
+   */
+  token?: string;
+};

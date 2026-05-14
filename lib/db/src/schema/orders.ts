@@ -5,6 +5,7 @@ import { usersTable } from "./users";
 
 export const ordersTable = pgTable("orders", {
   id: serial("id").primaryKey(),
+  lookupToken: text("lookup_token").notNull().unique(),
   userId: integer("user_id").references(() => usersTable.id),
   status: text("status").notNull().default("pending"),
   paymentMethod: text("payment_method"),
