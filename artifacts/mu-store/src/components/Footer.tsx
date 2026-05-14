@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, ArrowRight } from "lucide-react";
 import SocialIconsBar from "./SocialIconsBar";
+import { StoreLocationSection } from "./location";
 
 function NewsletterStrip() {
   const [email, setEmail] = useState("");
@@ -189,6 +190,9 @@ export default function Footer() {
             </ul>
           </div>
         </div>
+
+        {/* Store Location */}
+        <StoreLocationSection />
 
         {/* Follow Us — full-width social strip */}
         <FollowUsSection social={social} />

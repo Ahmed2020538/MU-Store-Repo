@@ -3,6 +3,7 @@ import { useParams, Link } from "wouter";
 import { Heart, ShoppingBag, Share2, Minus, Plus, Star, ChevronLeft, ChevronRight, Send, Truck, RotateCcw, Shield, ZoomIn, Ruler, Box } from "lucide-react";
 import AR3DViewer from "@/components/AR3DViewer";
 import { addRecentlyViewed } from "@/lib/recently-viewed";
+import { LocationButton } from "@/components/location";
 import { getDeliveryWindow } from "@/lib/delivery-estimate";
 
 function getFitSummary(rating?: number | null, reviewCount?: number | null) {
@@ -239,6 +240,7 @@ export default function ProductDetailPage() {
             <p className="text-xs tracking-[0.25em] uppercase text-[#C9A96E] font-medium">{product.categoryName}</p>
           )}
           <h1 className="font-serif text-3xl sm:text-4xl font-bold leading-tight" data-testid="text-product-name">{product.name}</h1>
+          <LocationButton className="mt-0.5" />
 
           {avgRating && (
             <div className="flex items-center gap-2">
