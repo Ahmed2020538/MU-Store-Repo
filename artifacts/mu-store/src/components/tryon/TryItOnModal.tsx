@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, RotateCcw, ZoomIn, ZoomOut, SlidersHorizontal, Sparkles } from "lucide-react";
+import { X, RotateCcw, ZoomIn, ZoomOut, SlidersHorizontal, Sparkles, MoveIcon } from "lucide-react";
 import { useCamera } from "./useCamera";
 import { useTryOnOverlay } from "./useTryOnOverlay";
+import { usePoseDetection } from "./usePoseDetection";
+import type { Landmarks } from "./usePoseDetection";
 import TryOnCapture from "./TryOnCapture";
 
 interface Props {
@@ -13,6 +15,8 @@ interface Props {
   productCategory: string;
 }
 
+type TrackStatus = "loading" | "scanning" | "tracking" | "lost";
+
 export default function TryItOnModal({ open, onClose, productName, productImage, productCategory }: Props) {
   const { videoRef, state, start, stop, flip } = useCamera();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -20,45 +24,55 @@ export default function TryItOnModal({ open, onClose, productName, productImage,
   const [opacity, setOpacity] = useState(85);
   const [scale, setScale] = useState(100);
   const [showSliders, setShowSliders] = useState(false);
-  const [fitting, setFitting] = useState(true);
-  const [fitted, setFitted] = useState(false);
+  const [trackStatus, setTrackStatus] = useState<TrackStatus>("loading");
 
-  // Stable refs so the RAF loop always reads fresh values without needing deps
+  // Stable refs — read by RAF loop without needing deps
   const opacityRef = useRef(opacity);
   const scaleRef = useRef(scale);
   const categoryRef = useRef(productCategory);
+  const landmarksRef = useRef<Landmarks>(null);
   useEffect(() => { opacityRef.current = opacity; }, [opacity]);
   useEffect(() => { scaleRef.current = scale; }, [scale]);
   useEffect(() => { categoryRef.current = productCategory; }, [productCategory]);
 
-  const { startLoop, stopLoop, onPointerDown, onPointerMove, onPointerUp } =
-    useTryOnOverlay(videoRef, canvasRef, productImage, categoryRef, opacityRef, scaleRef);
+  const onLandmarks = useCallback((lm: Landmarks, tracking: boolean) => {
+    landmarksRef.current = lm;
+    setTrackStatus(tracking ? "tracking" : "scanning");
+  }, []);
 
-  // Open: start camera + fitting animation
+  const { startLoop, stopLoop, onPointerDown, onPointerMove, onPointerUp } =
+    useTryOnOverlay(videoRef, canvasRef, productImage, categoryRef, opacityRef, scaleRef, landmarksRef);
+
+  const { start: startPose, stop: stopPose } = usePoseDetection(videoRef, onLandmarks);
+
+  // Open: start camera
   useEffect(() => {
     if (!open) return;
-    setFitting(true);
-    setFitted(false);
+    setTrackStatus("loading");
+    landmarksRef.current = null;
     start("user");
-    const t = setTimeout(() => { setFitting(false); setFitted(true); }, 2000);
-    return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // When camera becomes active, kick off the render loop
+  // Camera active: kick off render loop + pose detection
   useEffect(() => {
-    if (state === "active") startLoop();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (state === "active") {
+      startLoop();
+      setTrackStatus("scanning");
+      startPose();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
   const close = useCallback(() => {
     stopLoop();
+    stopPose();
     stop();
+    landmarksRef.current = null;
     onClose();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Escape key
   useEffect(() => {
     if (!open) return;
     const h = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
@@ -66,40 +80,38 @@ export default function TryItOnModal({ open, onClose, productName, productImage,
     return () => document.removeEventListener("keydown", h);
   }, [open, close]);
 
+  const statusBadge = () => {
+    if (state !== "active") return null;
+    if (trackStatus === "loading") return (
+      <span className="text-xs text-white/50">Initializing…</span>
+    );
+    if (trackStatus === "scanning") return (
+      <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ repeat: Infinity, duration: 1.2 }}
+        className="text-xs text-[#C9A96E] font-medium">AI Scanning…</motion.span>
+    );
+    if (trackStatus === "tracking") return (
+      <motion.span initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }}
+        className="text-xs text-green-400 font-medium">✓ Tracking Live</motion.span>
+    );
+    return <span className="text-xs text-white/40">Reposition yourself</span>;
+  };
+
   return (
     <AnimatePresence>
       {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.25 }}
-          className="fixed inset-0 z-[3000] bg-black flex flex-col overflow-hidden"
-        >
-          {/* Hidden video source */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.22 }}
+          className="fixed inset-0 z-[3000] bg-black flex flex-col overflow-hidden">
+
           <video ref={videoRef} className="hidden" muted playsInline autoPlay />
 
           {/* Top bar */}
-          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-safe pt-4 pb-3"
-            style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)" }}>
+          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-4 pb-3"
+            style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.75), transparent)" }}>
             <div className="flex items-center gap-2 min-w-0">
               <Sparkles size={14} className="text-[#C9A96E] flex-shrink-0" />
               <span className="text-white text-sm font-medium truncate">{productName}</span>
-              <AnimatePresence mode="wait">
-                {fitting ? (
-                  <motion.span key="fitting"
-                    animate={{ opacity: [1, 0.3, 1] }} transition={{ repeat: Infinity, duration: 1.1 }}
-                    className="text-xs text-[#C9A96E] font-medium whitespace-nowrap">
-                    AI Fitting…
-                  </motion.span>
-                ) : fitted ? (
-                  <motion.span key="fitted"
-                    initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }}
-                    className="text-xs text-green-400 font-medium whitespace-nowrap">
-                    ✓ Fitted
-                  </motion.span>
-                ) : null}
-              </AnimatePresence>
+              <AnimatePresence mode="wait">{statusBadge()}</AnimatePresence>
             </div>
             <button onClick={close}
               className="ml-3 w-9 h-9 flex-shrink-0 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors">
@@ -107,18 +119,17 @@ export default function TryItOnModal({ open, onClose, productName, productImage,
             </button>
           </div>
 
-          {/* Main viewport */}
+          {/* Camera canvas */}
           {state === "active" && (
             <canvas ref={canvasRef}
-              className="flex-1 w-full object-cover cursor-move touch-none"
-              onPointerDown={onPointerDown}
-              onPointerMove={onPointerMove}
-              onPointerUp={onPointerUp}
-            />
+              className="flex-1 w-full object-cover touch-none"
+              style={{ cursor: "move" }}
+              onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} />
           )}
           {state === "requesting" && (
-            <div className="flex-1 flex items-center justify-center">
+            <div className="flex-1 flex flex-col items-center justify-center gap-3">
               <div className="w-10 h-10 border-2 border-white/20 border-t-[#C9A96E] rounded-full animate-spin" />
+              <p className="text-white/40 text-sm">Starting camera…</p>
             </div>
           )}
           {state === "denied" && (
@@ -128,7 +139,7 @@ export default function TryItOnModal({ open, onClose, productName, productImage,
               </div>
               <p className="text-white text-lg font-semibold">Camera access denied</p>
               <p className="text-white/50 text-sm max-w-xs leading-relaxed">
-                To use virtual try-on, enable camera permission in your browser settings, then reload the page.
+                Enable camera permission in your browser settings, then reload the page.
               </p>
             </div>
           )}
@@ -140,14 +151,11 @@ export default function TryItOnModal({ open, onClose, productName, productImage,
 
           {/* Controls bar */}
           {state === "active" && (
-            <motion.div
-              initial={{ y: 100 }}
-              animate={{ y: 0 }}
+            <motion.div initial={{ y: 100 }} animate={{ y: 0 }}
               transition={{ type: "spring", stiffness: 280, damping: 26, delay: 0.1 }}
-              className="absolute bottom-0 left-0 right-0 px-4 pt-3 pb-safe pb-5 space-y-2.5"
-              style={{ background: "rgba(0,0,0,0.52)", backdropFilter: "blur(12px)" }}
-            >
-              {/* Sliders toggle */}
+              className="absolute bottom-0 left-0 right-0 px-4 pt-3 pb-5 space-y-2.5"
+              style={{ background: "rgba(0,0,0,0.52)", backdropFilter: "blur(14px)" }}>
+
               <button onClick={() => setShowSliders(s => !s)}
                 className="flex items-center gap-1.5 mx-auto text-white/50 hover:text-white/80 text-xs transition-colors">
                 <SlidersHorizontal size={12} />
@@ -157,13 +165,11 @@ export default function TryItOnModal({ open, onClose, productName, productImage,
               <AnimatePresence>
                 {showSliders && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}
-                    className="overflow-hidden space-y-2.5">
+                    exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden space-y-2.5">
                     <div className="flex items-center gap-3">
                       <span className="text-white/50 text-xs w-16 flex-shrink-0">Opacity</span>
                       <input type="range" min={20} max={100} value={opacity}
-                        onChange={e => setOpacity(+e.target.value)}
-                        className="flex-1 accent-[#C9A96E] h-1" />
+                        onChange={e => setOpacity(+e.target.value)} className="flex-1 accent-[#C9A96E] h-1" />
                       <span className="text-white/50 text-xs w-8 text-right">{opacity}%</span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -189,7 +195,9 @@ export default function TryItOnModal({ open, onClose, productName, productImage,
                   className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm transition-colors">
                   <RotateCcw size={14} /> Flip
                 </button>
-                <p className="text-white/30 text-[11px] hidden sm:block">Drag to reposition</p>
+                <p className="text-white/30 text-[11px] hidden sm:flex items-center gap-1">
+                  <MoveIcon size={10} /> Drag to reposition
+                </p>
                 <TryOnCapture canvasRef={canvasRef} productName={productName} />
               </div>
             </motion.div>

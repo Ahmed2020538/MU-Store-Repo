@@ -37,6 +37,16 @@ export default defineConfig({
     dedupe: ["react", "react-dom"],
   },
   root: path.resolve(import.meta.dirname),
+  optimizeDeps: {
+    exclude: [
+      "@tensorflow-models/pose-detection",
+      "@tensorflow/tfjs-core",
+      "@tensorflow/tfjs-backend-webgl",
+      "@tensorflow/tfjs-converter",
+      "@mediapipe/pose",
+      "@tensorflow/tfjs-backend-webgpu",
+    ],
+  },
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,

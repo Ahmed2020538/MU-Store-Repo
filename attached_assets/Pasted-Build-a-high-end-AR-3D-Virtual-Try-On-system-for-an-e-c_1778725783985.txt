@@ -1,0 +1,212 @@
+Build a high-end AR + 3D Virtual Try-On system for an e-commerce website specializing in:
+
+👉 Shoes
+👉 Bags
+👉 Accessories (glasses, watches, jewelry, belts)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 CORE OBJECTIVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When the user clicks “Try It On Live”, they should be able to:
+
+See themselves in real-time using the camera
+Try shoes on their feet via AR tracking
+Try bags on shoulder/hand with 3D positioning
+Try accessories (glasses, watches, jewelry) on face/wrist/neck
+View everything in real-time with natural movement
+
+Result:
+👉 A fully interactive AR mirror experience in browser
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📷 REAL-TIME CAMERA SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use:
+
+WebRTC (getUserMedia)
+Front & back camera support
+60 FPS rendering target
+
+Camera becomes a virtual fitting mirror
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧠 BODY + OBJECT TRACKING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use AI detection models:
+
+MediaPipe Pose → body landmarks
+MediaPipe Hands → hand tracking (bags, watches)
+MediaPipe Face Mesh → glasses, jewelry placement
+
+Detect:
+
+👣 Feet → shoes placement
+👜 Shoulder/hand → bags placement
+👓 Face → glasses
+⌚ Wrist → watches
+💍 Fingers/neck → jewelry
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🕶️ 3D + AR ENGINE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use:
+
+Three.js (WebGL)
+Babylon.js (optional)
+Canvas overlay system
+
+Each product becomes:
+
+3D model OR high-quality PNG with transparency
+Anchored to body landmarks
+Dynamically scaled & rotated
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👟 PRODUCT MAPPING SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Map products like this:
+
+Shoes
+Attach to foot landmarks
+Auto-scale based on foot size estimation
+Support walking motion stability
+Bags
+Shoulder bags → attach to shoulder + torso anchor
+Handbags → attach to hand tracking point
+Crossbody → dynamic strap simulation
+Accessories
+Glasses → face landmarks (eyes + nose bridge)
+Watches → wrist tracking
+Rings/bracelets → finger joints
+Necklaces → neck spline tracking
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📡 REALTIME RENDER LOOP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Every 30–50ms:
+
+camera frame →
+pose detection →
+face/hand tracking →
+3D anchor update →
+render overlay in WebGL canvas
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 AI FALLBACK MODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If AR tracking is unstable:
+
+Use Generative AI:
+
+Fashn.ai / Replicate IDM-VTON / custom model
+
+Flow:
+
+Capture frame
+Send user image + product image
+Generate photorealistic result
+Switch from AR → AI image mode
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧩 UI COMPONENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. <LiveTryOnButton />
+Icon: Camera + Sparkles
+Label: “Try AR Live”
+2. <ARTryOnModal />
+
+Full-screen AR experience:
+
+Live camera background
+WebGL canvas overlay
+Product selector (Shoes / Bags / Accessories)
+Mode switch:
+AR Mode
+AI Mode
+3. Controls Panel
+
+Buttons:
+
+📸 Capture
+🔄 Switch Camera
+🧍 Reset Tracking
+👜 Switch Product
+🤖 AI Mode Toggle
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 UI/UX DESIGN
+
+Premium luxury fashion UI
+Glassmorphism controls
+Dark elegant theme (black, gold accents optional)
+Smooth transitions (Framer Motion)
+Mobile-first AR mirror experience
+Minimal latency feel
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚙️ TECH STACK
+
+Frontend:
+
+React / Next.js
+Three.js (WebGL)
+MediaPipe (Pose + Face + Hands)
+TailwindCSS
+Framer Motion
+
+Backend:
+
+Node.js API
+/api/tryon-ai fallback
+Optional WebSocket for realtime sync
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📁 STRUCTURE
+
+components/ar-tryon/
+LiveTryOnButton.jsx
+ARTryOnModal.jsx
+CameraView.jsx
+FaceTracker.js
+HandTracker.js
+PoseTracker.js
+ThreeScene.jsx
+ProductAnchors.jsx
+Controls.jsx
+
+api/
+tryon-ai.js
+
+services/
+arEngine.js
+trackingService.js
+aiFallback.js
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔥 PREMIUM FEATURES
+
+Real walking simulation for shoes
+Shoulder physics for bags
+Face angle adaptation for glasses
+Lighting adaptation (room light matching)
+Shadow rendering under shoes
+Multi-product layering (full outfit styling)
+Virtual mirror mode (like Snapchat + Apple Vision Pro)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 النتيجة النهائية
+
+الموقع هيبقى:
+
+👉 Virtual fitting room حقيقي داخل المتصفح
+👉 المستخدم يجرّب Shoes + Bags + Accessories مباشرة بالكاميرا
+👉 تجربة قريبة من Snapchat AR + Apple Vision + Shopify AR
