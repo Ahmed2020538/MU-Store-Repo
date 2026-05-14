@@ -90,15 +90,21 @@ Register → Complete Profile (VIP upgrade + 100 bonus points) → Personalized 
 
 ### 2.3 Shopping Cart
 
-**What:** In-memory session cart stored server-side. Items keyed by JWT (authenticated) or a random `cart_sid` cookie (anonymous). Supports add, update quantity, remove, and clear.
+**What:** In-memory session cart stored server-side in a `Map<string, item[]>`. Supports add, update quantity, remove, and clear.
 
 **Backend:** `GET/POST /api/cart`, `PUT/DELETE /api/cart/:productId`
 
-**Business logic:**
-- Free shipping on orders ≥ 500 EGP; otherwise 50 EGP shipping.
-- Cart merges duplicate items (same productId + size + colour) by incrementing quantity (max 20).
+**Cart key logic (`getCartKey`):**
+- If `Authorization: Bearer <token>` header is present → key is `user:<token>` (stable across requests for logged-in users).
+- Otherwise → reads `cart_sid` cookie. If the cookie is present the key is `sid:<cookie-value>`.
+- **Important:** If neither header nor cookie is present, a random ephemeral string is generated per request. The server never writes the `cart_sid` cookie, so anonymous carts are functionally ephemeral — items are lost between requests unless the client sends the same auth token or an externally-set `cart_sid` cookie.
 
-**Limitation:** In-memory only — cart is lost on server restart. No DB persistence.
+**Business logic:**
+- Free shipping on orders ≥ 500 EGP (subtotal ≥ 500 → shipping = 0; otherwise shipping = 50 EGP).
+- Cart merges duplicate items (same productId + size + colour) by incrementing quantity (capped at 20).
+- In the frontend, `CartContext` manages cart state in React memory independently of the server cart.
+
+**Limitation:** In-memory only — all carts are lost on server restart. No DB persistence.
 
 ### 2.4 Checkout (3-Step)
 
@@ -789,6 +795,179 @@ Junction table linking outfits to products.
 | `tracking_ref` | `text` | nullable | Auto-generated "MU-XXXXXX" ref |
 | `created_at` | `timestamp` | NOT NULL, DEFAULT NOW() | |
 
+### 5.16 Example Records Per Table
+
+Representative rows showing the data shape for each table.
+
+#### `users`
+```json
+{
+  "id": 1,
+  "email": "admin@mu.com",
+  "passwordHash": "$2a$10$...",
+  "name": "MU Admin",
+  "phone": null,
+  "role": "admin",
+  "loyaltyPoints": 0,
+  "authProvider": "email",
+  "authProviderId": null,
+  "avatarUrl": null,
+  "birthDate": null,
+  "birthdayCouponYear": 0,
+  "governorate": null,
+  "city": null,
+  "address": null,
+  "instagramHandle": null,
+  "isProfileComplete": 0,
+  "isPriority": 0,
+  "isAdmin": 1,
+  "adminCreatedBy": null,
+  "permissions": "{}",
+  "createdAt": "2026-01-01T00:00:00.000Z"
+}
+```
+
+#### `categories`
+```json
+{ "id": 1, "name": "Heels", "nameAr": "كعب عالي", "slug": "heels", "image": "/uploads/cat-heels.jpg", "createdAt": "2026-01-01T00:00:00.000Z" }
+```
+
+#### `products`
+```json
+{
+  "id": 1,
+  "name": "Nile Heel",
+  "nameAr": "كعب النيل",
+  "description": "Handcrafted leather heel inspired by the Nile.",
+  "descriptionAr": "كعب جلدي مصنوع يدوياً مستوحى من النيل.",
+  "price": 1200,
+  "salePrice": 950,
+  "discountLabel": "21% OFF",
+  "categoryId": 1,
+  "images": ["/uploads/nile-heel-1.jpg", "/uploads/nile-heel-2.jpg"],
+  "sizes": ["36","37","38","39","40"],
+  "colors": ["black","nude","gold"],
+  "stock": 24,
+  "material": "Genuine leather upper, padded insole",
+  "modelUrl": null,
+  "isNew": false,
+  "isSale": true,
+  "isFeatured": true,
+  "isHidden": false,
+  "soldCount": 112,
+  "rating": 4.7,
+  "reviewCount": 34,
+  "createdAt": "2026-02-15T10:00:00.000Z"
+}
+```
+
+#### `orders`
+```json
+{
+  "id": 101,
+  "userId": 42,
+  "status": "delivered",
+  "paymentMethod": "cod",
+  "paymentStatus": "paid",
+  "items": [
+    { "productId": 1, "productName": "Nile Heel", "quantity": 1, "size": "38", "color": "black", "price": 950, "image": "/uploads/nile-heel-1.jpg" }
+  ],
+  "fullName": "Fatma Ahmed",
+  "phone": "+201012345678",
+  "email": "fatma@example.com",
+  "governorate": "Cairo",
+  "address": "12 Nile St, Heliopolis",
+  "subtotal": 950,
+  "shipping": 0,
+  "discount": 190,
+  "total": 760,
+  "promoCode": "MU20",
+  "codDownPayment": 50,
+  "codDownPaymentStatus": "paid",
+  "codDownPaymentMethod": "instapay",
+  "amountDueOnDelivery": 710,
+  "createdAt": "2026-05-01T14:30:00.000Z"
+}
+```
+
+#### `reviews`
+```json
+{ "id": 55, "productId": 1, "userId": 42, "rating": 5, "comment": "Absolutely gorgeous, fits perfectly!", "createdAt": "2026-05-03T09:00:00.000Z" }
+```
+
+#### `wishlist`
+```json
+{ "id": 12, "userId": 42, "productId": 1, "createdAt": "2026-04-20T08:00:00.000Z" }
+```
+
+#### `discount_codes`
+```json
+{ "id": 1, "code": "MU20", "discountType": "percentage", "discountValue": 20, "minOrderAmount": 0, "isActive": 1, "usageCount": 87, "createdAt": "2026-01-01T00:00:00.000Z" }
+```
+
+#### `coupons`
+```json
+{ "id": 5, "code": "BDAY-A1B2C3", "discountPercent": 25, "userId": 42, "expiresAt": "2026-08-15T23:59:59.000Z", "used": false, "source": "birthday", "createdAt": "2026-08-14T00:00:00.000Z" }
+```
+
+#### `settings`
+```json
+{ "key": "smtp_settings", "value": "{\"host\":\"smtp.gmail.com\",\"port\":587,\"secure\":false,\"user\":\"mubrand2050@gmail.com\",\"pass\":\"app_password_here\",\"from\":\"MU Store <mubrand2050@gmail.com>\"}" }
+```
+
+#### `brands`
+```json
+{ "id": 1, "name": "Steve Madden", "logoUrl": null, "websiteUrl": "https://stevemadden.com", "displayOrder": 4, "active": 1, "createdAt": "2026-01-01T00:00:00.000Z" }
+```
+
+#### `outfits`
+```json
+{ "id": 3, "name": "Evening Elegance", "nameAr": "أناقة المساء", "occasion": "evening", "description": "A curated formal evening look.", "descriptionAr": "إطلالة مسائية رسمية منتقاة.", "coverImage": "/uploads/outfit3.jpg", "isPublished": true, "createdAt": "2026-03-10T00:00:00.000Z" }
+```
+
+#### `outfit_items`
+```json
+{ "id": 7, "outfitId": 3, "productId": 1, "role": "shoes", "displayOrder": 0 }
+```
+
+#### `saved_looks`
+```json
+{ "id": 2, "userId": 42, "outfitId": 3, "createdAt": "2026-05-10T12:00:00.000Z" }
+```
+
+#### `testimonials`
+```json
+{
+  "id": 1,
+  "customerName": "نور أحمد",
+  "customerCity": "القاهرة",
+  "customerAvatarUrl": null,
+  "rating": 5,
+  "reviewText": "The quality is stunning — soft genuine leather and a perfect finish.",
+  "reviewTextAr": "الجودة رائعة — جلد طبيعي ناعم وتشطيب مثالي.",
+  "productName": "Beige Leather Heels",
+  "verifiedPurchase": 1,
+  "featured": 1,
+  "displayOrder": 0,
+  "createdAt": "2026-01-15T00:00:00.000Z"
+}
+```
+
+#### `contact_messages`
+```json
+{
+  "id": 8,
+  "name": "Fatma Ahmed",
+  "email": "fatma@example.com",
+  "phone": "+201012345678",
+  "subject": "Order status inquiry",
+  "message": "I placed an order 3 days ago and haven't received a shipping update.",
+  "isRead": false,
+  "trackingRef": "MU-M1A2B3C4",
+  "createdAt": "2026-05-14T10:00:00.000Z"
+}
+```
+
 ---
 
 ## 6. Auth & Security
@@ -959,7 +1138,7 @@ Sonner `<Toaster richColors position="top-right" />`. Used for login success/fai
 | `/lookbook` | `LookbookPage` | No | Editorial lookbook |
 | `/saved-looks` | `SavedLooksPage` | Yes | User's saved outfit looks |
 | `/feed` | `FashionFeedPage` | No | Fashion inspiration feed |
-| `/language` | `LanguageSelectPage` | No | Language selection screen |
+| `/language` | `LanguageSelectPage` | No | Language selection screen — file exists in `src/pages/` but is **not registered** in `App.tsx`; the `LanguageGate` component is a passthrough no-op; the language switcher is in the Navbar instead |
 | `/size-guide` | `SizeGuidePage` | No | Shoe/bag sizing reference |
 | `/shipping` | `ShippingPolicyPage` | No | Shipping policy content |
 | `/returns` | `ReturnsPolicyPage` | No | Returns policy content |
@@ -1351,9 +1530,16 @@ All error responses follow: `{ "error": "<message>" }`
 
 ### 9.5 Cart
 
+**Cart key logic (server-side):**
+- `Authorization: Bearer <token>` present → key is `user:<token>` (stable for authenticated users).
+- Cookie `cart_sid` present (no auth) → key is `sid:<cookie-value>`.
+- Neither present → ephemeral random string per request (the server **never** writes `cart_sid`, so anonymous carts without the cookie are lost between requests).
+
+**Note:** The React `CartContext` in the frontend manages its own in-memory cart independently of the server-side cart. They are separate systems.
+
 #### `GET /cart`
 
-**Auth:** None (JWT or `cart_sid` cookie identifies the session)
+**Auth:** None
 
 **Response 200:**
 ```json
@@ -1367,16 +1553,21 @@ All error responses follow: `{ "error": "<message>" }`
       "product": {
         "id": 1,
         "name": "Nile Heel",
+        "nameAr": "كعب النيل",
         "price": 1200,
         "salePrice": 950,
         "images": ["/uploads/abc.jpg"],
+        "sizes": ["36","37","38","39"],
+        "colors": ["black","nude"],
         "stock": 15
       }
     }
   ],
   "subtotal": 1900,
   "shipping": 50,
-  "total": 1950
+  "discount": 0,
+  "total": 1950,
+  "promoCode": null
 }
 ```
 
@@ -1387,11 +1578,17 @@ All error responses follow: `{ "error": "<message>" }`
 { "productId": 1, "quantity": 1, "size": "38", "color": "black" }
 ```
 
+**Validation:** `quantity` 1–20, `size` string 1–20 chars, `color` string 1–50 chars.
+
 **Response 200:** Updated cart object (same shape as GET)
+
+**Errors:** 400 — invalid cart item
 
 #### `PUT /cart/:productId`
 
-**Request:** `{ "quantity": 3, "size": "38", "color": "black" }`
+**Request:** `{ "quantity": 3 }` (optionally `"size"` and `"color"` to update the variant)
+
+**Notes:** Setting `quantity: 0` removes the item.
 
 **Response 200:** Updated cart object
 
@@ -1401,7 +1598,7 @@ All error responses follow: `{ "error": "<message>" }`
 
 #### `DELETE /cart`
 
-**Response 200:** `{ "items": [], "subtotal": 0, "shipping": 0, "total": 0 }`
+**Response 200:** `{ "items": [], "subtotal": 0, "shipping": 0, "discount": 0, "total": 0, "promoCode": null }`
 
 ### 9.6 Wishlist
 
@@ -1509,11 +1706,13 @@ All error responses follow: `{ "error": "<message>" }`
 
 **Auth:** Bearer
 
-**Request:** `{ "code": "BDAY-XXXXX" }`
+**Request:** `{ "couponId": 5 }`
+
+**Notes:** `couponId` is the integer `id` from the `coupons` table. The `validate` endpoint returns `couponId` in its response when a user-specific coupon is matched — the client should capture that value and pass it here after the order is placed. Only marks rows in the `coupons` table as used. Global `discount_codes` rows have no used state and are not affected.
 
 **Response 200:** `{ "ok": true }`
 
-**Notes:** Only marks user-specific coupons as used. Global discount codes do not have a used state.
+**Errors:** 400 — missing `couponId`
 
 ### 9.10 User Coupons
 
