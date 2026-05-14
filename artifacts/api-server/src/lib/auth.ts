@@ -1,11 +1,19 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import type { Request, Response, NextFunction } from "express";
+import { db } from "@workspace/db";
+import { usersTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
 
-const JWT_SECRET = process.env["JWT_SECRET"] ?? "mu-store-secret-2025";
 if (!process.env["JWT_SECRET"]) {
-  console.warn("[auth] JWT_SECRET not set — using insecure default. Set this in production.");
+  throw new Error(
+    "[auth] JWT_SECRET environment variable is not set. " +
+    "The server cannot start without a strong secret. " +
+    "Set JWT_SECRET to a long random string before running."
+  );
 }
+
+const JWT_SECRET = process.env["JWT_SECRET"];
 
 export function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
@@ -53,12 +61,35 @@ export function optionalAuth(req: Request, _res: Response, next: NextFunction): 
   next();
 }
 
+export async function isActiveAdmin(userId: number | null): Promise<boolean> {
+  if (!userId) return false;
+  const [row] = await db.select({ role: usersTable.role, isAdmin: usersTable.isAdmin })
+    .from(usersTable)
+    .where(eq(usersTable.id, userId))
+    .limit(1);
+  return !!(row && row.role === "admin" && row.isAdmin);
+}
+
 export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
   requireAuth(req, res, () => {
-    if ((req as any).user?.role !== "admin") {
+    const userId: number = (req as any).user?.id;
+    if (!userId) {
       res.status(403).json({ error: "Forbidden" });
       return;
     }
-    next();
+    db.select({ role: usersTable.role, isAdmin: usersTable.isAdmin })
+      .from(usersTable)
+      .where(eq(usersTable.id, userId))
+      .limit(1)
+      .then(([row]) => {
+        if (!row || row.role !== "admin" || !row.isAdmin) {
+          res.status(403).json({ error: "Forbidden" });
+          return;
+        }
+        next();
+      })
+      .catch(() => {
+        res.status(500).json({ error: "Internal server error" });
+      });
   });
 }

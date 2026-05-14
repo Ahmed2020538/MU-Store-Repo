@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { ordersTable, productsTable } from "@workspace/db";
 import { eq, desc, sql } from "drizzle-orm";
-import { optionalAuth, requireAuth, requireAdmin } from "../lib/auth.js";
+import { optionalAuth, requireAuth, requireAdmin, isActiveAdmin } from "../lib/auth.js";
 import { CreateOrderBody, AdminUpdateOrderStatusBody } from "@workspace/api-zod";
 import { sendMail } from "../lib/mailer.js";
 import { orderConfirmationHtml } from "../lib/email-templates.js";
@@ -145,15 +145,15 @@ router.get("/:id", optionalAuth, async (req, res) => {
   const id = parseInt(String(req.params.id));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid order ID" }); return; }
   const userId: number | null = (req as any).user?.id ?? null;
-  const role: string = (req as any).user?.role ?? "guest";
 
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id)).limit(1);
   if (!order) { res.status(404).json({ error: "Not found" }); return; }
 
-  // Allow: admin, the order owner, or guest orders (userId null)
+  // Allow: active admin (verified against DB), the order owner, or guest orders (userId null)
   const isOwner = userId !== null && order.userId === userId;
   const isGuest = order.userId === null;
-  if (!isOwner && !isGuest && role !== "admin") {
+  const adminAccess = await isActiveAdmin(userId);
+  if (!isOwner && !isGuest && !adminAccess) {
     res.status(403).json({ error: "Forbidden" }); return;
   }
   res.json(formatOrder(order));

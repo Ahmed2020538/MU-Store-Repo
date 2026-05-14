@@ -3,7 +3,7 @@ import passport from "passport";
 import { db } from "@workspace/db";
 import { usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { hashPassword, comparePassword, signToken, requireAuth } from "../lib/auth.js";
+import { hashPassword, comparePassword, signToken, requireAuth, requireAdmin } from "../lib/auth.js";
 import { RegisterBody, LoginBody } from "@workspace/api-zod";
 
 const router = Router();
@@ -84,8 +84,7 @@ router.get("/me", requireAuth, async (req, res) => {
 });
 
 // ── Social Provider Status (admin-only) ───────────────────────────────────────
-router.get("/social-status", requireAuth, (req, res) => {
-  if ((req as any).user?.role !== "admin") { res.status(403).json({ error: "Forbidden" }); return; }
+router.get("/social-status", requireAdmin, (_req, res) => {
   const check = (...keys: string[]) => keys.every(k => !!process.env[k]);
   res.json({
     google: { configured: check("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") },
