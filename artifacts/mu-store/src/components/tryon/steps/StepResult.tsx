@@ -1,10 +1,14 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Download, Share2, ShoppingBag, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
+import { lazy, Suspense } from "react";
+
+const TryOnRecommendations = lazy(() => import("../../TryOnRecommendations"));
 
 interface Props {
   resultImageUrl: string | null;
   productName: string;
+  productCategory?: string;
   provider: string | null;
   isDemoMode: boolean;
   onGenerateAgain: () => void;
@@ -14,7 +18,7 @@ interface Props {
 }
 
 export default function StepResult({
-  resultImageUrl, productName, isDemoMode,
+  resultImageUrl, productName, productCategory, isDemoMode,
   onGenerateAgain, onTryDifferent, onAddToCart, isSubmitting,
 }: Props) {
   const [zoomed, setZoomed] = useState(false);
@@ -112,6 +116,10 @@ export default function StepResult({
         className="text-xs text-center text-white/30 hover:text-white/55 transition-colors underline underline-offset-2">
         Try a Different Photo
       </button>
+
+      <Suspense fallback={null}>
+        <TryOnRecommendations productCategory={productCategory} />
+      </Suspense>
     </div>
   );
 }

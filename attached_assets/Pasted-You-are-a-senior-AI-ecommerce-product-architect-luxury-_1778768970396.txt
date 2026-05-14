@@ -1,0 +1,531 @@
+You are a senior AI ecommerce product architect, luxury fashion UX designer, and full-stack engineer.
+
+Your task is to intelligently enhance the EXISTING ecommerce website with premium AI-powered fashion experience features inspired by modern luxury brands and editorial-style shopping experiences.
+
+IMPORTANT:
+
+* Analyze the current website structure, components, styling system, backend architecture, and existing ecommerce flows BEFORE making changes.
+* DO NOT rebuild or duplicate existing stable functionality.
+* DO NOT replace working systems unnecessarily.
+* ONLY extend, enhance, optimize, and integrate new features where they naturally fit best within the current website experience.
+* Preserve the existing design language, branding, responsiveness, and architecture.
+
+The goal is to evolve the website from a traditional online store into a premium AI-native fashion platform.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRIMARY EXPERIENCE GOAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transform the shopping experience into something that feels:
+
+* intelligent
+* editorial
+* immersive
+* luxurious
+* personalized
+* AI-powered
+* highly visual
+* emotionally engaging
+
+The website should feel closer to:
+
+* a digital fashion magazine
+* a luxury stylist experience
+* an AI-powered fashion assistant
+
+instead of a standard ecommerce catalog.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CORE BUSINESS GOALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The new features should directly improve:
+
+* Conversion Rate
+* Average Order Value (AOV)
+* User Retention
+* Engagement Time
+* Purchase Confidence
+* Social Sharing
+* Brand Identity
+* Emotional Connection with Products
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 1 — SHOP THE LOOK SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create a premium “Shop The Look” experience inspired by luxury fashion editorials.
+
+Purpose:
+Instead of selling a single product,
+sell a complete styled outfit.
+
+When viewing a product:
+
+* automatically show matching products
+* generate curated outfits
+* visually connect pieces together
+* encourage multi-item purchases
+
+Example:
+If user views a green overshirt:
+suggest:
+
+* matching denim
+* matching sneakers
+* accessories
+* bags
+* layering items
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SHOP THE LOOK UI REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add an editorial-style outfit section on product pages.
+
+The section should include:
+
+* Full outfit preview
+* Interactive hotspots
+* Visual connecting lines
+* Smooth hover animations
+* Product quick-view cards
+* “Add Full Outfit to Cart” CTA
+* “Style Breakdown” section
+
+Interaction behavior:
+
+* Hovering a clothing piece highlights related product
+* Clicking a hotspot opens quick preview
+* Mobile tap interactions supported
+* Smooth animated transitions
+
+Visual inspiration:
+Luxury campaign layouts similar to fashion editorials and curated lookbooks.
+
+Placement:
+Directly below the main product gallery or below the Add to Cart section.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 2 — AI STYLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build an AI Stylist assistant integrated naturally across the website.
+
+Purpose:
+Reduce decision fatigue and help users style products intelligently.
+
+The AI Stylist should:
+
+* explain why products work together
+* recommend matching outfits
+* suggest aesthetics and vibes
+* personalize styling recommendations
+* adapt recommendations based on user behavior
+
+Example AI messages:
+
+* “This indigo denim balances the earthy green overshirt.”
+* “These sneakers complement the vintage workwear aesthetic.”
+* “This outfit fits a minimalist Japanese streetwear vibe.”
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AI STYLIST FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement:
+
+* “Style This Item”
+* “Wear It With”
+* “Complete The Look”
+* “Recommended For Your Aesthetic”
+* “Trending Outfit Pairings”
+* “Luxury Styling Suggestions”
+
+AI recommendation inputs:
+
+* Product category
+* Colors
+* Fabric types
+* Style tags
+* User browsing behavior
+* Cart contents
+* Purchase history
+* Trending looks
+* Seasonal trends
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 3 — AI STYLE AVATAR / MASCOT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create a small animated fashion mascot/avatar inspired by editorial fashion branding.
+
+Purpose:
+Give the brand personality and memorability.
+
+The avatar should:
+
+* appear subtly across styling sections
+* provide styling commentary
+* introduce outfit recommendations
+* guide users through AI fashion experiences
+* feel playful but premium
+
+The mascot should NOT feel childish or cartoon-heavy.
+It should match the luxury/minimal fashion identity.
+
+Possible placements:
+
+* AI stylist recommendations
+* onboarding
+* “Complete The Look” section
+* saved outfits
+* AI Try-On flows
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 4 — AI OUTFIT BUILDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build an intelligent outfit generation system.
+
+Purpose:
+Automatically create cohesive fashion looks from existing products.
+
+The system should:
+
+* combine products intelligently
+* match colors and silhouettes
+* support multiple aesthetics
+* generate editorial outfit combinations
+
+Supported aesthetics:
+
+* Minimal Luxury
+* Old Money
+* Japanese Workwear
+* Streetwear
+* Scandinavian Minimal
+* Vintage Americana
+* Smart Casual
+* Modern Utility
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OUTFIT BUILDER EXPERIENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Users should be able to:
+
+* generate full outfits from one item
+* shuffle outfit combinations
+* save favorite looks
+* add entire outfits to cart
+* share looks socially
+
+Optional enhancements:
+
+* AI-generated outfit names
+* vibe descriptions
+* style scores
+* outfit compatibility scoring
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 5 — INTERACTIVE OUTFIT DIAGRAM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement an interactive visual outfit mapping system.
+
+Inspired by editorial fashion breakdown graphics.
+
+Requirements:
+
+* Product image at center
+* Connected outfit pieces
+* Animated lines and indicators
+* Hover/tap highlights
+* Floating quick action cards
+* Elegant transitions
+
+Each connected item should support:
+
+* quick add to cart
+* quick preview
+* wishlist
+* product details
+
+The system should feel fluid and premium.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 6 — AI FASHION FEED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create a personalized AI-generated fashion inspiration feed.
+
+Purpose:
+Increase engagement and repeat visits.
+
+Feed should include:
+
+* curated outfits
+* trending combinations
+* seasonal styling
+* editorial recommendations
+* personalized suggestions
+
+The feed should adapt using:
+
+* browsing behavior
+* saved products
+* try-on activity
+* purchase history
+* aesthetic preferences
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 7 — AI TRY-ON ENHANCEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If an AI Try-On system already exists:
+
+* improve it instead of rebuilding blindly
+
+Enhance:
+
+* UX polish
+* loading experience
+* result quality
+* recommendation integration
+* outfit continuation flows
+
+After try-on generation:
+suggest:
+
+* complete outfit recommendations
+* matching accessories
+* alternative styles
+* similar looks
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 8 — SOCIAL & VIRAL FASHION CONTENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create social-ready visual experiences.
+
+Implement:
+
+* outfit share cards
+* Instagram-style look previews
+* Pinterest-friendly layouts
+* story-ready exports
+* AI-generated fashion captions
+
+Allow users to:
+
+* share saved outfits
+* share AI try-on looks
+* export style collages
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 9 — STYLE DNA SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement a style identity engine.
+
+Purpose:
+Understand and categorize user fashion preferences.
+
+Examples:
+
+* Old Money
+* Minimalist
+* Gorpcore
+* Japanese Workwear
+* Quiet Luxury
+* Vintage Utility
+* Modern Streetwear
+
+The system should:
+
+* infer user aesthetic
+* personalize recommendations
+* adapt homepage content
+* improve outfit generation
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADMIN PANEL ENHANCEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Extend the existing admin panel intelligently.
+
+DO NOT redesign stable systems unnecessarily.
+
+Add:
+
+* outfit management
+* AI recommendation controls
+* style tag management
+* aesthetic categories
+* fashion feed curation
+* try-on analytics
+* recommendation analytics
+* featured looks management
+
+Admins should be able to:
+
+* create curated looks
+* reorder outfit priorities
+* pin seasonal outfits
+* manage style collections
+* edit AI-generated descriptions
+* review AI recommendations
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATABASE & ARCHITECTURE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Analyze current schema BEFORE changes.
+
+ONLY add missing scalable structures.
+
+Potential additions:
+
+* outfits
+* outfit_items
+* aesthetic_tags
+* ai_recommendations
+* user_style_profiles
+* saved_outfits
+* recommendation_events
+* style_embeddings
+* ai_generated_content
+
+Design for:
+
+* scalability
+* personalization
+* analytics
+* AI expansion
+* multilingual support
+* fast querying
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+UI / UX DESIGN REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The entire experience should feel:
+
+* editorial
+* cinematic
+* premium
+* luxury-fashion inspired
+
+Visual direction:
+
+* dark luxury aesthetic
+* elegant typography
+* large imagery
+* subtle motion
+* minimal clutter
+* immersive layouts
+
+Animations:
+
+* smooth hover glow
+* editorial transitions
+* soft parallax
+* staggered reveals
+* luxury microinteractions
+
+DO NOT:
+
+* overuse flashy animations
+* create gaming-style UI
+* clutter the interface
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MOBILE EXPERIENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Optimize all experiences for mobile-first usage.
+
+Requirements:
+
+* swipeable outfit cards
+* touch-friendly hotspots
+* smooth scrolling
+* fast interactions
+* responsive editorial layouts
+
+Mobile experience should feel app-quality.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PERFORMANCE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MANDATORY:
+
+* Lazy-load heavy components
+* Optimize recommendation queries
+* Prevent duplicate rendering
+* Use efficient caching
+* Optimize image delivery
+* Minimize bundle impact
+* Prevent memory leaks
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CODE QUALITY REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MANDATORY:
+
+* Reuse existing architecture
+* Extend existing systems intelligently
+* Avoid duplicate components
+* Avoid unnecessary rewrites
+* Keep code modular and scalable
+* Maintain production standards
+
+DO NOT:
+
+* duplicate logic
+* create parallel systems
+* replace stable implementations unnecessarily
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXPECTED ENGINEERING PROCESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1:
+Audit the existing website architecture.
+
+STEP 2:
+Identify:
+
+* reusable systems
+* weak UX areas
+* missing AI commerce opportunities
+* opportunities for upselling
+* opportunities for personalization
+
+STEP 3:
+Integrate new features naturally into the current UX.
+
+STEP 4:
+Enhance incrementally while preserving stability.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXPECTED OUTPUT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Provide:
+
+* production-grade implementations
+* premium UI components
+* AI commerce architecture
+* scalable backend logic
+* optimized database additions
+* AI recommendation systems
+* interactive fashion experiences
+* responsive layouts
+* analytics integrations
+* polished luxury UX
+
+The final platform should feel like a modern AI-native luxury fashion ecosystem rather than a traditional ecommerce website.

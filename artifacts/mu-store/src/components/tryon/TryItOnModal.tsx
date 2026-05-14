@@ -143,6 +143,7 @@ export default function TryItOnModal({ open, onClose, productName, productImage,
               {state.step === "result" && (
                 <motion.div key="result" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
                   <StepResult resultImageUrl={state.resultImageUrl} productName={productName}
+                    productCategory={productCategory}
                     provider={state.provider} isDemoMode={state.status === "demo"}
                     onGenerateAgain={startGeneration} onTryDifferent={() => dispatch({ type: "RESET" })}
                     onAddToCart={onAddToCart} isSubmitting={isSubmitting} />

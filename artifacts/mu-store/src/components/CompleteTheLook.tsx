@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { Sparkles, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import MUStylistAvatar from "@/components/MUStylistAvatar";
+import StyleDNAQuiz from "@/components/StyleDNAQuiz";
+import { useStyleProfile } from "@/hooks/useStyleProfile";
 
 interface Product {
   id: number; name: string; nameAr?: string | null;
@@ -51,7 +54,9 @@ export default function CompleteTheLook({ productId, productName, categoryName, 
   const isRTL = lang.startsWith("ar");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [occasion, setOccasion] = useState("all");
+  const { profile } = useStyleProfile();
+  const [quizOpen, setQuizOpen] = useState(false);
+  const [occasion, setOccasion] = useState(profile?.occasion ?? "all");
   const complementary = getComplementaryCategory(categoryName);
 
   useEffect(() => {
@@ -78,16 +83,29 @@ export default function CompleteTheLook({ productId, productName, categoryName, 
 
   return (
     <section className="mt-14 pt-10 border-t border-border">
+      <StyleDNAQuiz open={quizOpen} onClose={() => setQuizOpen(false)} />
+
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Sparkles size={16} className="text-[#C9A96E]" />
+          <MUStylistAvatar size={26} pulse={false} />
           <h2 className="text-lg font-serif font-bold">{label}</h2>
           <span className="text-[10px] text-muted-foreground border border-border px-1.5 py-0.5 rounded-full">{poweredBy}</span>
+          {profile && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#C9A96E]/10 text-[#C9A96E] border border-[#C9A96E]/20 capitalize">{profile.vibe}</span>
+          )}
         </div>
-        <Link href={`/products?category=${complementary}`}
-          className="flex items-center gap-1 text-xs text-[#C9A96E] hover:underline font-medium">
-          {isRTL ? "عرض الكل" : "View all"} <ChevronRight size={13} />
-        </Link>
+        <div className="flex items-center gap-2">
+          {!profile && (
+            <button onClick={() => setQuizOpen(true)}
+              className="text-[10px] text-[#C9A96E] border border-[#C9A96E]/30 px-2 py-0.5 rounded-full hover:bg-[#C9A96E]/10 transition-colors flex items-center gap-1">
+              <Sparkles size={9} /> {isRTL ? "اكتشفي أسلوبك" : "Your Style DNA"}
+            </button>
+          )}
+          <Link href={`/products?category=${complementary}`}
+            className="flex items-center gap-1 text-xs text-[#C9A96E] hover:underline font-medium">
+            {isRTL ? "عرض الكل" : "View all"} <ChevronRight size={13} />
+          </Link>
+        </div>
       </div>
 
       {/* Occasion tabs */}

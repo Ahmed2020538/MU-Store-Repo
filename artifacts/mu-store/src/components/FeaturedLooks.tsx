@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
-import { Heart, Sparkles, ChevronRight } from "lucide-react";
+import { Heart, Sparkles, ChevronRight, ShoppingBag } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { useCart } from "@/lib/cart-context";
+import MUStylistAvatar from "@/components/MUStylistAvatar";
 
 interface OutfitProduct { id: number; name: string; nameAr?: string | null; price: number; salePrice?: number | null; images: string[]; }
 interface OutfitItem { id: number; role: string; product?: OutfitProduct; }
@@ -42,6 +44,7 @@ export default function FeaturedLooks({ productId }: { productId: number }) {
   const lang = i18n.language;
   const isRTL = lang.startsWith("ar");
   const [outfits, setOutfits] = useState<Outfit[]>([]);
+  const { addItem } = useCart();
 
   useEffect(() => {
     fetch(`/api/outfits?productId=${productId}`)
@@ -62,7 +65,7 @@ export default function FeaturedLooks({ productId }: { productId: number }) {
     <section className="mt-12 pt-10 border-t border-border">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <Sparkles size={16} className="text-[#C9A96E]" />
+          <MUStylistAvatar size={26} pulse={false} />
           <h2 className="text-lg font-serif font-bold">{isRTL ? "إطلالات مميزة" : "Styled Looks"}</h2>
           <span className="text-[10px] text-muted-foreground border border-border px-1.5 py-0.5 rounded-full">
             {isRTL ? "بواسطة فريق MU" : "curated by MU Stylists"}
@@ -106,7 +109,7 @@ export default function FeaturedLooks({ productId }: { productId: number }) {
               <div className="p-3.5">
                 <p className="font-serif font-semibold text-sm leading-snug mb-1">{name}</p>
                 {desc && <p className="text-[11px] text-muted-foreground line-clamp-2 mb-2" dir={isRTL ? "rtl" : "ltr"}>{desc}</p>}
-                <div className="flex gap-1 flex-wrap">
+                <div className="flex gap-1 flex-wrap mb-3">
                   {products.slice(0, 3).map(p => (
                     <Link key={p.id} href={`/products/${p.id}`}
                       className="text-[10px] border border-border rounded-full px-2 py-0.5 hover:border-[#C9A96E]/60 hover:text-[#C9A96E] transition-colors truncate max-w-[120px]">
@@ -114,6 +117,27 @@ export default function FeaturedLooks({ productId }: { productId: number }) {
                     </Link>
                   ))}
                 </div>
+                {products.length > 0 && (
+                  <button
+                    onClick={() => {
+                      let added = 0;
+                      products.forEach(p => {
+                        const prod = p as OutfitProduct & { sizes?: string[]; colors?: string[]; stock?: number };
+                        addItem({
+                          productId: p.id, quantity: 1,
+                          size: (prod.sizes)?.[0] ?? "38",
+                          color: (prod.colors)?.[0] ?? "Black",
+                          product: { id: p.id, name: p.name, price: p.price, salePrice: p.salePrice, images: p.images, stock: prod.stock ?? 10 },
+                        });
+                        added++;
+                      });
+                      toast.success(`${added} ${isRTL ? "قطع أضيفت للسلة" : "pieces added to cart"}`);
+                    }}
+                    className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold border border-[#C9A96E]/40 text-[#C9A96E] hover:bg-[#C9A96E]/10 transition-all">
+                    <ShoppingBag size={12} />
+                    {isRTL ? "أضيفي الإطلالة كاملة" : "Add Full Look to Cart"}
+                  </button>
+                )}
               </div>
             </motion.div>
           );

@@ -37,6 +37,7 @@ import AuthCallbackPage from "@/pages/AuthCallbackPage";
 import CookieBanner from "@/components/CookieBanner";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import SavedLooksPage from "@/pages/SavedLooksPage";
+import FashionFeedPage from "@/pages/FashionFeedPage";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -76,6 +77,7 @@ function AppLayout() {
           <Route path="/returns" component={ReturnsPolicyPage} />
           <Route path="/lookbook" component={LookbookPage} />
           <Route path="/saved-looks" component={SavedLooksPage} />
+          <Route path="/feed" component={FashionFeedPage} />
           <Route path="/privacy" component={PrivacyPolicyPage} />
           <Route path="/terms" component={TermsPage} />
           <Route path="/admin" component={AdminPage} />
