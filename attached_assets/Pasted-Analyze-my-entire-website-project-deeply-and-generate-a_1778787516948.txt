@@ -1,0 +1,186 @@
+Analyze my entire website/project deeply and generate a COMPLETE TECHNICAL + PRODUCT DOCUMENTATION for it.
+
+I want a full reverse-engineered breakdown of EVERYTHING in the project with maximum detail and zero omissions.
+
+Your task is to inspect and document:
+
+1. PROJECT OVERVIEW
+- Website/app purpose
+- Main idea
+- Target users
+- Business model
+- Core workflow
+- User journey from start to finish
+
+2. FULL FEATURE LIST
+Document EVERY feature no matter how small.
+For each feature explain:
+- What it does
+- Why it exists
+- How users interact with it
+- Frontend behavior
+- Backend logic
+- APIs involved
+- Database interactions
+- Validation rules
+- Edge cases
+- Error handling
+- Loading states
+- Permissions/auth rules
+- Dependencies with other features
+
+3. FRONTEND ARCHITECTURE
+Explain in detail:
+- Frameworks/libraries used
+- Folder structure
+- Component hierarchy
+- Routing system
+- State management
+- Styling system
+- Responsive behavior
+- Animations
+- UI patterns
+- Reusable components
+- Forms and validation
+- Hooks/services/utilities
+- SEO setup
+- Performance optimizations
+- Lazy loading
+- Caching strategy
+- Error boundaries
+- Accessibility implementation
+
+4. BACKEND ARCHITECTURE
+Explain:
+- Server structure
+- API architecture
+- Authentication system
+- Authorization/roles
+- Middleware
+- Controllers/services
+- Database structure
+- ORM setup
+- File upload system
+- Background jobs
+- Cron jobs
+- Rate limiting
+- Security measures
+- Logging
+- Monitoring
+- Caching
+- Queues
+- Session handling
+- Third-party integrations
+
+5. DATABASE DOCUMENTATION
+Generate:
+- Full schema
+- Tables/collections
+- Relationships
+- Fields and types
+- Indexes
+- Constraints
+- Data flow
+- Example records
+- Migration strategy
+
+6. AUTHENTICATION & SECURITY
+Document:
+- Login/signup flow
+- JWT/session handling
+- OAuth providers
+- Password reset flow
+- Email verification
+- CSRF/XSS protection
+- Encryption methods
+- API security
+- User permissions
+
+7. UI/UX BREAKDOWN
+Explain:
+- Design system
+- Typography
+- Colors
+- Layout rules
+- User interactions
+- Navigation logic
+- Mobile behavior
+- UX decisions
+- Empty states
+- Toasts/modals/dropdowns
+- Dashboard structure
+
+8. ALL PAGES & ROUTES
+For every page include:
+- Purpose
+- Components used
+- API calls
+- State handling
+- User actions
+- Backend interactions
+- Permissions required
+
+9. API DOCUMENTATION
+Generate:
+- All endpoints
+- Request examples
+- Response examples
+- Headers
+- Auth requirements
+- Validation
+- Error responses
+
+10. DEPLOYMENT & DEVOPS
+Explain:
+- Hosting setup
+- Environment variables
+- CI/CD
+- Build process
+- Deployment pipeline
+- Domain setup
+- CDN usage
+- SSL setup
+- Monitoring tools
+
+11. RECREATE INSTRUCTIONS
+Create a FULL step-by-step blueprint for rebuilding this project from scratch including:
+- Tech stack
+- Installation
+- Architecture decisions
+- Development order
+- Best practices
+- Scalability considerations
+
+12. CODEBASE INTELLIGENCE
+Analyze:
+- Important files
+- Critical business logic
+- Reusable patterns
+- Hidden dependencies
+- Technical debt
+- Refactoring opportunities
+
+13. EXPORT FORMAT
+Generate the output as:
+- Structured documentation
+- Clear sections
+- Technical explanations
+- Architecture diagrams (if possible)
+- Tables where needed
+- Step-by-step flows
+- Markdown format
+
+14. IMPORTANT RULES
+- DO NOT summarize briefly
+- DO NOT skip small details
+- DO NOT assume anything is unimportant
+- Explain everything as if another developer must rebuild the entire platform exactly
+- Include both high-level and low-level explanations
+- Include inferred architecture if some parts are missing
+- Be extremely detailed
+
+At the end, create:
+- A “Complete Project Blueprint”
+- A “Feature Dependency Map”
+- A “System Architecture Summary”
+- A “How To Rebuild This Entire Project” guide
