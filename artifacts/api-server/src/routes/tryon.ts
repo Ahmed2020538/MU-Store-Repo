@@ -1,10 +1,27 @@
 import { Router, type Request } from "express";
 import multer from "multer";
+import rateLimit from "express-rate-limit";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 
 const router = Router();
+
+const tryonMutationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many try-on requests. Please try again later." },
+});
+
+const tryonStatusLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many status requests. Please slow down." },
+});
 
 const HF_SPACE = "https://yisol-idm-vton.hf.space";
 
@@ -20,7 +37,8 @@ type PredEntry = {
   error: string | null;
   progress: number;
 };
-const predStore = new Map<string, PredEntry>();
+const PRED_TTL_MS = 30 * 60 * 1000;
+const predStore = new Map<string, PredEntry & { expires: number }>();
 
 setInterval(() => {
   const now = Date.now();
@@ -28,6 +46,11 @@ setInterval(() => {
     if (e.expires < now) {
       try { fs.unlinkSync(e.file); } catch { /* ignore */ }
       tempStore.delete(id);
+    }
+  }
+  for (const [id, e] of predStore) {
+    if (e.expires < now) {
+      predStore.delete(id);
     }
   }
 }, 5 * 60 * 1000);
@@ -54,7 +77,7 @@ function resolveImageUrl(url: string, req: Request): string {
 }
 
 // POST /api/tryon/upload
-router.post("/upload", upload.single("userImage"), async (req, res) => {
+router.post("/upload", tryonMutationLimiter, upload.single("userImage"), async (req, res) => {
   if (!req.file) { res.status(400).json({ error: "No image provided" }); return; }
   const id = crypto.randomBytes(16).toString("hex");
   const filePath = path.join(tempDir, `${id}.jpg`);
@@ -90,7 +113,7 @@ router.get("/temp/:id", (req, res) => {
 });
 
 // POST /api/tryon/start
-router.post("/start", async (req, res) => {
+router.post("/start", tryonMutationLimiter, async (req, res) => {
   const { userImageUrl, productImageUrl, productName } = req.body as Record<string, string>;
   if (!userImageUrl || !productImageUrl) {
     res.status(400).json({ error: "userImageUrl and productImageUrl are required" });
@@ -127,7 +150,7 @@ router.post("/start", async (req, res) => {
     }
 
     const predId = `hf-${sessionHash}`;
-    predStore.set(predId, { sessionHash, status: "queued", resultImageUrl: null, error: null, progress: 5 });
+    predStore.set(predId, { sessionHash, status: "queued", resultImageUrl: null, error: null, progress: 5, expires: Date.now() + PRED_TTL_MS });
     res.json({ predictionId: predId, provider: "huggingface" });
   } catch (err) {
     req.log.error(err, "HF space start error");
@@ -136,8 +159,8 @@ router.post("/start", async (req, res) => {
 });
 
 // GET /api/tryon/status/:predictionId
-router.get("/status/:predictionId", async (req, res) => {
-  const { predictionId } = req.params;
+router.get("/status/:predictionId", tryonStatusLimiter, async (req, res) => {
+  const predictionId = String(req.params["predictionId"]);
 
   if (predictionId.startsWith("demo-")) {
     res.json({ status: "demo", resultImageUrl: null, error: null, progress: 0 });
