@@ -1,0 +1,345 @@
+You are a senior AI product architect, full-stack engineer, and ecommerce systems designer.
+
+Your task is to enhance and extend the EXISTING ecommerce platform intelligently WITHOUT rebuilding or duplicating features that already exist and work correctly.
+
+IMPORTANT:
+
+* First analyze the current codebase and existing architecture.
+* Detect already implemented systems, components, APIs, database tables, admin tools, and UI flows.
+* DO NOT recreate, duplicate, or overwrite stable functionality unnecessarily.
+* ONLY improve weak areas, extend missing capabilities, refactor bad architecture, and integrate new AI-powered commerce features cleanly.
+* Preserve backward compatibility whenever possible.
+
+The goal is to evolve the platform into a modern AI-powered luxury ecommerce experience similar to premium platforms used by leading fashion brands.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRIMARY OBJECTIVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add advanced AI commerce capabilities that directly improve:
+
+* Conversion rate
+* Average order value (AOV)
+* User engagement
+* Purchase confidence
+* Retention
+* Operational efficiency
+
+The implementation must feel:
+
+* Premium
+* Fast
+* Intelligent
+* Scalable
+* Production-grade
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 1 — AI STYLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build an intelligent AI Stylist system that helps users discover complete outfits and personalized recommendations.
+
+BUSINESS GOAL:
+Reduce decision fatigue and increase basket size.
+
+The AI Stylist should:
+
+* Recommend matching products
+* Generate complete outfits
+* Suggest complementary items
+* Personalize recommendations using behavior/context
+* Encourage users to buy full looks instead of single products
+
+Example:
+Instead of purchasing only a handbag,
+the user is encouraged to purchase:
+
+* handbag
+* matching shoes
+* matching dress
+* accessories
+
+Expected business impact:
+↑ Conversion Rate
+↑ Average Order Value
+↑ Session Duration
+↑ Engagement
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AI STYLIST REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement:
+
+* “Complete the Look” system
+* Smart outfit recommendations
+* Related luxury styling suggestions
+* Occasion-based recommendations
+* Seasonal recommendations
+* AI-generated styling descriptions
+
+Possible AI inputs:
+
+* Product category
+* Product color
+* User browsing history
+* Cart contents
+* Purchase history
+* Fashion style tags
+* Season/weather
+* Trending products
+
+Features:
+
+* “Style this item”
+* “Wear it with”
+* “Luxury outfit builder”
+* “Recommended for your aesthetic”
+
+UI Requirements:
+
+* Elegant luxury cards
+* Smooth hover transitions
+* Outfit carousel
+* Save outfit feature
+* Mobile-friendly swipe interactions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 2 — AI TRY-ON
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Enhance the existing AI Try-On system ONLY if needed.
+
+IMPORTANT:
+If a Try-On implementation already exists:
+
+* audit it first
+* improve architecture
+* optimize UX
+* improve performance
+* improve AI quality
+* fix technical debt
+* DO NOT rebuild blindly
+
+The AI Try-On system should:
+
+* Let users upload/capture their image
+* Generate realistic AI try-on previews
+* Improve trust and purchase confidence
+* Reduce returns
+
+Expected business impact:
+↓ Return Rate
+↑ Trust
+↑ Conversion Rate
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADMIN PANEL — UI DESIGN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Design or improve a premium Admin Panel UI.
+
+IMPORTANT:
+Do not redesign functioning admin tools unnecessarily.
+
+ONLY:
+
+* modernize outdated UX
+* improve workflows
+* reduce clicks
+* improve usability
+* add missing controls
+
+The Admin Panel is the “control center” of the platform.
+
+The goal is to allow non-technical team members to manage the business easily WITHOUT needing developers.
+
+The admin UI should improve:
+
+* operational speed
+* content editing
+* merchandising
+* AI feature management
+* analytics visibility
+
+Examples:
+Admins should be able to:
+
+* edit homepage sections
+* manage AI recommendations
+* reorder products visually
+* manage outfit collections
+* configure AI styling rules
+* monitor try-on analytics
+* upload campaign banners
+* edit luxury marketing copy
+* manage categories and tags
+
+REQUIRED ADMIN FEATURES:
+
+* Dashboard overview
+* Sales analytics
+* AI recommendation controls
+* Product management
+* Outfit management
+* User activity insights
+* Try-On generation logs
+* AI moderation controls
+* Drag-and-drop content editor
+* Mobile admin responsiveness
+
+UI STYLE:
+
+* Premium dark dashboard
+* Minimal luxury aesthetic
+* Fast interactions
+* Clear hierarchy
+* Smooth animations
+* Data-rich but uncluttered
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATABASE SCHEMA — SYSTEM ARCHITECTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Analyze the current database schema BEFORE making changes.
+
+DO NOT:
+
+* duplicate tables
+* create redundant relationships
+* break existing APIs
+* rebuild stable structures
+
+ONLY:
+
+* normalize weak structures
+* add missing relationships
+* improve scalability
+* support AI features cleanly
+
+The schema should support:
+
+* AI stylist recommendations
+* outfit collections
+* AI try-on generations
+* user preferences
+* personalization
+* saved looks
+* analytics
+* product embeddings/tags
+* multilingual support
+* future AI expansion
+
+Design for:
+
+* scalability
+* maintainability
+* fast querying
+* analytics
+* future recommendation engines
+
+Potential schema additions:
+
+* outfits
+* outfit_items
+* ai_generations
+* recommendation_logs
+* user_style_profiles
+* product_embeddings
+* saved_looks
+* ai_feedback
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SYSTEM INTELLIGENCE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The platform should feel intelligent and adaptive.
+
+Implement:
+
+* smart caching
+* recommendation scoring
+* AI ranking logic
+* personalization memory
+* behavioral recommendations
+* trending analysis
+* fallback recommendation logic
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PERFORMANCE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MANDATORY:
+
+* Do not increase unnecessary bundle size
+* Lazy-load heavy AI modules
+* Optimize database queries
+* Prevent duplicate API calls
+* Cache recommendation results
+* Use efficient pagination
+* Optimize image delivery
+* Prevent memory leaks
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CODE QUALITY REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MANDATORY:
+
+* Reuse existing architecture when possible
+* Respect existing design system
+* Extend existing hooks/components instead of duplicating
+* Refactor carefully
+* Keep code modular
+* Avoid dead code
+* Avoid duplicate logic
+* Maintain production standards
+
+DO NOT:
+
+* rewrite stable systems
+* introduce unnecessary abstractions
+* create parallel implementations
+* duplicate business logic
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXPECTED ENGINEERING PROCESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1:
+Audit the current system architecture.
+
+STEP 2:
+Identify:
+
+* reusable systems
+* weak areas
+* missing AI capabilities
+* duplicated logic
+* UX bottlenecks
+* scalability limitations
+
+STEP 3:
+Enhance intelligently instead of rebuilding blindly.
+
+STEP 4:
+Implement AI commerce features incrementally and safely.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXPECTED OUTPUT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Provide:
+
+* production-grade code
+* architecture improvements
+* optimized database schema additions
+* admin panel enhancements
+* AI stylist implementation
+* AI try-on improvements
+* scalable backend logic
+* responsive UI components
+* analytics integration
+* performance optimizations
+
+The final system should feel like a premium AI-native luxury ecommerce platform.

@@ -20,6 +20,8 @@ import brandsRouter from "./brands.js";
 import testimonialsRouter from "./testimonials.js";
 import socialProofRouter from "./social-proof.js";
 import tryOnRouter from "./tryon.js";
+import outfitsRouter from "./outfits.js";
+import recommendationsRouter from "./recommendations.js";
 
 const router: IRouter = Router();
 
@@ -44,5 +46,7 @@ router.use("/products", socialProofRouter);
 router.use("/", brandsRouter);
 router.use("/", testimonialsRouter);
 router.use("/tryon", tryOnRouter);
+router.use("/outfits", outfitsRouter);
+router.use("/products", recommendationsRouter);
 
 export default router;

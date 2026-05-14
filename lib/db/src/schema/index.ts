@@ -7,3 +7,4 @@ export * from "./coupons";
 export * from "./contact_messages";
 export * from "./brands";
 export * from "./testimonials";
+export * from "./outfits";
