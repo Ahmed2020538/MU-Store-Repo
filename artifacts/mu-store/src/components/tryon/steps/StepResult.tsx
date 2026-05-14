@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Download, Share2, ShoppingBag, RotateCcw, ZoomIn, ZoomOut, Zap } from "lucide-react";
+import { Download, Share2, ShoppingBag, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 
 interface Props {
   resultImageUrl: string | null;
@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function StepResult({
-  resultImageUrl, productName, provider, isDemoMode,
+  resultImageUrl, productName, isDemoMode,
   onGenerateAgain, onTryDifferent, onAddToCart, isSubmitting,
 }: Props) {
   const [zoomed, setZoomed] = useState(false);
@@ -45,15 +45,13 @@ export default function StepResult({
   if (isDemoMode) {
     return (
       <div className="flex flex-col items-center gap-6 p-6 text-center text-white">
-        <div className="w-20 h-20 rounded-2xl bg-[#C9A96E]/10 border border-[#C9A96E]/20 flex items-center justify-center">
-          <Zap size={32} className="text-[#C9A96E]" />
+        <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
+          <div className="w-6 h-6 border-2 border-[#C9A96E]/40 border-t-[#C9A96E] rounded-full animate-spin" />
         </div>
         <div>
-          <p className="text-base font-semibold text-white mb-2">AI Try-On Ready</p>
+          <p className="text-base font-semibold text-white mb-2">Service Unavailable</p>
           <p className="text-sm text-white/45 max-w-xs leading-relaxed">
-            Add a <code className="text-[#C9A96E] text-xs bg-white/5 px-1.5 py-0.5 rounded">FASHN_API_KEY</code> or{" "}
-            <code className="text-[#C9A96E] text-xs bg-white/5 px-1.5 py-0.5 rounded">REPLICATE_API_KEY</code>{" "}
-            environment variable to enable real AI-generated try-on images.
+            The AI try-on service is temporarily busy. Please try again in a moment.
           </p>
         </div>
         <button onClick={onTryDifferent}
@@ -107,9 +105,7 @@ export default function StepResult({
       )}
 
       <p className="text-[10px] text-center text-white/20 leading-relaxed px-2">
-        This preview is AI-generated for visualization purposes only.
-        {provider === "fashn" && " Powered by Fashn.ai."}
-        {provider === "replicate" && " Powered by Replicate IDM-VTON."}
+        AI-generated preview for visualization purposes only. Powered by Hugging Face IDM-VTON.
       </p>
 
       <button onClick={onTryDifferent}

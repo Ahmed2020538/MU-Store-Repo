@@ -14,8 +14,8 @@ interface PollOptions {
 export function usePollStatus({
   predictionId,
   enabled,
-  interval = 2000,
-  maxDuration = 90000,
+  interval = 3000,
+  maxDuration = 240000,
   onStatus,
   onComplete,
   onFailed,
@@ -51,8 +51,6 @@ export function usePollStatus({
           status: string; progress: number;
           resultImageUrl: string | null; error: string | null;
         };
-
-        if (d.status === "demo") return;
 
         onStatus(d.status, d.progress ?? 0);
 

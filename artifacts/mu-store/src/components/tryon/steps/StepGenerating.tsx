@@ -3,8 +3,9 @@ import { motion } from "framer-motion";
 import { X } from "lucide-react";
 
 const MESSAGES = [
+  "Waiting in AI queue…",
   "Analyzing body proportions…",
-  "Mapping garment structure…",
+  "Mapping product structure…",
   "Adjusting lighting and shadows…",
   "Rendering photorealistic output…",
   "Finalizing your look…",
@@ -22,16 +23,15 @@ export default function StepGenerating({ userPhotoPreview, productImage, progres
   const [displayed, setDisplayed] = useState(5);
 
   useEffect(() => {
-    const t = setInterval(() => setMsgIdx(i => (i + 1) % MESSAGES.length), 3200);
+    const t = setInterval(() => setMsgIdx(i => (i + 1) % MESSAGES.length), 3500);
     return () => clearInterval(t);
   }, []);
 
   useEffect(() => {
-    // Smooth progress — only increase, cap at 95 while waiting
     setDisplayed(prev => Math.max(prev, Math.min(progress, 95)));
   }, [progress]);
 
-  const eta = Math.max(1, Math.ceil(((100 - displayed) / 100) * 55));
+  const eta = Math.max(1, Math.ceil(((100 - displayed) / 100) * 90));
 
   return (
     <div className="flex flex-col items-center gap-5 p-5 text-white">
@@ -57,7 +57,7 @@ export default function StepGenerating({ userPhotoPreview, productImage, progres
           <motion.div
             className="h-full rounded-full bg-gradient-to-r from-[#C9A96E] to-[#e8c98d]"
             animate={{ width: `${displayed}%` }}
-            transition={{ duration: 1, ease: "easeOut" }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
           />
         </div>
       </div>
@@ -82,8 +82,8 @@ export default function StepGenerating({ userPhotoPreview, productImage, progres
       </div>
 
       <div className="w-full rounded-xl bg-white/[0.03] border border-white/[0.06] p-4 text-center">
-        <p className="text-xs text-white/40">Our AI is compositing your image in high resolution</p>
-        <p className="text-[11px] text-white/22 mt-1">Generation typically takes 20–60 seconds</p>
+        <p className="text-xs text-white/40">AI is compositing your image using diffusion models</p>
+        <p className="text-[11px] text-white/25 mt-1">Free AI — may take 60–120s depending on queue</p>
       </div>
 
       <button onClick={onCancel}
