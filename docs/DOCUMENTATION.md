@@ -803,7 +803,7 @@ Representative rows showing the data shape for each table.
 ```json
 {
   "id": 1,
-  "email": "admin@mu.com",
+  "email": "<admin-email@example.com>",
   "passwordHash": "$2a$10$...",
   "name": "MU Admin",
   "phone": null,
@@ -912,7 +912,7 @@ Representative rows showing the data shape for each table.
 
 #### `settings`
 ```json
-{ "key": "smtp_settings", "value": "{\"host\":\"smtp.gmail.com\",\"port\":587,\"secure\":false,\"user\":\"mubrand2050@gmail.com\",\"pass\":\"app_password_here\",\"from\":\"MU Store <mubrand2050@gmail.com>\"}" }
+{ "key": "smtp_settings", "value": "{\"host\":\"smtp.example.com\",\"port\":587,\"secure\":false,\"user\":\"<store-email@example.com>\",\"pass\":\"<app-password>\",\"from\":\"MU Store <<store-email@example.com>>\"}" }
 ```
 
 #### `brands`
@@ -1050,7 +1050,7 @@ Contact form uses custom `sanitize()` helper with per-field length limits and em
 
 ### Admin Protection
 
-Root admin account (`admin@mu.com`) is protected from deactivation and deletion in the `admins.ts` route.
+The root admin account (the first admin seeded at bootstrap) is protected from deactivation and deletion in the `admins.ts` route.
 
 ### Known Security Considerations (from threat model)
 
@@ -1422,23 +1422,49 @@ All error responses follow: `{ "error": "<message>" }`
 }
 ```
 
-### 9.2 Products
+### 9.2 Health
+
+#### `GET /healthz`
+
+**Auth:** None
+
+**Response 200:** `{ "status": "ok" }`
+
+### 9.3 Categories
+
+#### `GET /categories`
+
+**Auth:** None
+
+**Response 200:**
+```json
+[
+  { "id": 1, "name": "Heels", "nameAr": "كعب عالي", "slug": "heels", "image": "/uploads/cat-heels.jpg", "productCount": 24 },
+  { "id": 2, "name": "Bags",  "nameAr": "حقائب",    "slug": "bags",  "image": "/uploads/cat-bags.jpg",  "productCount": 18 }
+]
+```
+
+**Notes:** Results cached in-memory for 10 minutes.
+
+### 9.4 Products
 
 #### `GET /products`
 
+**Auth:** None
+
 **Query params:**
 
-| Param | Type | Example |
-|---|---|---|
-| `category` | string | `shoes` |
-| `minPrice` | number | `700` |
-| `maxPrice` | number | `2500` |
-| `size` | string | `38` |
-| `color` | string | `black` |
-| `sort` | enum | `price_asc` / `price_desc` / `best_selling` / `top_rated` / `newest` |
-| `page` | integer | `1` |
-| `limit` | integer | `12` |
-| `search` | string | `leather` |
+| Param | Type | Example | Notes |
+|---|---|---|---|
+| `category` | string | `heels` | Category slug |
+| `minPrice` | number | `700` | Minimum price (EGP) |
+| `maxPrice` | number | `2500` | Maximum price (EGP) |
+| `size` | string | `38` | JSONB containment filter |
+| `color` | string | `black` | JSONB containment filter |
+| `sort` | enum | `price_asc` | `newest` / `price_asc` / `price_desc` / `best_selling` / `top_rated` |
+| `page` | integer | `1` | Default 1 |
+| `limit` | integer | `12` | Default 12 |
+| `search` | string | `leather` | Case-insensitive ILIKE on name and description |
 
 **Response 200:**
 ```json
@@ -1471,7 +1497,77 @@ All error responses follow: `{ "error": "<message>" }`
 }
 ```
 
-### 9.3 Orders
+**Notes:** Hidden products (`isHidden = true`) are excluded. Average rating and review count are computed live from the `reviews` table.
+
+#### `GET /products/:id`
+
+**Auth:** None
+
+**Response 200:** Single product object (same shape as list item; includes `description`, `descriptionAr`, `material`, `modelUrl`).
+
+**Errors:** 404 — product not found
+
+#### `GET /products/:id/reviews`
+
+**Auth:** None
+
+**Response 200:**
+```json
+[
+  { "id": 55, "productId": 1, "userId": 42, "userName": "Fatma Ahmed", "rating": 5, "comment": "Gorgeous!", "createdAt": "2026-05-03T09:00:00.000Z" }
+]
+```
+
+#### `POST /products` (Admin)
+
+**Auth:** Admin
+
+**Request:**
+```json
+{
+  "name": "Nile Heel",
+  "nameAr": "كعب النيل",
+  "description": "Handcrafted leather heel.",
+  "price": 1200,
+  "salePrice": 950,
+  "categoryId": 1,
+  "images": [],
+  "sizes": ["36","37","38"],
+  "colors": ["black","nude"],
+  "stock": 20,
+  "isNew": true,
+  "isSale": false,
+  "isFeatured": false
+}
+```
+
+**Required fields:** `name`, `price`, `categoryId`, `stock`
+
+**Response 201:** Created product object
+
+#### `PUT /products/:id` (Admin)
+
+**Auth:** Admin
+
+**Request:** Same shape as `POST /products` (any subset of fields)
+
+**Response 200:** Updated product object
+
+**Errors:** 404 — product not found
+
+#### `DELETE /products/:id` (Admin)
+
+**Auth:** Admin
+
+**Response 204:** No body
+
+### 9.5 Orders
+
+#### `GET /orders`
+
+**Auth:** Bearer
+
+**Response 200:** Array of order objects for the authenticated user, newest first.
 
 #### `POST /orders`
 
@@ -1510,25 +1606,15 @@ All error responses follow: `{ "error": "<message>" }`
 
 **Errors:** 400 — invalid input; 400 — cart is empty
 
-### 9.4 Promo Validation
+#### `GET /orders/:id`
 
-#### `POST /promo/validate`
+**Auth:** Bearer
 
-**Request:** `{ "code": "MU20", "cartTotal": 1500 }`
+**Response 200:** Single order object. Returns 403 if the order belongs to a different user (unless caller is admin).
 
-**Response 200:**
-```json
-{
-  "code": "MU20",
-  "discountType": "percentage",
-  "discountValue": 20,
-  "discountAmount": 300
-}
-```
+**Errors:** 404 — order not found; 403 — not owner
 
-**Errors:** 404 — invalid or expired code; 400 — coupon already used
-
-### 9.5 Cart
+### 9.6 Cart
 
 **Cart key logic (server-side):**
 - `Authorization: Bearer <token>` present → key is `user:<token>` (stable for authenticated users).
@@ -1600,7 +1686,7 @@ All error responses follow: `{ "error": "<message>" }`
 
 **Response 200:** `{ "items": [], "subtotal": 0, "shipping": 0, "discount": 0, "total": 0, "promoCode": null }`
 
-### 9.6 Wishlist
+### 9.7 Wishlist
 
 **Auth:** Bearer required for all wishlist endpoints.
 
@@ -1618,7 +1704,7 @@ All error responses follow: `{ "error": "<message>" }`
 
 **Response 200:** `{ "success": true }`
 
-### 9.7 Reviews
+### 9.8 Reviews
 
 #### `POST /reviews`
 
@@ -1644,7 +1730,7 @@ All error responses follow: `{ "error": "<message>" }`
 
 **Errors:** 400 — invalid input (rating not 1–5, productId missing)
 
-### 9.8 Profile
+### 9.9 Profile
 
 #### `POST /profile/complete`
 
@@ -1682,7 +1768,7 @@ All error responses follow: `{ "error": "<message>" }`
 
 **Response 200:** `{ "ok": true }`
 
-### 9.9 Promo Validation
+### 9.10 Promo Validation
 
 #### `POST /promo/validate`
 
@@ -1714,7 +1800,7 @@ All error responses follow: `{ "error": "<message>" }`
 
 **Errors:** 400 — missing `couponId`
 
-### 9.10 User Coupons
+### 9.11 User Coupons
 
 #### `GET /coupons/mine`
 
@@ -1738,7 +1824,7 @@ All error responses follow: `{ "error": "<message>" }`
 ]
 ```
 
-### 9.11 Settings (Public)
+### 9.12 Settings (Public)
 
 #### `GET /settings/contact`
 
@@ -1784,7 +1870,7 @@ All error responses follow: `{ "error": "<message>" }`
 }
 ```
 
-### 9.12 Contact
+### 9.13 Contact
 
 #### `POST /contact`
 
@@ -1805,7 +1891,7 @@ All error responses follow: `{ "error": "<message>" }`
 
 **Errors:** 400 — missing required fields; 400 — invalid email format
 
-### 9.13 Outfits
+### 9.14 Outfits
 
 #### `GET /outfits`
 
@@ -1851,7 +1937,7 @@ All error responses follow: `{ "error": "<message>" }`
 
 **Response 200:** `{ "ok": true }`
 
-### 9.14 Virtual Try-On
+### 9.15 Virtual Try-On
 
 #### `POST /tryon/upload`
 
@@ -1897,7 +1983,7 @@ All error responses follow: `{ "error": "<message>" }`
 
 **Status values:** `queued`, `processing`, `completed`, `failed`, `demo`
 
-### 9.15 Admin Dashboard
+### 9.16 Admin Dashboard
 
 #### `GET /admin/dashboard`
 
@@ -1923,7 +2009,50 @@ All error responses follow: `{ "error": "<message>" }`
 }
 ```
 
-### 9.16 Products — Social Proof & Recommendations
+#### `GET /admin/orders`
+
+**Auth:** Admin
+
+**Response 200:** Array of all orders across all customers, newest first.
+
+**Notes:** Used by the admin Orders page. Includes full order objects with items, delivery info, payment status, and COD fields.
+
+#### `PUT /admin/orders/:id/status`
+
+**Auth:** Admin
+
+**Request:** `{ "status": "shipped" }`
+
+**Valid status values:** `pending` | `confirmed` | `packed` | `shipped` | `delivered` | `cancelled`
+
+**Response 200:** Updated order object.
+
+**Errors:** 400 — invalid status value; 404 — order not found
+
+#### `GET /admin/customers`
+
+**Auth:** Admin
+
+**Response 200:** Array of all registered users (all roles).
+
+**Example response item:**
+```json
+{
+  "id": 42,
+  "email": "customer@example.com",
+  "name": "Fatma Ahmed",
+  "phone": "+201012345678",
+  "role": "customer",
+  "loyaltyPoints": 120,
+  "createdAt": "2026-01-15T09:00:00.000Z"
+}
+```
+
+**Notes:** Admins see all columns returned by the `User` schema. Used by the admin Customers page for priority/admin management.
+
+---
+
+### 9.17 Products — Social Proof & Recommendations
 
 #### `GET /products/:id/social-proof`
 
@@ -2138,7 +2267,7 @@ pnpm --filter @workspace/db run push
 
 # Seed initial data (admin user, categories, discount codes)
 # Admin: INSERT INTO users (email, password_hash, name, role, is_admin) VALUES (...)
-# Run bcrypt.hash("MUadmin2025", 10) for the password hash
+# Run bcrypt.hash("<strong-password>", 10) for the password hash
 ```
 
 ### Architecture Decisions Made
@@ -2188,7 +2317,7 @@ pnpm --filter @workspace/db run push
 
 ### Testing Credentials
 
-- **Admin:** `admin@mu.com` / `MUadmin2025`
+- **Admin:** configured via the bootstrap seed script — see `replit.md` for local dev credentials
 - **Promo codes:** `MU20` (20% off), `FREESHIP` (free shipping), `WELCOME10` (10% off)
 
 ---
