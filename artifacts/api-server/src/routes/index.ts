@@ -19,6 +19,7 @@ import adminCouponsRouter from "./admin-coupons.js";
 import brandsRouter from "./brands.js";
 import testimonialsRouter from "./testimonials.js";
 import socialProofRouter from "./social-proof.js";
+import tryOnRouter from "./tryon.js";
 
 const router: IRouter = Router();
 
@@ -42,5 +43,6 @@ router.use("/coupons", couponsUserRouter);
 router.use("/products", socialProofRouter);
 router.use("/", brandsRouter);
 router.use("/", testimonialsRouter);
+router.use("/tryon", tryOnRouter);
 
 export default router;

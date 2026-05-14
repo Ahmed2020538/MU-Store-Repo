@@ -1,64 +1,64 @@
-import { useState, useEffect } from "react";
+import { lazy, Suspense, useState } from "react";
 import { motion } from "framer-motion";
-import { Camera } from "lucide-react";
-import TryItOnModal from "./TryItOnModal";
+import { Sparkles } from "lucide-react";
 
-export { default as TryItOnModal } from "./TryItOnModal";
-export { default as TryOnCapture } from "./TryOnCapture";
+const TryItOnModal = lazy(() => import("./TryItOnModal"));
+
+const SKIP_CATEGORIES = ["accessory", "accessories", "jewelry", "belt", "scarf", "hat", "cap"];
 
 export interface TryItOnButtonProps {
   productName: string;
   productImage: string;
   productCategory?: string;
   className?: string;
-  size?: "sm" | "md";
+  onAddToCart?: () => void;
 }
 
 export function TryItOnButton({
   productName,
   productImage,
-  productCategory = "shoes",
+  productCategory = "",
   className = "",
-  size = "md",
+  onAddToCart,
 }: TryItOnButtonProps) {
   const [open, setOpen] = useState(false);
-  const [hasCamera, setHasCamera] = useState<boolean | null>(null);
 
-  useEffect(() => {
-    setHasCamera(!!navigator.mediaDevices?.getUserMedia);
-  }, []);
-
-  // Don't render until we know camera availability (avoids flash)
-  if (hasCamera === null || !hasCamera) return null;
+  // Hide for unsupported categories
+  const cat = productCategory.toLowerCase();
+  if (SKIP_CATEGORIES.some(k => cat.includes(k))) return null;
 
   return (
     <>
       <motion.button
         onClick={() => setOpen(true)}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.97 }}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.98 }}
         className={[
-          "flex items-center justify-center gap-2 font-semibold rounded-2xl border-2",
-          "border-foreground/15 text-foreground/80 hover:border-[#C9A96E] hover:text-[#C9A96E]",
+          "flex items-center justify-center gap-2 py-3 rounded-2xl border-2 text-sm font-medium",
+          "border-foreground/12 text-foreground/65 hover:border-[#C9A96E]/60 hover:text-[#C9A96E]",
           "transition-all duration-200",
-          size === "sm"
-            ? "px-3 py-2 text-xs"
-            : "px-4 py-3 text-sm",
           className,
         ].join(" ")}
-        title="Virtually try this product on using your camera"
+        aria-label={`Virtually try on ${productName}`}
       >
-        <Camera size={size === "sm" ? 13 : 16} />
+        <Sparkles size={15} />
         Try It On
       </motion.button>
 
-      <TryItOnModal
-        open={open}
-        onClose={() => setOpen(false)}
-        productName={productName}
-        productImage={productImage}
-        productCategory={productCategory}
-      />
+      <Suspense fallback={null}>
+        {open && (
+          <TryItOnModal
+            open={open}
+            onClose={() => setOpen(false)}
+            productName={productName}
+            productImage={productImage}
+            productCategory={productCategory}
+            onAddToCart={onAddToCart}
+          />
+        )}
+      </Suspense>
     </>
   );
 }
+
+export { default as TryItOnModal } from "./TryItOnModal";

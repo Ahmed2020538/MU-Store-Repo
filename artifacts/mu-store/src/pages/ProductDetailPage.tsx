@@ -366,6 +366,14 @@ export default function ProductDetailPage() {
             productImage={(product.images ?? [])[0] ?? ""}
             productCategory={product.categoryName ?? "shoes"}
             className="w-full"
+            onAddToCart={() => {
+              addItem({
+                productId: product.id, quantity: 1,
+                size: selectedSize || "One Size", color: selectedColor || "Standard",
+                product: { id: product.id, name: product.name, price: product.price, salePrice: product.salePrice, images: product.images, stock: product.stock },
+              });
+              toast.success("Added to cart ✓");
+            }}
           />
 
           {/* Trust micro-badges */}

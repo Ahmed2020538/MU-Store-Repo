@@ -1,0 +1,688 @@
+# PRODUCTION-GRADE AI VIRTUAL TRY-ON SYSTEM — COMPLETE ENGINEERING SPEC
+
+You are a senior full-stack AI engineer and product architect.
+
+Your task is to completely replace the current fake overlay-based “Try It On” implementation with a real, production-grade Generative AI Virtual Try-On system comparable in quality and UX to modern fashion e-commerce platforms such as ASOS, Zalando, and Amazon.
+
+This is NOT an AR overlay project.
+
+This is a complete AI-powered image generation pipeline.
+
+The final implementation must feel premium, scalable, production-ready, mobile-first, secure, and visually polished.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRIMARY OBJECTIVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Replace the existing canvas / MediaPipe / overlay system entirely.
+
+REMOVE ALL:
+
+* Canvas overlays
+* TensorFlow landmark positioning
+* MediaPipe body tracking overlays
+* PNG-on-video approaches
+* CSS transform garment placement
+* Webcam sticker rendering
+* Any fake AR simulation
+
+BUILD INSTEAD:
+A true diffusion-based AI try-on experience where:
+
+* Users upload or capture a real photo
+* AI generates a completely new photorealistic image
+* The garment realistically fits the user’s body
+* Fabric folds, shadows, lighting, and texture appear natural
+* Output looks like a real fashion photoshoot image
+
+The generated image should look believable enough to be used in premium e-commerce.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TECH STACK REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Frontend:
+
+* React or Next.js
+* TailwindCSS
+* Framer Motion
+* Lucide React icons
+* Zustand (preferred) or React Context
+* Dynamic imports for lazy loading
+
+Backend:
+
+* Node.js + Express OR Next.js API Routes
+* Sharp for image optimization
+* Secure server-side AI API integrations
+* Polling architecture for async AI jobs
+
+AI Providers:
+
+1. Primary → Fashn.ai
+2. Fallback → Replicate IDM-VTON
+
+Storage:
+
+* Temporary local storage or memory cache
+* Auto-cleanup of uploaded files
+
+Browser APIs:
+
+* getUserMedia
+* Web Share API
+* AbortController
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AI ENGINE — PRIMARY PROVIDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use:
+[Fashn.ai Docs](https://docs.fashn.ai?utm_source=chatgpt.com)
+
+Base URL:
+https://api.fashn.ai/v1
+
+IMPLEMENT EXACT FLOW:
+
+STEP 1 — START PREDICTION
+
+POST /run
+
+Headers:
+Authorization: Bearer ${FASHN_API_KEY}
+Content-Type: application/json
+
+Payload:
+
+```json
+{
+  "model_image": "<base64 or public URL>",
+  "garment_image": "<base64 or public URL>",
+  "category": "tops" | "bottoms" | "one-pieces",
+  "mode": "quality",
+  "adjust_hands": true,
+  "restore_background": true,
+  "restore_clothes": true,
+  "garment_photo_type": "auto",
+  "num_samples": 1
+}
+```
+
+Response:
+
+```json
+{
+  "id": "prediction_id",
+  "status": "starting"
+}
+```
+
+STEP 2 — POLL STATUS
+
+GET /status/{id}
+
+Poll every 2 seconds.
+Maximum timeout: 90 seconds.
+
+Success:
+
+```json
+{
+  "status": "completed",
+  "output": ["generated_image_url"]
+}
+```
+
+Failure:
+
+```json
+{
+  "status": "failed",
+  "error": "..."
+}
+```
+
+On completion:
+
+* Display generated image immediately
+* Cache result locally in state
+* Save result to generation history
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AI ENGINE — FALLBACK PROVIDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If:
+
+* Fashn.ai fails
+* API limit exceeded
+* API key missing
+* Provider unavailable
+
+Automatically fall back to:
+[Replicate IDM-VTON](https://replicate.com/yisol/idm-vton?utm_source=chatgpt.com)
+
+Use:
+POST https://api.replicate.com/v1/predictions
+
+Headers:
+Authorization: Token ${REPLICATE_API_KEY}
+
+Payload:
+
+```json
+{
+  "version": "yisol/idm-vton:906425dbca90663ff5427624839572cc56ea7d380343d13e2a4c4b09d3f0c30f",
+  "input": {
+    "human_img": "<user image URL>",
+    "garm_img": "<product image URL>",
+    "garment_des": "<product name>",
+    "is_checked": true,
+    "is_checked_crop": false,
+    "denoise_steps": 30,
+    "seed": 42
+  }
+}
+```
+
+Poll every 3 seconds until:
+status === "succeeded"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BACKEND REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IMPORTANT:
+NEVER expose API keys to frontend code.
+
+Store secrets securely using environment variables.
+
+Required secrets:
+
+* FASHN_API_KEY
+* REPLICATE_API_KEY
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+API ROUTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. POST /api/tryon/start
+
+Purpose:
+Start AI generation.
+
+Accept:
+
+* multipart/form-data OR JSON
+
+Fields:
+
+* userImage
+* productImageUrl
+* productCategory
+* productName
+
+Requirements:
+
+* Validate MIME types
+* Accept JPG/PNG/WEBP only
+* Maximum upload size: 10MB
+* Compress images using Sharp
+* Auto-correct EXIF orientation
+* Strip metadata
+* Resize longest side to max 1024px
+* JPEG quality 85
+
+If image > 2MB:
+
+* Auto compress before upload
+
+Return:
+
+```json
+{
+  "predictionId": "...",
+  "provider": "fashn"
+}
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+2. GET /api/tryon/status/:predictionId
+
+Return:
+
+```json
+{
+  "status": "starting|processing|completed|failed",
+  "resultImageUrl": "...",
+  "error": "...",
+  "progress": 0
+}
+```
+
+Requirements:
+
+* Normalize provider responses
+* Provide estimated progress
+* Handle timeouts gracefully
+* Support both providers
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3. POST /api/tryon/upload
+
+Purpose:
+Temporary image hosting.
+
+Requirements:
+
+* Generate temporary public URL
+* Auto-delete after 10 minutes
+* Prevent directory traversal
+* Validate upload type
+* Secure filename generation
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FRONTEND EXPERIENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build a premium luxury-fashion AI experience.
+
+The UX should feel cinematic, elegant, and modern.
+
+Theme:
+
+* Dark luxury aesthetic
+* Smooth animations
+* Minimal clutter
+* Fashion-brand visual language
+
+Colors:
+
+* Background: #0a0a0a
+* Surface: #141414
+* Border: rgba(255,255,255,0.08)
+* Primary text: #ffffff
+* Secondary text: rgba(255,255,255,0.6)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT ARCHITECTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+components/
+tryon/
+index.jsx
+TryItOnButton.jsx
+TryItOnModal.jsx
+
+```
+steps/
+  StepUpload.jsx
+  StepGenerating.jsx
+  StepResult.jsx
+
+shared/
+  TryOnPhotoCapture.jsx
+  TryOnResultGallery.jsx
+  TryOnProgressBar.jsx
+  TryOnErrorState.jsx
+  TryOnSkeleton.jsx
+  TryOnEmptyState.jsx
+
+hooks/
+  useTryOn.js
+  useCamera.js
+  useImageUpload.js
+  usePollStatus.js
+  useGenerationLimit.js
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRY-ON BUTTON
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create: <TryItOnButton />
+
+Behavior:
+
+* Hidden if unsupported browser
+* Disabled for accessories
+* Opens modal
+* Tracks analytics event
+
+Style:
+
+* Premium outlined button
+* Sparkles icon animation
+* Smooth hover transitions
+* Luxury minimal aesthetic
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRY-ON MODAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Large immersive modal.
+
+Desktop:
+
+* Centered
+* Max width: 900px
+
+Mobile:
+
+* Full-screen bottom sheet
+
+3-step flow:
+
+1. Upload
+2. Generating
+3. Result
+
+Animated transitions:
+
+* Fade
+* Upward slide
+* Smooth easing
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — PHOTO UPLOAD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Features:
+
+* Drag-and-drop upload
+* File browser
+* Camera capture
+* Photo preview
+* Replace photo
+* Remove photo
+
+Photo tips section:
+
+* Full body visible
+* Good lighting
+* Plain background
+* Avoid oversized clothing
+
+Add:
+
+* Real-time upload validation
+* Compression feedback
+* Upload progress
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — GENERATING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Features:
+
+* AI loading animation
+* Skeleton shimmer
+* Real progress bar
+* Status messages rotation
+* Side-by-side source preview
+* Estimated completion time
+
+Loading texts:
+
+* Analyzing body proportions...
+* Mapping garment structure...
+* Adjusting lighting and shadows...
+* Rendering photorealistic output...
+* Finalizing your look...
+
+Requirements:
+
+* Smooth progress interpolation
+* AbortController support
+* Retry logic
+* Timeout handling
+* Cancel generation support
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — RESULT VIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Features:
+
+* High-resolution generated image
+* Zoom on hover
+* Pinch-to-zoom mobile support
+* Download image
+* Share result
+* Add to Cart CTA
+* Buy Now CTA
+* Generate Again
+* Try Different Photo
+
+Add watermark:
+“AI Generated Preview”
+
+Display disclaimer:
+“This preview is AI-generated and intended for visualization purposes only.”
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CAMERA COMPONENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build: <TryOnPhotoCapture />
+
+Requirements:
+
+* Front-facing camera default
+* Flip camera support
+* Countdown timer
+* Retake support
+* Full-screen mobile capture
+* Stop camera stream on unmount
+
+IMPORTANT:
+Always stop tracks:
+
+```js
+stream.getTracks().forEach(track => track.stop())
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STATE MANAGEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use Zustand.
+
+State shape:
+
+```js
+{
+  step,
+  userPhoto,
+  userPhotoPreview,
+  predictionId,
+  provider,
+  status,
+  resultImageUrl,
+  error,
+  progress,
+  generationCount,
+  previousResults
+}
+```
+
+Requirements:
+
+* Persist generation count in sessionStorage
+* Cache generated results
+* Prevent duplicate polling
+* Handle cleanup on modal close
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ERROR HANDLING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Handle ALL cases gracefully.
+
+Required error states:
+
+* Camera denied
+* Upload failure
+* Invalid format
+* Oversized image
+* Timeout
+* AI moderation rejection
+* Network failure
+* Rate limiting
+* Missing API keys
+* Provider unavailable
+
+Every error must include:
+
+* Friendly explanation
+* Recovery action
+* Retry button where appropriate
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PERFORMANCE OPTIMIZATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MANDATORY:
+
+* Lazy-load modal
+* Dynamic imports
+* Image optimization
+* Abort pending requests
+* Cleanup object URLs
+* Debounce rapid actions
+* Prevent memory leaks
+
+Use:
+
+```js
+URL.revokeObjectURL(...)
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECURITY REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MANDATORY:
+
+* No secrets in frontend
+* Validate all uploads
+* Rate limit API routes
+* Sanitize filenames
+* Protect against abuse
+* Enforce file size limits
+* Prevent prompt injection via metadata
+* Strip EXIF metadata
+* Add server-side validation for MIME spoofing
+
+Add:
+
+* Basic abuse prevention middleware
+* Session-based try-on limits
+* CSRF protection if applicable
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ANALYTICS EVENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Emit events:
+
+* tryon_button_clicked
+* tryon_photo_uploaded
+* tryon_generation_started
+* tryon_generation_completed
+* tryon_generation_failed
+* tryon_result_downloaded
+* tryon_result_shared
+* tryon_add_to_cart
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADDITIONAL ENHANCEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Also implement:
+
+1. Demo Mode
+   If no API key exists:
+
+* Show demo generated samples
+* Explain setup process
+
+2. Session History
+   Store previous generations locally.
+
+3. Smart Retry Logic
+   Automatically retry failed generations once before fallback.
+
+4. Accessibility
+
+* Keyboard navigation
+* Focus trapping
+* ARIA labels
+* Screen-reader support
+
+5. SEO Safety
+   Ensure modal system does not affect SSR performance.
+
+6. Internationalization Ready
+   Keep all strings centralized for translation.
+
+7. Observability
+   Add structured logging and provider timing metrics.
+
+8. Future-Proofing
+   Design provider layer so additional AI providers can be added later.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXPECTED OUTPUT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Generate:
+
+* Full production-ready frontend implementation
+* Full backend implementation
+* Complete component architecture
+* Hooks
+* API routes
+* AI provider clients
+* Polling system
+* Image optimization utilities
+* Error handling system
+* Responsive UI
+* Animations
+* State management
+* Cleanup logic
+* Analytics integration
+
+The code should be modular, scalable, maintainable, and enterprise-quality.
+
+Do NOT provide pseudocode.
+
+Provide real implementation-ready code.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before completion verify:
+
+✓ Old overlay implementation fully removed
+✓ Real AI image generation working
+✓ Upload + camera capture working
+✓ Fashn.ai integration functioning
+✓ Replicate fallback functioning
+✓ Polling stable and cancellable
+✓ Mobile UX polished
+✓ Desktop UX polished
+✓ Download/share working
+✓ Add-to-cart integration working
+✓ Memory leaks prevented
+✓ Camera streams cleaned up
+✓ API keys secured
+✓ Error handling comprehensive
+✓ Performance optimized
+✓ Chrome/Safari/Firefox compatible
+✓ Responsive on all screen sizes
+✓ Production deployment ready
