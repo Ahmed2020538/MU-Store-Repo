@@ -4,6 +4,7 @@ import { Heart, ShoppingBag, Share2, Minus, Plus, Star, ChevronLeft, ChevronRigh
 import AR3DViewer from "@/components/AR3DViewer";
 import { addRecentlyViewed } from "@/lib/recently-viewed";
 import { LocationButton } from "@/components/location";
+import { TryItOnButton } from "@/components/tryon";
 import { getDeliveryWindow } from "@/lib/delivery-estimate";
 
 function getFitSummary(rating?: number | null, reviewCount?: number | null) {
@@ -358,6 +359,14 @@ export default function ProductDetailPage() {
               <Share2 size={18} />
             </Button>
           </div>
+
+          {/* Try It On */}
+          <TryItOnButton
+            productName={product.name}
+            productImage={(product.images ?? [])[0] ?? ""}
+            productCategory={product.categoryName ?? "shoes"}
+            className="w-full"
+          />
 
           {/* Trust micro-badges */}
           <div className="flex gap-4 pt-1 border-t border-border/50">

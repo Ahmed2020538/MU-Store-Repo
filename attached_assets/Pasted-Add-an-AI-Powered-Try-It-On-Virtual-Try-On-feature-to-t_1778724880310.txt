@@ -1,0 +1,151 @@
+Add an AI-Powered "Try It On" Virtual Try-On feature to the website using the device camera with real-time product overlay and fitting. Build it as modular, reusable components.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+When a user is on a product page or checkout, they can click "Try It On" 
+to open their camera and see the product overlaid/fitted onto themselves 
+in real time using AI body/face detection — before completing the purchase.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENTS TO BUILD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. <TryItOnButton />
+   - Placement: product page (near "Add to Cart") and cart/checkout page
+   - Label: "Try It On" with a camera icon (Lucide: Camera)
+   - Style: secondary CTA button — premium, minimal, consistent with site theme
+   - On click: opens <TryItOnModal />
+
+2. <TryItOnModal />
+   - Full-screen or large centered overlay modal
+   - Smooth fade-in + slide-up animation on open
+   - Contains:
+     a) Live camera feed (getUserMedia API) as background
+     b) Product image overlaid on top of the camera feed using canvas
+     c) AI detection layer (see AI Engine below)
+     d) Controls bar at bottom:
+        - Flip camera (front/back toggle)
+        - Capture screenshot button (downloads or shares the try-on photo)
+        - Close button (X) top-right
+        - Opacity slider for product overlay (so user can adjust visibility)
+        - Size adjustment (+/-) for manual fine-tuning of product fit
+   - Show loading spinner while camera initializes
+   - Show permission denied message with instructions if camera access is blocked
+
+3. AI Detection Engine
+   Use one of these (in order of preference — use whichever loads successfully):
+   
+   OPTION A — MediaPipe (preferred, no API key needed):
+   - Load from CDN: https://cdn.jsdelivr.net/npm/@mediapipe/holistic
+   - Use Holistic model for full-body + face + hands landmark detection
+   - Map product overlay to detected body region based on product category:
+     * Clothing/tops → align to shoulders & torso landmarks
+     * Accessories/jewelry → align to face/neck landmarks
+     * Eyewear → align to eye landmarks
+     * Hats/headwear → align to forehead/head top landmarks
+     * Bags → align to hand/arm landmarks
+   
+   OPTION B — TensorFlow.js (fallback):
+   - Load: https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection
+   - Use MoveNet SinglePose Lightning model (fastest)
+   - Map keypoints (nose, shoulders, hips, wrists) to overlay position
+   
+   OPTION C — Static smart overlay (final fallback):
+   - If AI detection fails or takes too long, use face/body region heuristics
+   - Center the product overlay in the frame at a sensible default position
+   - Allow manual drag-to-reposition and pinch/scroll to resize
+
+4. <TryOnCapture />
+   - Screenshot button captures current canvas frame (camera + overlay)
+   - Save as image: canvas.toBlob() → download as "tryon-[productname].png"
+   - Share button: use Web Share API on mobile if supported
+   - Show a "Share your look!" prompt after capture with social share options
+
+5. Product Category Detection
+   - Read product type from a data attribute on the product element:
+     data-product-category="clothing|eyewear|hat|bag|jewelry|shoes"
+   - Use this to automatically select the correct body landmark mapping
+   - Default to torso/center if category is unknown
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TECHNICAL IMPLEMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Camera Setup:
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }
+  });
+  videoElement.srcObject = stream;
+
+Canvas Rendering Loop:
+  - Use requestAnimationFrame for smooth 60fps rendering
+  - Draw video frame first, then overlay product image on top
+  - Apply transform based on detected landmarks each frame
+  - Support opacity and scale controls in real time
+
+Product Image Handling:
+  - Read product image src from the current product page (og:image or 
+    the main product image element)
+  - Remove background if possible using: 
+    https://www.remove.bg/api (if API key available) OR
+    use CSS mix-blend-mode: multiply as a lightweight alternative
+  - Support PNG with transparency for best results
+
+Responsive & Mobile:
+  - On mobile: open as full-screen overlay (100vw × 100vh)
+  - Default to front camera (selfie mode) on mobile
+  - Support pinch-to-zoom gesture on the product overlay
+  - Support drag to reposition the overlay manually
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DESIGN REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Dark overlay UI (camera modal uses dark theme regardless of site theme)
+- Glassmorphism control bar at bottom: 
+  backdrop-filter: blur(12px); background: rgba(0,0,0,0.4)
+- Lucide Icons throughout (Camera, X, RotateCcw, Download, Share2, 
+  ZoomIn, ZoomOut, SlidersHorizontal)
+- Smooth animations: modal open/close, overlay fade-in on detection lock
+- "AI Fitting..." pulsing indicator while detection is running
+- Green outline/glow on overlay when body is detected and locked
+- Premium, luxury e-commerce feel — not playful or cartoonish
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Add <TryItOnButton /> on every product page next to "Add to Cart"
+- Add <TryItOnButton /> on the cart/checkout page next to each product
+- Export all components from: components/tryon/index.jsx (or .tsx)
+- Pass product data as props:
+  <TryItOnButton 
+    productName="Product Name"
+    productImage="/images/product.png"
+    productCategory="clothing"
+  />
+- Lazy-load the AI model only when the modal opens (not on page load)
+  to avoid performance impact
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PERMISSIONS & FALLBACKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- If camera permission is denied: show a friendly UI explaining how to 
+  enable camera access in browser settings, with a browser-specific guide
+- If device has no camera: hide the TryItOnButton entirely 
+  (check navigator.mediaDevices availability)
+- If AI model fails to load: fall back to Option C (manual overlay)
+- Always stop the camera stream when the modal is closed:
+  stream.getTracks().forEach(track => track.stop())
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+components/
+  tryon/
+    index.jsx          ← exports all components
+    TryItOnButton.jsx  ← CTA button component
+    TryItOnModal.jsx   ← full modal with camera + canvas
+    useCamera.js       ← custom hook: camera stream management
+    useAIDetection.js  ← custom hook: MediaPipe / TF.js detection
+    useTryOnOverlay.js ← custom hook: canvas rendering loop
+    TryOnCapture.jsx   ← screenshot + share component
