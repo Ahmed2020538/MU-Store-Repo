@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, ArrowRight, TrendingUp, Tag } from "lucide-react";
+import { Search, X, ArrowRight, TrendingUp, Tag, Mic, MicOff } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useSearch } from "@/lib/search-context";
+import { useVoiceSearch } from "@/hooks/useVoiceSearch";
+import i18n from "@/i18n";
 
 const QUICK_CATEGORIES = [
   { label: "Heels", slug: "heels" },
@@ -38,6 +40,15 @@ export default function SearchModal() {
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [, setLocation] = useLocation();
+
+  const voice = useVoiceSearch({
+    lang: i18n.language,
+    onResult: (transcript) => {
+      setQuery(transcript);
+      setSelected(-1);
+      doSearch(transcript);
+    },
+  });
 
   useEffect(() => {
     if (open) {
@@ -122,13 +133,28 @@ export default function SearchModal() {
                 value={query}
                 onChange={e => handleChange(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && submitSearch()}
-                placeholder="Search products, categories…"
+                placeholder={voice.state === "listening"
+                  ? (i18n.language.startsWith("ar") ? "جارٍ الاستماع…" : "Listening…")
+                  : (i18n.language.startsWith("ar") ? "ابحثي عن منتجات…" : "Search products, categories…")}
                 className="flex-1 bg-transparent outline-none text-base placeholder:text-muted-foreground"
               />
               {query && (
                 <button onClick={() => { setQuery(""); setResults([]); inputRef.current?.focus(); }}
                   className="text-muted-foreground hover:text-foreground transition-colors">
                   <X size={18} />
+                </button>
+              )}
+              {voice.state !== "unsupported" && (
+                <button
+                  onClick={() => voice.state === "listening" ? voice.stop() : voice.start()}
+                  title={i18n.language.startsWith("ar") ? "البحث بالصوت" : "Voice search"}
+                  className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                    voice.state === "listening"
+                      ? "bg-red-500/15 text-red-500 animate-pulse"
+                      : "text-muted-foreground hover:text-[#C9A96E] hover:bg-[#C9A96E]/10"
+                  }`}
+                >
+                  {voice.state === "listening" ? <MicOff size={15} /> : <Mic size={15} />}
                 </button>
               )}
               <kbd className="hidden sm:flex items-center gap-1 text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5">ESC</kbd>

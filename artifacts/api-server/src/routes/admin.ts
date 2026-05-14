@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { ordersTable, productsTable, categoriesTable, usersTable } from "@workspace/db";
-import { desc, eq, sql, gte } from "drizzle-orm";
+import { desc, eq, sql, gte, lt, inArray } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth.js";
 
 const router = Router();
@@ -54,6 +54,73 @@ router.get("/dashboard", requireAdmin, async (_req, res) => {
   });
 });
 
+router.get("/insights", requireAdmin, async (_req, res) => {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  const revenueByDay = await db
+    .select({
+      date: sql<string>`date(created_at)`,
+      revenue: sql<number>`coalesce(sum(total), 0)`,
+      orders: sql<number>`count(*)`,
+    })
+    .from(ordersTable)
+    .where(gte(ordersTable.createdAt, thirtyDaysAgo))
+    .groupBy(sql`date(created_at)`)
+    .orderBy(sql`date(created_at)`);
+
+  const allOrders = await db
+    .select({ items: ordersTable.items })
+    .from(ordersTable)
+    .where(sql`${ordersTable.status} != 'cancelled'`);
+
+  const revenueMap = new Map<number, { revenue: number; quantity: number }>();
+  for (const { items } of allOrders) {
+    for (const item of ((items as any[]) ?? [])) {
+      const id = Number(item.productId);
+      if (!id) continue;
+      const prev = revenueMap.get(id) ?? { revenue: 0, quantity: 0 };
+      revenueMap.set(id, {
+        revenue: prev.revenue + (item.price ?? 0) * (item.quantity ?? 1),
+        quantity: prev.quantity + (item.quantity ?? 1),
+      });
+    }
+  }
+
+  const topIds = [...revenueMap.entries()]
+    .sort((a, b) => b[1].revenue - a[1].revenue)
+    .slice(0, 5)
+    .map(([id]) => id);
+
+  const topProductRows = topIds.length > 0
+    ? await db
+        .select({ id: productsTable.id, name: productsTable.name, stock: productsTable.stock, price: productsTable.price })
+        .from(productsTable)
+        .where(inArray(productsTable.id, topIds))
+    : [];
+
+  const topProducts = topProductRows
+    .map(p => ({
+      id: p.id, name: p.name,
+      revenue: revenueMap.get(p.id)?.revenue ?? 0,
+      sold: revenueMap.get(p.id)?.quantity ?? 0,
+      stock: p.stock ?? 0,
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
+
+  const lowStock = await db
+    .select({ id: productsTable.id, name: productsTable.name, stock: productsTable.stock, price: productsTable.price })
+    .from(productsTable)
+    .where(lt(productsTable.stock, 10))
+    .orderBy(productsTable.stock)
+    .limit(12);
+
+  res.json({
+    revenueByDay: revenueByDay.map(r => ({ ...r, revenue: Number(r.revenue), orders: Number(r.orders) })),
+    topProducts,
+    lowStock,
+  });
+});
+
 router.get("/orders", requireAdmin, async (_req, res) => {
   const orders = await db.select().from(ordersTable).orderBy(desc(ordersTable.createdAt));
   res.json(orders.map(o => ({
@@ -89,7 +156,6 @@ router.get("/customers", requireAdmin, async (_req, res) => {
   })));
 });
 
-// Toggle priority member status
 router.put("/customers/:id/priority", requireAdmin, async (req, res) => {
   const id = parseInt(String(req.params.id));
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);

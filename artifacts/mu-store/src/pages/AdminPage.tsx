@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Package, Users, ShoppingBag, DollarSign, Edit, Trash2, Plus, Settings, ShieldCheck, Mail, Ticket, Crown, Tag, Star, Share2 } from "lucide-react";
+import { Package, Users, ShoppingBag, DollarSign, Edit, Trash2, Plus, Settings, ShieldCheck, Mail, Ticket, Crown, Tag, Star, Share2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   useAdminDashboard, useAdminListOrders, useAdminListCustomers,
@@ -24,6 +24,7 @@ import AdminCouponsPage from "./admin/AdminCouponsPage";
 import AdminBrandsPage from "./admin/AdminBrandsPage";
 import AdminTestimonialsPage from "./admin/AdminTestimonialsPage";
 import AdminSocialPage from "./admin/AdminSocialPage";
+import AdminAIInsightsPage from "./admin/AdminAIInsightsPage";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800", confirmed: "bg-blue-100 text-blue-800",
@@ -133,6 +134,7 @@ export default function AdminPage() {
           <TabsTrigger value="admins"><ShieldCheck size={13} className="mr-1 inline" />Admins</TabsTrigger>
           <TabsTrigger value="social"><Share2 size={13} className="mr-1 inline" />Social</TabsTrigger>
           <TabsTrigger value="settings"><Settings size={13} className="mr-1 inline" />Settings</TabsTrigger>
+          <TabsTrigger value="insights"><Sparkles size={13} className="mr-1 inline" />AI Insights</TabsTrigger>
         </TabsList>
 
         <TabsContent value="orders">
@@ -220,6 +222,7 @@ export default function AdminPage() {
         <TabsContent value="admins"><AdminAdminsPage /></TabsContent>
         <TabsContent value="social"><AdminSocialPage /></TabsContent>
         <TabsContent value="settings"><AdminContactPage /></TabsContent>
+        <TabsContent value="insights"><AdminAIInsightsPage /></TabsContent>
       </Tabs>
 
       {productModal.open && (

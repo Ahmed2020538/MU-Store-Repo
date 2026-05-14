@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import { Heart, ShoppingBag, Share2, Minus, Plus, Star, ChevronLeft, ChevronRight, Send, Truck, RotateCcw, Shield, ZoomIn, Ruler, Box } from "lucide-react";
 import AR3DViewer, { type ShoeVariant } from "@/components/AR3DViewer";
+import CompleteTheLook from "@/components/CompleteTheLook";
 import { addRecentlyViewed } from "@/lib/recently-viewed";
 import { LocationButton } from "@/components/location";
 import { TryItOnButton } from "@/components/tryon";
@@ -509,6 +510,13 @@ export default function ProductDetailPage() {
           </Tabs>
         </div>
       </div>
+
+      <CompleteTheLook
+        productId={productId}
+        productName={product.name}
+        categoryName={product.categoryName}
+        colors={product.colors ?? []}
+      />
 
       <RecentlyViewedSection excludeId={productId} />
 
