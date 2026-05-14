@@ -36,7 +36,7 @@ export default function WhatsAppFAB() {
           initial={{ opacity: 0, scale: 0.4 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.4 }}
-          className="fixed bottom-6 right-6 z-50"
+          className="fixed bottom-5 right-5 z-[1000]"
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
         >
@@ -63,11 +63,11 @@ export default function WhatsAppFAB() {
             rel="noopener noreferrer"
             animate={hovered ? { scale: 1 } : { scale: [1, 1.08, 1] }}
             transition={hovered ? { duration: 0.2 } : { repeat: Infinity, duration: 2, ease: "easeInOut" }}
-            className="w-14 h-14 rounded-full flex items-center justify-center shadow-2xl"
+            className="w-12 h-12 rounded-full flex items-center justify-center shadow-2xl"
             style={{ backgroundColor: color }}
             data-testid="button-whatsapp-fab"
           >
-            <FaWhatsapp size={28} color="white" />
+            <FaWhatsapp size={24} color="white" />
           </motion.a>
         </motion.div>
       )}

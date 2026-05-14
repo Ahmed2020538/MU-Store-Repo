@@ -1,0 +1,81 @@
+Add a professional Location & Store Sharing feature to the website 
+with modern UI and full functionality. Build it as modular, 
+reusable components.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENTS TO BUILD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. <LocationButton /> 
+   - A small, clickable location pin icon (use Lucide Icons: MapPin)
+   - Appears next to the store name throughout the site
+   - On click: opens a MapModal (see below)
+   - Hover: subtle scale + color highlight animation
+
+2. <MapModal />
+   - A centered modal overlay with smooth fade-in animation
+   - Contains: store name, full address, city
+   - Embedded OpenStreetMap iframe (no API key required):
+     Use: https://www.openstreetmap.org/export/embed.html?bbox=...
+     (replace with your actual coordinates)
+   - "Get Directions" button → opens Google Maps navigation in new tab
+     URL format: https://maps.google.com/?q=YOUR_ADDRESS
+   - Close button (X) in top-right corner
+   - Click outside modal to close
+
+3. <ShareButton />
+   - Icon: Share2 from Lucide Icons
+   - Dropdown on click with 3 options:
+     a) Copy Link — copies store Google Maps URL to clipboard, 
+        shows "Copied!" toast confirmation
+     b) Share on WhatsApp — opens: 
+        https://wa.me/?text=Find us here: [MAPS_URL]
+     c) Share on Facebook — opens:
+        https://www.facebook.com/sharer/sharer.php?u=[MAPS_URL]
+   - On mobile: use navigator.share (Web Share API) if supported, 
+     fall back to dropdown if not
+
+4. <StoreLocationSection />
+   - A full section for the footer and product pages
+   - Shows: location pin icon + store name + address
+   - Includes the embedded map
+   - Includes the ShareButton and "Get Directions" button
+   - "Available at Store" badge on product pages
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DESIGN REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Use Lucide Icons library throughout (npm install lucide-react)
+- Icons: minimal, clean, consistent — luxury e-commerce aesthetic
+- Animations: CSS transitions, smooth modal open/close (opacity + 
+  translateY), hover scale effects (transform: scale(1.05))
+- Colors: inherit from existing site theme via CSS variables
+- Mobile-first responsive layout
+- SEO: wrap address in <address> tag with schema.org markup:
+  itemscope itemtype="https://schema.org/LocalBusiness"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Add <StoreLocationSection /> to the footer
+- Add <LocationButton /> + "Available at Store" badge to each 
+  product page/card
+- Export all components from a single file: 
+  components/location/index.jsx (or .tsx if TypeScript)
+- Use React hooks: useState for modal open/close, 
+  useCallback for share handlers
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STORE CONFIG (edit these values)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Create a config object at the top of the file:
+
+const STORE_CONFIG = {
+  name: "Your Store Name",
+  address: "123 Street Name, City, Country",
+  googleMapsUrl: "https://maps.google.com/?q=YOUR_ADDRESS",
+  whatsapp: "YOUR_PHONE_NUMBER",
+  mapEmbedUrl: "https://www.openstreetmap.org/export/embed.html?YOUR_BBOX"
+}
+
+Replace placeholder values with actual store data.

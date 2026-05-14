@@ -30,7 +30,8 @@ export default function HelpWidget() {
   }, [open]);
 
   return (
-    <div ref={ref} className="fixed bottom-24 left-4 z-50 md:bottom-8 md:left-8">
+    // bottom-20 = 80px (above WhatsApp at 20px + 48px height + 12px gap)
+    <div ref={ref} className="fixed bottom-20 right-5 z-[1000]">
       <AnimatePresence>
         {open && (
           <motion.div
@@ -38,7 +39,7 @@ export default function HelpWidget() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.85, y: 16 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="mb-3 w-72 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+            className="absolute bottom-full right-0 mb-3 w-72 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
           >
             <div className="bg-[#1A1A2E] px-4 py-3 flex items-center justify-between">
               <div>
@@ -78,12 +79,12 @@ export default function HelpWidget() {
         onClick={() => setOpen(o => !o)}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.93 }}
-        className="relative w-12 h-12 rounded-full bg-[#1A1A2E] text-white shadow-lg flex items-center justify-center hover:bg-[#1A1A2E]/90 transition-colors"
+        className="relative w-10 h-10 rounded-full bg-[#1A1A2E] text-white shadow-lg flex items-center justify-center hover:bg-[#1A1A2E]/90 transition-colors"
         aria-label="Help center"
       >
         <AnimatePresence mode="wait">
           {open
-            ? <motion.div key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}><X size={20} /></motion.div>
+            ? <motion.div key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}><X size={18} /></motion.div>
             : <motion.div key="h" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}><HelpCircle size={20} /></motion.div>
           }
         </AnimatePresence>
