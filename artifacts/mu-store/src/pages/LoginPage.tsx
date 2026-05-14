@@ -35,6 +35,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   twitter_not_configured:   "X/Twitter sign-in is not configured yet.",
   apple_not_configured:     "Apple sign-in is not configured yet.",
   oauth_failed:             "Sign-in failed. Please try again or use email.",
+  oauth_credentials_error:  "Sign-in is misconfigured. Please contact support or use email.",
 };
 
 export default function LoginPage() {
