@@ -1,143 +1,199 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Box, Smartphone, X, RotateCcw, ZoomIn, Info } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Smartphone, RotateCcw, ScanLine } from "lucide-react";
 
-// Web component alias — avoids JSX IntrinsicElements declaration complexity
+const PLACEHOLDER_MODEL =
+  "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Shoe/glTF-Binary/Shoe.glb";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ModelViewer = "model-viewer" as any;
 
-type AR3DViewerProps = {
-  modelUrl: string;
+export interface ShoeVariant {
+  id: string | number;
+  label: string;
+  thumbnail: string;
+  modelUrl?: string;
+}
+
+type Props = {
+  modelUrl?: string | null;
   productName: string;
   posterUrl?: string;
+  variants?: ShoeVariant[];
 };
 
-export default function AR3DViewer({ modelUrl, productName, posterUrl }: AR3DViewerProps) {
+export default function AR3DViewer({ modelUrl, productName, posterUrl, variants = [] }: Props) {
   const [loaded, setLoaded] = useState(false);
   const [arSupported, setArSupported] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(0);
   const viewerRef = useRef<HTMLElement | null>(null);
 
+  const activeModel = variants[activeIdx]?.modelUrl ?? modelUrl ?? PLACEHOLDER_MODEL;
+  const isPlaceholder = !modelUrl && !variants[activeIdx]?.modelUrl;
+
   useEffect(() => {
-    if (typeof navigator !== "undefined") {
-      setArSupported(/Android|iPhone|iPad/i.test(navigator.userAgent));
-    }
+    setArSupported(/Android|iPhone|iPad/i.test(navigator.userAgent));
   }, []);
 
-  const handleARClick = () => {
+  useEffect(() => { setLoaded(false); }, [activeModel]);
+
+  useEffect(() => {
+    const el = viewerRef.current;
+    if (!el) return;
+    const onLoad = () => setLoaded(true);
+    el.addEventListener("load", onLoad);
+    return () => el.removeEventListener("load", onLoad);
+  }, [activeModel]);
+
+  const handleAR = () => { (viewerRef.current as any)?.activateAR?.(); };
+  const handleReset = () => {
     const el = viewerRef.current as any;
-    if (el?.activateAR) el.activateAR();
+    el?.resetTurntableRotation?.();
   };
+
+  const qrUrl = typeof window !== "undefined"
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(window.location.href)}&bgcolor=ffffff&color=0B1623&margin=8`
+    : "";
 
   return (
     <div className="space-y-3">
-      {/* Viewer */}
-      <div className="relative aspect-square rounded-3xl overflow-hidden bg-gradient-to-br from-muted/60 to-muted shadow-lg">
-        <ModelViewer
-          ref={viewerRef}
-          src={modelUrl}
-          alt={`3D model of ${productName}`}
-          ar
-          ar-modes="webxr scene-viewer quick-look"
-          camera-controls
-          auto-rotate
-          shadow-intensity="1"
-          environment-image="neutral"
-          exposure="1"
-          poster={posterUrl}
-          loading="lazy"
-          reveal="auto"
-          style={{ width: "100%", height: "100%", background: "transparent" }}
-          onLoad={() => setLoaded(true)}
-        />
+      {/* ── Viewer card ── */}
+      <div
+        className="relative rounded-3xl overflow-hidden shadow-md"
+        style={{ background: "linear-gradient(145deg,#fafaf9 0%,#f0ede8 100%)", border: "1px solid rgba(0,0,0,0.07)" }}
+      >
+        {/* model-viewer */}
+        <div className="relative aspect-square">
+          <ModelViewer
+            ref={viewerRef}
+            src={activeModel}
+            alt={`3D view of ${productName}`}
+            ar
+            ar-modes="webxr scene-viewer quick-look"
+            camera-controls
+            auto-rotate
+            auto-rotate-delay="2000"
+            shadow-intensity="1"
+            shadow-softness="1"
+            environment-image="neutral"
+            exposure="1.15"
+            poster={posterUrl}
+            loading="eager"
+            style={{ width: "100%", height: "100%", background: "transparent" }}
+          />
 
-        {/* Loading overlay */}
-        <AnimatePresence>
-          {!loaded && (
+          {/* Loading overlay */}
+          <AnimatePresence>
+            {!loaded && (
+              <motion.div
+                initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}
+                className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none"
+                style={{ background: "linear-gradient(145deg,#fafaf9 0%,#f0ede8 100%)" }}
+              >
+                <div className="w-8 h-8 border-2 border-[#C9A96E]/30 border-t-[#C9A96E] rounded-full animate-spin" />
+                <p className="text-xs text-neutral-400">Loading 3D model…</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Floating: reset button */}
+          <button
+            onClick={handleReset}
+            className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm shadow-md flex items-center justify-center text-neutral-500 hover:text-neutral-900 hover:bg-white transition-all"
+            title="Reset view"
+          >
+            <RotateCcw size={13} />
+          </button>
+
+          {/* Placeholder notice */}
+          {isPlaceholder && loaded && (
+            <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-sm text-[10px] text-white/75 font-medium">
+              Sample 3D model
+            </div>
+          )}
+
+          {/* Drag hint */}
+          {loaded && (
             <motion.div
-              initial={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-muted"
+              initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2 }}
+              className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none"
             >
-              <div className="w-10 h-10 border-2 border-[#C9A96E]/40 border-t-[#C9A96E] rounded-full animate-spin" />
-              <p className="text-xs text-muted-foreground">Loading 3D model…</p>
+              <span className="text-[10px] bg-black/40 backdrop-blur-sm text-white/90 px-3 py-1 rounded-full whitespace-nowrap">
+                Drag to rotate · Pinch to zoom
+              </span>
             </motion.div>
           )}
-        </AnimatePresence>
+        </div>
 
-        {/* Controls hint */}
-        {loaded && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
-            className="absolute bottom-3 left-0 right-0 flex justify-center pointer-events-none"
-          >
-            <span className="text-[10px] bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full">
-              Drag to rotate · Pinch to zoom
-            </span>
-          </motion.div>
-        )}
-
-        {/* Info toggle */}
-        <button
-          onClick={() => setShowInfo(v => !v)}
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/60 transition-colors"
-        >
-          {showInfo ? <X size={14} /> : <Info size={14} />}
-        </button>
-
-        {/* Info panel */}
-        <AnimatePresence>
-          {showInfo && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-              className="absolute top-14 right-3 w-56 bg-background/95 backdrop-blur-sm border border-border rounded-xl p-3 shadow-xl text-xs space-y-1.5"
-            >
-              <p className="font-semibold text-sm">3D Viewer Controls</p>
-              <p className="text-muted-foreground">🖱 <strong>Drag</strong> — rotate the model</p>
-              <p className="text-muted-foreground">🤏 <strong>Pinch / Scroll</strong> — zoom in/out</p>
-              <p className="text-muted-foreground">📱 <strong>Try in AR</strong> — place in your space</p>
-              {arSupported && <p className="text-[#C9A96E] font-medium">✓ AR supported on your device</p>}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Action bar */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => { const el = viewerRef.current as any; el?.resetTurntableRotation?.(); }}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border text-xs font-medium hover:bg-muted transition-colors"
-        >
-          <RotateCcw size={12} /> Reset
-        </button>
-        <button
-          onClick={() => { const el = viewerRef.current as any; el?.zoom?.(1.5); }}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border text-xs font-medium hover:bg-muted transition-colors"
-        >
-          <ZoomIn size={12} /> Zoom in
-        </button>
-        {arSupported ? (
-          <Button
-            onClick={handleARClick}
-            size="sm"
-            className="flex-1 rounded-xl bg-[#C9A96E] text-[#0B1623] hover:bg-[#C9A96E]/90 font-semibold text-xs h-9"
-          >
-            <Smartphone size={13} className="mr-1.5" /> Try in AR
-          </Button>
-        ) : (
-          <div className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-muted/50 text-xs text-muted-foreground">
-            <Box size={12} /> AR available on mobile
+        {/* ── Dot pagination (color variants) ── */}
+        {variants.length > 1 && (
+          <div className="flex justify-center gap-1.5 pt-2 pb-3">
+            {variants.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveIdx(i)}
+                className={`rounded-full transition-all duration-300 ${
+                  i === activeIdx ? "w-5 h-2 bg-[#C9A96E]" : "w-2 h-2 bg-neutral-300 hover:bg-neutral-400"
+                }`}
+              />
+            ))}
           </div>
         )}
       </div>
 
-      {/* AR CTA for desktop */}
-      {!arSupported && (
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-[#C9A96E]/10 border border-[#C9A96E]/20 text-xs">
-          <Smartphone size={14} className="text-[#C9A96E] flex-shrink-0" />
-          <p className="text-muted-foreground">
-            <span className="text-[#C9A96E] font-semibold">Try in AR on mobile</span> — open this product on your phone to place it in your real space using your camera.
-          </p>
+      {/* ── AR Button (mobile) / QR Code (desktop) ── */}
+      {arSupported ? (
+        <motion.button
+          onClick={handleAR}
+          whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}
+          className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl font-semibold text-sm"
+          style={{ background: "#C9A96E", color: "#0B1623" }}
+        >
+          <Smartphone size={15} />
+          Try On with AR
+        </motion.button>
+      ) : (
+        <div className="flex items-center gap-4 p-4 rounded-2xl bg-muted/50 border border-border">
+          <img
+            src={qrUrl}
+            alt="Scan to try in AR"
+            className="w-[70px] h-[70px] rounded-xl flex-shrink-0 bg-white"
+            loading="lazy"
+          />
+          <div className="space-y-1 min-w-0">
+            <p className="text-sm font-semibold flex items-center gap-1.5">
+              <ScanLine size={13} className="text-[#C9A96E] flex-shrink-0" />
+              Try in AR on your phone
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Scan to open on your phone and place the shoe in your real environment with your camera.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Shoe switcher ── */}
+      {variants.length > 0 && (
+        <div>
+          <p className="text-[11px] font-semibold tracking-wide uppercase text-muted-foreground mb-2">Colors</p>
+          <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
+            {variants.map((v, i) => (
+              <button key={v.id} onClick={() => setActiveIdx(i)} className="flex-shrink-0 flex flex-col items-center gap-1.5 group">
+                <div
+                  className={`w-[68px] h-[68px] rounded-xl overflow-hidden transition-all duration-200 ${
+                    i === activeIdx
+                      ? "ring-2 ring-[#C9A96E] shadow-lg shadow-[#C9A96E]/25"
+                      : "ring-1 ring-transparent hover:ring-border"
+                  }`}
+                >
+                  <img src={v.thumbnail} alt={v.label} className="w-full h-full object-cover" />
+                </div>
+                <span className={`text-[10px] font-medium transition-colors leading-tight ${i === activeIdx ? "text-[#C9A96E]" : "text-muted-foreground"}`}>
+                  {v.label}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import { Heart, ShoppingBag, Share2, Minus, Plus, Star, ChevronLeft, ChevronRight, Send, Truck, RotateCcw, Shield, ZoomIn, Ruler, Box } from "lucide-react";
-import AR3DViewer from "@/components/AR3DViewer";
+import AR3DViewer, { type ShoeVariant } from "@/components/AR3DViewer";
 import { addRecentlyViewed } from "@/lib/recently-viewed";
 import { LocationButton } from "@/components/location";
 import { TryItOnButton } from "@/components/tryon";
@@ -107,6 +107,22 @@ export default function ProductDetailPage() {
   const images = product.images ?? [];
   const avgRating = product.rating;
 
+  const shoeVariants: ShoeVariant[] = (() => {
+    const colors = product.colors ?? [];
+    if (colors.length > 0) {
+      return colors.map((color, i) => ({
+        id: color,
+        label: color,
+        thumbnail: images[i] ?? images[0] ?? "",
+        modelUrl: undefined,
+      }));
+    }
+    if (images.length > 1) {
+      return images.map((img, i) => ({ id: i, label: `View ${i + 1}`, thumbnail: img, modelUrl: undefined }));
+    }
+    return [];
+  })();
+
   const handleAddToCart = () => {
     const sizes = product.sizes ?? [];
     const colors = product.colors ?? [];
@@ -143,27 +159,30 @@ export default function ProductDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-14">
         {/* Gallery */}
         <div className="space-y-3">
-          {/* View mode toggle — only shown when product has a 3D model */}
-          {product.modelUrl && (
-            <div className="flex gap-2 p-1 bg-muted rounded-xl w-fit">
-              <button
-                onClick={() => setViewMode("photos")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "photos" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                <ZoomIn size={12} /> Photos
-              </button>
-              <button
-                onClick={() => setViewMode("3d")}
-                data-testid="button-view-3d"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "3d" ? "bg-background shadow text-[#C9A96E]" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                <Box size={12} /> 3D / AR
-              </button>
-            </div>
-          )}
+          {/* View mode toggle — always visible */}
+          <div className="flex gap-2 p-1 bg-muted rounded-xl w-fit">
+            <button
+              onClick={() => setViewMode("photos")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "photos" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <ZoomIn size={12} /> Photos
+            </button>
+            <button
+              onClick={() => setViewMode("3d")}
+              data-testid="button-view-3d"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "3d" ? "bg-background shadow text-[#C9A96E]" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <Box size={12} /> 3D / AR
+            </button>
+          </div>
 
-          {viewMode === "3d" && product.modelUrl ? (
-            <AR3DViewer modelUrl={product.modelUrl} productName={product.name} posterUrl={images[0]} />
+          {viewMode === "3d" ? (
+            <AR3DViewer
+              modelUrl={product.modelUrl ?? null}
+              productName={product.name}
+              posterUrl={images[0]}
+              variants={shoeVariants}
+            />
           ) : (<>
           <div
             ref={imgRef}
