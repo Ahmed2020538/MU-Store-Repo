@@ -25,6 +25,7 @@ import AdminBrandsPage from "./admin/AdminBrandsPage";
 import AdminTestimonialsPage from "./admin/AdminTestimonialsPage";
 import AdminSocialPage from "./admin/AdminSocialPage";
 import AdminAIInsightsPage from "./admin/AdminAIInsightsPage";
+import AdminHeroPage from "./admin/AdminHeroPage";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800", confirmed: "bg-blue-100 text-blue-800",
@@ -135,6 +136,7 @@ export default function AdminPage() {
           <TabsTrigger value="social"><Share2 size={13} className="mr-1 inline" />Social</TabsTrigger>
           <TabsTrigger value="settings"><Settings size={13} className="mr-1 inline" />Settings</TabsTrigger>
           <TabsTrigger value="insights"><Sparkles size={13} className="mr-1 inline" />AI Insights</TabsTrigger>
+          <TabsTrigger value="hero"><Sparkles size={13} className="mr-1 inline" />Hero</TabsTrigger>
         </TabsList>
 
         <TabsContent value="orders">
@@ -223,6 +225,7 @@ export default function AdminPage() {
         <TabsContent value="social"><AdminSocialPage /></TabsContent>
         <TabsContent value="settings"><AdminContactPage /></TabsContent>
         <TabsContent value="insights"><AdminAIInsightsPage /></TabsContent>
+        <TabsContent value="hero"><AdminHeroPage /></TabsContent>
       </Tabs>
 
       {productModal.open && (

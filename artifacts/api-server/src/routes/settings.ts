@@ -98,6 +98,19 @@ router.post("/smtp", requireAdmin, async (req, res) => {
   res.json({ ok: true });
 });
 
+router.get("/hero", async (_req, res) => {
+  const [row] = await db.select().from(settingsTable).where(eq(settingsTable.key, "hero_settings"));
+  if (!row) { res.json({}); return; }
+  try { res.json(JSON.parse(row.value)); } catch { res.json({}); }
+});
+
+router.post("/hero", requireAdmin, async (req, res) => {
+  const value = JSON.stringify(req.body);
+  await db.insert(settingsTable).values({ key: "hero_settings", value })
+    .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+  res.json({ ok: true });
+});
+
 router.post("/smtp/test", requireAdmin, async (req, res) => {
   const { to } = req.body;
   if (!to) { res.status(400).json({ error: "Missing 'to' email" }); return; }

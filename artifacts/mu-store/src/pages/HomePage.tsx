@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { motion, useInView, AnimatePresence } from "framer-motion";
-import { ArrowRight, Shield, Truck, RotateCcw, Star, Sparkles, Clock } from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { ArrowRight, Shield, Truck, RotateCcw, Star, Clock } from "lucide-react";
 import { useListProducts } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import BrandsCarousel from "@/components/BrandsCarousel";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import { getRecentlyViewed, type RecentProduct } from "@/lib/recently-viewed";
+import HeroSection from "@/components/HeroSection";
 
 const CATEGORIES = [
   { slug: "heels", label: "Heels", sub: "High Heels", image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600" },
@@ -24,127 +25,6 @@ const TRUST_BADGES = [
   { icon: Star, label: "Made in Egypt", sub: "Premium craftsmanship", color: "#D4608A" },
 ];
 
-function HeroSection() {
-  const [idx, setIdx] = useState(0);
-  const headlines = ["Where Every Step", "Tells Your Story", "Walk in Luxury"];
-  useEffect(() => {
-    const t = setInterval(() => setIdx(i => (i + 1) % headlines.length), 3200);
-    return () => clearInterval(t);
-  }, []);
-
-  return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-foreground">
-      {/* Animated gradient orbs */}
-      <motion.div
-        animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.1, 1] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-1/4 left-[15%] w-[500px] h-[500px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(201,169,110,0.18) 0%, transparent 70%)" }}
-      />
-      <motion.div
-        animate={{ x: [0, -30, 0], y: [0, 25, 0], scale: [1, 0.95, 1] }}
-        transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        className="absolute bottom-1/4 right-[10%] w-[400px] h-[400px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(212,96,138,0.14) 0%, transparent 70%)" }}
-      />
-      <motion.div
-        animate={{ x: [0, 20, -10, 0], y: [0, -10, 20, 0] }}
-        transition={{ duration: 17, repeat: Infinity, ease: "easeInOut", delay: 4 }}
-        className="absolute top-1/2 right-1/3 w-[300px] h-[300px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(201,169,110,0.08) 0%, transparent 70%)" }}
-      />
-      {/* Subtle grid */}
-      <div className="absolute inset-0 opacity-[0.04]"
-        style={{ backgroundImage: "linear-gradient(rgba(201,169,110,1) 1px, transparent 1px), linear-gradient(90deg, rgba(201,169,110,1) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 w-full relative z-10">
-        <div className="max-w-2xl">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-            <span className="inline-flex items-center gap-2 text-xs tracking-[0.3em] uppercase text-[#C9A96E] mb-6 border border-[#C9A96E]/30 px-4 py-1.5 rounded-full">
-              <Sparkles size={10} className="text-[#C9A96E]" />
-              Premium Egyptian Brand
-            </span>
-          </motion.div>
-
-          <div className="h-28 sm:h-24 overflow-hidden mb-2">
-            <AnimatePresence mode="wait">
-              <motion.h1
-                key={idx}
-                initial={{ y: 50, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -50, opacity: 0 }}
-                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                className="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold text-background leading-tight"
-              >
-                {headlines[idx]}
-              </motion.h1>
-            </AnimatePresence>
-          </div>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-            className="mt-4 text-background/65 text-lg max-w-md leading-relaxed font-light"
-          >
-            Handcrafted luxury shoes and bags, designed for the modern Egyptian woman who knows her worth.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.6 }}
-            className="mt-10 flex gap-4 flex-wrap"
-          >
-            <Button asChild size="lg"
-              className="bg-[#C9A96E] text-[#1A1A2E] hover:bg-[#D4B87E] font-semibold px-8 shadow-lg shadow-[#C9A96E]/25 hover:shadow-xl hover:shadow-[#C9A96E]/30 transition-all duration-300 hover:-translate-y-0.5"
-              data-testid="button-shop-now">
-              <Link href="/products">Shop Now <ArrowRight size={16} className="ml-1" /></Link>
-            </Button>
-            <Button asChild variant="outline" size="lg"
-              className="border-background/25 text-background hover:bg-background/10 hover:border-background/40 transition-all duration-300 hover:-translate-y-0.5">
-              <Link href="/products?category=bags">Shop Bags</Link>
-            </Button>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 0.8 }}
-            className="mt-14 flex items-center gap-6"
-          >
-            <div className="flex -space-x-2">
-              {["bg-rose-400","bg-amber-400","bg-sky-400","bg-emerald-400"].map((c, i) => (
-                <div key={i} className={`w-8 h-8 rounded-full ${c} border-2 border-[#1A1A2E] flex items-center justify-center`}>
-                  <span className="text-white text-[10px] font-bold">{["S","N","R","A"][i]}</span>
-                </div>
-              ))}
-            </div>
-            <div>
-              <div className="flex gap-0.5 mb-0.5">{Array(5).fill(0).map((_,i) => <Star key={i} size={11} className="text-[#C9A96E] fill-[#C9A96E]" />)}</div>
-              <p className="text-xs text-background/50">Loved by 2,400+ Egyptian women</p>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-      >
-        <span className="text-[10px] tracking-[0.2em] uppercase text-background/30">Scroll</span>
-        <motion.div
-          animate={{ y: [0, 6, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          className="w-px h-8 bg-gradient-to-b from-[#C9A96E]/60 to-transparent"
-        />
-      </motion.div>
-    </section>
-  );
-}
 
 function SectionHeader({ eyebrow, title, centered = false }: { eyebrow: string; title: string; centered?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
