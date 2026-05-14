@@ -959,6 +959,7 @@ Sonner `<Toaster richColors position="top-right" />`. Used for login success/fai
 | `/lookbook` | `LookbookPage` | No | Editorial lookbook |
 | `/saved-looks` | `SavedLooksPage` | Yes | User's saved outfit looks |
 | `/feed` | `FashionFeedPage` | No | Fashion inspiration feed |
+| `/language` | `LanguageSelectPage` | No | Language selection screen |
 | `/size-guide` | `SizeGuidePage` | No | Shoe/bag sizing reference |
 | `/shipping` | `ShippingPolicyPage` | No | Shipping policy content |
 | `/returns` | `ReturnsPolicyPage` | No | Returns policy content |
@@ -1001,6 +1002,8 @@ Sonner `<Toaster richColors position="top-right" />`. Used for login success/fai
 | GET | `/api/products` | None | List products with filters |
 | GET | `/api/products/:id` | None | Get single product |
 | GET | `/api/products/:id/reviews` | None | Get product reviews |
+| GET | `/api/products/:id/social-proof` | None | Recent purchases + total sold count for a product |
+| GET | `/api/products/:id/recommendations` | None | Complementary product recommendations (scored by featured/rating/sales) |
 | POST | `/api/products` | Admin | Create product |
 | PUT | `/api/products/:id` | Admin | Update product |
 | DELETE | `/api/products/:id` | Admin | Delete product |
@@ -1140,18 +1143,32 @@ Sonner `<Toaster richColors position="top-right" />`. Used for login success/fai
 | POST | `/api/tryon/start` | None | Start try-on via HF Space |
 | GET | `/api/tryon/status/:predictionId` | None | Poll try-on prediction status |
 
-#### Brands & Testimonials
+#### User Coupons
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/brands` | None | List active brands |
-| POST | `/api/brands` | Admin | Create brand |
-| PUT | `/api/brands/:id` | Admin | Update brand |
-| DELETE | `/api/brands/:id` | Admin | Delete brand |
-| GET | `/api/testimonials` | None | List featured testimonials |
-| POST | `/api/testimonials` | Admin | Create testimonial |
-| PUT | `/api/testimonials/:id` | Admin | Update testimonial |
-| DELETE | `/api/testimonials/:id` | Admin | Delete testimonial |
+| GET | `/api/coupons/mine` | Bearer | List the current user's coupons (with isActive/isExpired computed) |
+
+#### Brands
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/api/brands` | None | List active brands (cached 10 min) |
+| GET | `/api/admin/brands` | Admin | List all brands (including inactive) |
+| POST | `/api/admin/brands` | Admin | Create brand |
+| PUT | `/api/admin/brands/:id` | Admin | Update brand |
+| DELETE | `/api/admin/brands/:id` | Admin | Delete brand |
+| POST | `/api/admin/brands/reorder` | Admin | Bulk update display order — body: `{ order: [{ id, displayOrder }] }` |
+
+#### Testimonials
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/api/testimonials` | None | List featured testimonials (cached 5 min) |
+| GET | `/api/admin/testimonials` | Admin | List all testimonials |
+| POST | `/api/admin/testimonials` | Admin | Create testimonial |
+| PUT | `/api/admin/testimonials/:id` | Admin | Update testimonial |
+| DELETE | `/api/admin/testimonials/:id` | Admin | Delete testimonial |
 
 ---
 
@@ -1332,7 +1349,356 @@ All error responses follow: `{ "error": "<message>" }`
 
 **Errors:** 404 — invalid or expired code; 400 — coupon already used
 
-### 9.5 Admin Dashboard
+### 9.5 Cart
+
+#### `GET /cart`
+
+**Auth:** None (JWT or `cart_sid` cookie identifies the session)
+
+**Response 200:**
+```json
+{
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 2,
+      "size": "38",
+      "color": "black",
+      "product": {
+        "id": 1,
+        "name": "Nile Heel",
+        "price": 1200,
+        "salePrice": 950,
+        "images": ["/uploads/abc.jpg"],
+        "stock": 15
+      }
+    }
+  ],
+  "subtotal": 1900,
+  "shipping": 50,
+  "total": 1950
+}
+```
+
+#### `POST /cart`
+
+**Request:**
+```json
+{ "productId": 1, "quantity": 1, "size": "38", "color": "black" }
+```
+
+**Response 200:** Updated cart object (same shape as GET)
+
+#### `PUT /cart/:productId`
+
+**Request:** `{ "quantity": 3, "size": "38", "color": "black" }`
+
+**Response 200:** Updated cart object
+
+#### `DELETE /cart/:productId`
+
+**Response 200:** Updated cart object
+
+#### `DELETE /cart`
+
+**Response 200:** `{ "items": [], "subtotal": 0, "shipping": 0, "total": 0 }`
+
+### 9.6 Wishlist
+
+**Auth:** Bearer required for all wishlist endpoints.
+
+#### `GET /wishlist`
+
+**Response 200:** Array of product objects (same shape as product listing items).
+
+#### `POST /wishlist/:productId`
+
+**Response 200:** `{ "success": true }`
+
+**Notes:** Idempotent — silently ignores if already in wishlist.
+
+#### `DELETE /wishlist/:productId`
+
+**Response 200:** `{ "success": true }`
+
+### 9.7 Reviews
+
+#### `POST /reviews`
+
+**Auth:** Bearer
+
+**Request:**
+```json
+{ "productId": 1, "rating": 5, "comment": "Absolutely gorgeous shoes!" }
+```
+
+**Response 201:**
+```json
+{
+  "id": 99,
+  "productId": 1,
+  "userId": 42,
+  "userName": "Fatma Ahmed",
+  "rating": 5,
+  "comment": "Absolutely gorgeous shoes!",
+  "createdAt": "2026-05-14T10:00:00.000Z"
+}
+```
+
+**Errors:** 400 — invalid input (rating not 1–5, productId missing)
+
+### 9.8 Profile
+
+#### `POST /profile/complete`
+
+**Auth:** Bearer
+
+**Request:**
+```json
+{
+  "name": "Fatma Ahmed",
+  "phone": "+201012345678",
+  "birthDate": "1995-08-15",
+  "governorate": "Cairo",
+  "city": "Heliopolis",
+  "address": "12 Nile St",
+  "instagramHandle": "@fatma_style",
+  "facebookUrl": null,
+  "tiktokHandle": null,
+  "whatsappSocial": null,
+  "xHandle": null
+}
+```
+
+**Response 200:**
+```json
+{ "ok": true, "bonusPoints": 100, "isPriority": true }
+```
+
+**Notes:** `bonusPoints` is 100 on first completion, 0 on subsequent calls. Sends VIP welcome email on first completion.
+
+#### `PUT /profile/socials`
+
+**Auth:** Bearer
+
+**Request:** Any subset of `{ instagramHandle, facebookUrl, tiktokHandle, whatsappSocial, xHandle }`
+
+**Response 200:** `{ "ok": true }`
+
+### 9.9 Promo Validation
+
+#### `POST /promo/validate`
+
+**Request:** `{ "code": "MU20", "cartTotal": 1500 }`
+
+**Response 200:**
+```json
+{
+  "code": "MU20",
+  "discountType": "percentage",
+  "discountValue": 20,
+  "discountAmount": 300
+}
+```
+
+**Errors:** 404 — invalid or expired code; 400 — coupon already used
+
+**Logic:** Checks `discount_codes` table first (global reusable codes), then `coupons` table (single-use user-specific coupons). Returns the first match.
+
+#### `POST /promo/use`
+
+**Auth:** Bearer
+
+**Request:** `{ "code": "BDAY-XXXXX" }`
+
+**Response 200:** `{ "ok": true }`
+
+**Notes:** Only marks user-specific coupons as used. Global discount codes do not have a used state.
+
+### 9.10 User Coupons
+
+#### `GET /coupons/mine`
+
+**Auth:** Bearer
+
+**Response 200:**
+```json
+[
+  {
+    "id": 5,
+    "code": "BDAY-A1B2C3",
+    "discountPercent": 25,
+    "userId": 42,
+    "expiresAt": "2026-08-15T23:59:59.000Z",
+    "used": false,
+    "source": "birthday",
+    "createdAt": "2026-08-14T00:00:00.000Z",
+    "isExpired": false,
+    "isActive": true
+  }
+]
+```
+
+### 9.11 Settings (Public)
+
+#### `GET /settings/contact`
+
+**Response 200:**
+```json
+{
+  "phone": "+201012345678",
+  "email": "hello@mu-store.com",
+  "address": "Cairo, Egypt",
+  "whatsapp": "+201012345678",
+  "whatsappEnabled": true,
+  "workingHours": "Mon–Sat 10am–8pm"
+}
+```
+
+#### `GET /settings/cod-down-payment`
+
+**Response 200:** `{ "amount": 50 }`
+
+#### `GET /settings/social`
+
+**Response 200:**
+```json
+{
+  "instagram": "https://instagram.com/mu_brand",
+  "facebook": null,
+  "tiktok": null,
+  "twitter": null
+}
+```
+
+#### `GET /settings/hero`
+
+**Response 200:**
+```json
+{
+  "title": "Where Every Step Tells Your Story",
+  "titleAr": "حيث كل خطوة تحكي قصتك",
+  "subtitle": "Luxury Egyptian handcrafted shoes & bags",
+  "backgroundImage": "/uploads/hero.jpg",
+  "ctaText": "Shop Now",
+  "ctaLink": "/products"
+}
+```
+
+### 9.12 Contact
+
+#### `POST /contact`
+
+**Request:**
+```json
+{
+  "name": "Fatma Ahmed",
+  "email": "fatma@example.com",
+  "phone": "+201012345678",
+  "subject": "Order inquiry",
+  "message": "I have a question about my order..."
+}
+```
+
+**Response 201:** `{ "ok": true, "trackingRef": "MU-M1A2B3C4" }`
+
+**Notes:** Sends admin notification email + auto-reply confirmation to customer.
+
+**Errors:** 400 — missing required fields; 400 — invalid email format
+
+### 9.13 Outfits
+
+#### `GET /outfits`
+
+**Query params:** `occasion` (filter by occasion slug), `productId` (outfits containing this product), `all=1` (include unpublished — admin only in practice)
+
+**Response 200:** Array of outfit objects.
+
+#### `GET /outfits/:id`
+
+**Response 200:**
+```json
+{
+  "id": 3,
+  "name": "Evening Elegance",
+  "nameAr": "أناقة المساء",
+  "occasion": "evening",
+  "description": "A complete look for formal evenings",
+  "coverImage": "/uploads/outfit3.jpg",
+  "isPublished": true,
+  "createdAt": "2026-01-01T00:00:00.000Z",
+  "items": [
+    {
+      "id": 10,
+      "outfitId": 3,
+      "productId": 1,
+      "role": "shoes",
+      "displayOrder": 0,
+      "product": { "id": 1, "name": "Nile Heel", "price": 1200, "images": [...] }
+    }
+  ]
+}
+```
+
+#### `GET /outfits/saved`
+
+**Auth:** Bearer
+
+**Response 200:** Array of outfit objects (same shape as detail) each including `savedId`.
+
+#### `POST /outfits/:id/save` / `DELETE /outfits/:id/save`
+
+**Auth:** Bearer
+
+**Response 200:** `{ "ok": true }`
+
+### 9.14 Virtual Try-On
+
+#### `POST /tryon/upload`
+
+**Auth:** None
+
+**Request:** `multipart/form-data` with field `userImage` (JPG/PNG/WebP, max 10 MB)
+
+**Response 200:**
+```json
+{ "id": "a1b2c3d4...", "url": "https://domain.replit.app/api/tryon/temp/a1b2c3d4..." }
+```
+
+**Notes:** Image is optionally resized to 768×1024 via `sharp`. Stored in temp dir with 15-minute TTL.
+
+#### `POST /tryon/start`
+
+**Auth:** None
+
+**Request:**
+```json
+{
+  "userImageUrl": "https://domain.replit.app/api/tryon/temp/a1b2c3d4",
+  "productImageUrl": "/uploads/product1.jpg",
+  "productName": "Nile Heel"
+}
+```
+
+**Response 200:** `{ "predictionId": "hf-a1b2c3d4", "provider": "huggingface" }`
+
+#### `GET /tryon/status/:predictionId`
+
+**Auth:** None
+
+**Response 200:**
+```json
+{
+  "status": "completed",
+  "resultImageUrl": "https://yisol-idm-vton.hf.space/gradio_api/file=...",
+  "error": null,
+  "progress": 100
+}
+```
+
+**Status values:** `queued`, `processing`, `completed`, `failed`, `demo`
+
+### 9.15 Admin Dashboard
 
 #### `GET /admin/dashboard`
 
@@ -1357,6 +1723,27 @@ All error responses follow: `{ "error": "<message>" }`
   ]
 }
 ```
+
+### 9.16 Products — Social Proof & Recommendations
+
+#### `GET /products/:id/social-proof`
+
+**Auth:** None
+
+**Response 200:**
+```json
+{ "recentPurchases": 7, "totalSold": 342 }
+```
+
+**Notes:** `recentPurchases` = distinct orders containing this product in the last 24 hours. Both values computed live via JSONB query on the `orders` table.
+
+#### `GET /products/:id/recommendations`
+
+**Auth:** None
+
+**Response 200:** Array of up to 6 product objects.
+
+**Logic:** Finds complementary-category products (bags ↔ shoes) in 0.4×–2.5× the current product's price range, scored by featured flag (+3), rating ≥4.5 (+2), sold count >50 (+1), isNew (+1), isSale (+0.5). Returns top 6.
 
 ---
 
