@@ -50,6 +50,9 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      external: ["@mediapipe/pose", "@tensorflow/tfjs-backend-webgpu"],
+    },
   },
   server: {
     port,
