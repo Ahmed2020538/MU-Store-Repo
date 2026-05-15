@@ -1,4 +1,5 @@
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
+import compression from "compression";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
@@ -14,8 +15,10 @@ import "./lib/passport.js";
 const app: Express = express();
 
 // Trust Replit's reverse proxy so X-Forwarded-* headers are correct
-// (required for passport's `proxy: true` option and accurate req.ip)
 app.set("trust proxy", 1);
+
+// ── Compression ───────────────────────────────────────────────────────────────
+app.use(compression());
 
 app.use(pinoHttp({
   logger,
@@ -34,7 +37,7 @@ const allowedOrigins = (() => {
   const origins: (string | RegExp)[] = [/^http:\/\/localhost(:\d+)?$/];
   for (const d of domains) {
     origins.push(`https://${d}`);
-    origins.push(`https://${d.replace(/^[^.]+\./, "")}`); // bare domain
+    origins.push(`https://${d.replace(/^[^.]+\./, "")}`);
   }
   return origins;
 })();
@@ -48,7 +51,7 @@ app.use(cors({
 
 // ── Rate limiting ─────────────────────────────────────────────────────────────
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
@@ -62,8 +65,6 @@ const orderLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: "Too many order requests." },
 });
-
-
 
 // ── Security headers ──────────────────────────────────────────────────────────
 app.use((_req, res, next) => {
@@ -95,5 +96,18 @@ app.use(passport.session());
 app.use("/api/auth", authLimiter);
 app.use("/api/orders", orderLimiter);
 app.use("/api", router);
+
+// ── Global error handler ──────────────────────────────────────────────────────
+// Must be registered after all routes; catches any error passed to next(err)
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  const status = (err as any)?.status ?? (err as any)?.statusCode ?? 500;
+  const message = err instanceof Error ? err.message : "Internal server error";
+  if (status >= 500) {
+    logger.error({ err }, "Unhandled error");
+  }
+  if (!res.headersSent) {
+    res.status(status).json({ error: message });
+  }
+});
 
 export default app;

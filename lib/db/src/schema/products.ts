@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, real, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, real, boolean, timestamp, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -35,7 +35,13 @@ export const productsTable = pgTable("products", {
   rating: real("rating"),
   reviewCount: integer("review_count").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (t) => [
+  index("idx_products_category_id").on(t.categoryId),
+  index("idx_products_is_hidden").on(t.isHidden),
+  index("idx_products_created_at").on(t.createdAt),
+  index("idx_products_price").on(t.price),
+  index("idx_products_sold_count").on(t.soldCount),
+]);
 
 export const insertCategorySchema = createInsertSchema(categoriesTable).omit({ id: true, createdAt: true });
 export const insertProductSchema = createInsertSchema(productsTable).omit({ id: true, createdAt: true });

@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, real, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, real, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { productsTable } from "./products";
@@ -11,14 +11,19 @@ export const reviewsTable = pgTable("reviews", {
   rating: integer("rating").notNull(),
   comment: text("comment"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (t) => [
+  index("idx_reviews_product_id").on(t.productId),
+  index("idx_reviews_user_id").on(t.userId),
+]);
 
 export const wishlistTable = pgTable("wishlist", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => usersTable.id),
   productId: integer("product_id").notNull().references(() => productsTable.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (t) => [
+  index("idx_wishlist_user_id").on(t.userId),
+]);
 
 export const discountCodesTable = pgTable("discount_codes", {
   id: serial("id").primaryKey(),

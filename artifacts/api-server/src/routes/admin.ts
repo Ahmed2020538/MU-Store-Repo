@@ -16,21 +16,26 @@ router.get("/dashboard", requireAdmin, async (_req, res) => {
   const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
   const [{ ordersToday }] = await db.select({ ordersToday: sql<number>`count(*)` }).from(ordersTable).where(gte(ordersTable.createdAt, todayStart));
 
-  const categories = await db.select({ id: categoriesTable.id, name: categoriesTable.name }).from(categoriesTable);
-  const revenueByCategory = await Promise.all(categories.map(async (cat) => {
-    const products = await db.select({ id: productsTable.id }).from(productsTable).where(eq(productsTable.categoryId, cat.id));
-    const pids = products.map(p => p.id);
+  const [cats, allProducts, allOrders] = await Promise.all([
+    db.select({ id: categoriesTable.id, name: categoriesTable.name }).from(categoriesTable),
+    db.select({ id: productsTable.id, categoryId: productsTable.categoryId }).from(productsTable),
+    db.select({ items: ordersTable.items }).from(ordersTable),
+  ]);
+  const catProductMap = new Map<number, Set<number>>();
+  for (const p of allProducts) {
+    if (!catProductMap.has(p.categoryId)) catProductMap.set(p.categoryId, new Set());
+    catProductMap.get(p.categoryId)!.add(p.id);
+  }
+  const finalRevenueByCategory = cats.map(cat => {
+    const pids = catProductMap.get(cat.id) ?? new Set<number>();
     let revenue = 0;
-    if (pids.length > 0) {
-      const orders = await db.select({ items: ordersTable.items }).from(ordersTable);
-      for (const o of orders) {
-        for (const item of ((o.items as any[]) ?? [])) {
-          if (pids.includes(item.productId)) revenue += (item.price ?? 0) * (item.quantity ?? 1);
-        }
+    for (const o of allOrders) {
+      for (const item of ((o.items as any[]) ?? [])) {
+        if (pids.has(item.productId)) revenue += (item.price ?? 0) * (item.quantity ?? 1);
       }
     }
     return { category: cat.name, revenue };
-  }));
+  });
 
   const recentOrders = await db.select().from(ordersTable).orderBy(desc(ordersTable.createdAt)).limit(10);
   const statuses = ["pending", "confirmed", "packed", "shipped", "delivered", "cancelled"];
@@ -43,7 +48,7 @@ router.get("/dashboard", requireAdmin, async (_req, res) => {
     totalRevenue: Number(totalRevenue), totalOrders: Number(totalOrders),
     totalProducts: Number(totalProducts), totalCustomers: Number(totalCustomers),
     priorityCount: Number(priorityCount), ordersToday: Number(ordersToday),
-    revenueByCategory,
+    revenueByCategory: finalRevenueByCategory,
     recentOrders: recentOrders.map(o => ({
       id: o.id, userId: o.userId, status: o.status,
       paymentMethod: o.paymentMethod ?? null, items: o.items ?? [],

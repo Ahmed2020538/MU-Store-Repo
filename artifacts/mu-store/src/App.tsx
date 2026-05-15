@@ -1,5 +1,5 @@
 import "./i18n";
-import { useState } from "react";
+import { lazy, Suspense } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,28 +17,29 @@ import WhatsAppFAB from "@/components/WhatsAppFAB";
 import HelpWidget from "@/components/HelpWidget";
 import ScrollProgress from "@/components/ScrollProgress";
 import PremiumCursor from "@/components/PremiumCursor";
-import HomePage from "@/pages/HomePage";
-import ProductsPage from "@/pages/ProductsPage";
-import ProductDetailPage from "@/pages/ProductDetailPage";
-import CheckoutPage from "@/pages/CheckoutPage";
-import AccountPage from "@/pages/AccountPage";
-import LoginPage from "@/pages/LoginPage";
-import RegisterPage from "@/pages/RegisterPage";
-import AdminPage from "@/pages/AdminPage";
-import ContactPage from "@/pages/ContactPage";
-import SizeGuidePage from "@/pages/SizeGuidePage";
-import ShippingPolicyPage from "@/pages/ShippingPolicyPage";
-import ReturnsPolicyPage from "@/pages/ReturnsPolicyPage";
-import LookbookPage from "@/pages/LookbookPage";
-import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
-import TermsPage from "@/pages/TermsPage";
-import ProfileCompletePage from "@/pages/ProfileCompletePage";
-import AuthCallbackPage from "@/pages/AuthCallbackPage";
 import CookieBanner from "@/components/CookieBanner";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import SavedLooksPage from "@/pages/SavedLooksPage";
-import FashionFeedPage from "@/pages/FashionFeedPage";
-import NotFound from "@/pages/not-found";
+
+const HomePage = lazy(() => import("@/pages/HomePage"));
+const ProductsPage = lazy(() => import("@/pages/ProductsPage"));
+const ProductDetailPage = lazy(() => import("@/pages/ProductDetailPage"));
+const CheckoutPage = lazy(() => import("@/pages/CheckoutPage"));
+const AccountPage = lazy(() => import("@/pages/AccountPage"));
+const LoginPage = lazy(() => import("@/pages/LoginPage"));
+const RegisterPage = lazy(() => import("@/pages/RegisterPage"));
+const AdminPage = lazy(() => import("@/pages/AdminPage"));
+const ContactPage = lazy(() => import("@/pages/ContactPage"));
+const SizeGuidePage = lazy(() => import("@/pages/SizeGuidePage"));
+const ShippingPolicyPage = lazy(() => import("@/pages/ShippingPolicyPage"));
+const ReturnsPolicyPage = lazy(() => import("@/pages/ReturnsPolicyPage"));
+const LookbookPage = lazy(() => import("@/pages/LookbookPage"));
+const PrivacyPolicyPage = lazy(() => import("@/pages/PrivacyPolicyPage"));
+const TermsPage = lazy(() => import("@/pages/TermsPage"));
+const ProfileCompletePage = lazy(() => import("@/pages/ProfileCompletePage"));
+const AuthCallbackPage = lazy(() => import("@/pages/AuthCallbackPage"));
+const SavedLooksPage = lazy(() => import("@/pages/SavedLooksPage"));
+const FashionFeedPage = lazy(() => import("@/pages/FashionFeedPage"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +57,14 @@ const queryClient = new QueryClient({
   },
 });
 
+function PageFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[40vh]">
+      <div className="w-8 h-8 rounded-full border-2 border-[#C9A96E] border-t-transparent animate-spin" />
+    </div>
+  );
+}
+
 function AppLayout() {
   return (
     <div className="min-h-screen flex flex-col">
@@ -65,24 +74,26 @@ function AppLayout() {
       <CartDrawer />
       <SearchModal />
       <main className="flex-1">
-        <Switch>
-          <Route path="/" component={HomePage} />
-          <Route path="/products" component={ProductsPage} />
-          <Route path="/products/:id" component={ProductDetailPage} />
-          <Route path="/checkout" component={CheckoutPage} />
-          <Route path="/account" component={AccountPage} />
-          <Route path="/contact" component={ContactPage} />
-          <Route path="/size-guide" component={SizeGuidePage} />
-          <Route path="/shipping" component={ShippingPolicyPage} />
-          <Route path="/returns" component={ReturnsPolicyPage} />
-          <Route path="/lookbook" component={LookbookPage} />
-          <Route path="/saved-looks" component={SavedLooksPage} />
-          <Route path="/feed" component={FashionFeedPage} />
-          <Route path="/privacy" component={PrivacyPolicyPage} />
-          <Route path="/terms" component={TermsPage} />
-          <Route path="/admin" component={AdminPage} />
-          <Route component={NotFound} />
-        </Switch>
+        <Suspense fallback={<PageFallback />}>
+          <Switch>
+            <Route path="/" component={HomePage} />
+            <Route path="/products" component={ProductsPage} />
+            <Route path="/products/:id" component={ProductDetailPage} />
+            <Route path="/checkout" component={CheckoutPage} />
+            <Route path="/account" component={AccountPage} />
+            <Route path="/contact" component={ContactPage} />
+            <Route path="/size-guide" component={SizeGuidePage} />
+            <Route path="/shipping" component={ShippingPolicyPage} />
+            <Route path="/returns" component={ReturnsPolicyPage} />
+            <Route path="/lookbook" component={LookbookPage} />
+            <Route path="/saved-looks" component={SavedLooksPage} />
+            <Route path="/feed" component={FashionFeedPage} />
+            <Route path="/privacy" component={PrivacyPolicyPage} />
+            <Route path="/terms" component={TermsPage} />
+            <Route path="/admin" component={AdminPage} />
+            <Route component={NotFound} />
+          </Switch>
+        </Suspense>
       </main>
       <Footer />
       <WhatsAppFAB />
@@ -94,19 +105,19 @@ function AppLayout() {
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/login" component={LoginPage} />
-      <Route path="/register" component={RegisterPage} />
-      <Route path="/auth-callback" component={AuthCallbackPage} />
-      <Route path="/complete-profile" component={ProfileCompletePage} />
-      <Route component={AppLayout} />
-    </Switch>
+    <Suspense fallback={<PageFallback />}>
+      <Switch>
+        <Route path="/login" component={LoginPage} />
+        <Route path="/register" component={RegisterPage} />
+        <Route path="/auth-callback" component={AuthCallbackPage} />
+        <Route path="/complete-profile" component={ProfileCompletePage} />
+        <Route component={AppLayout} />
+      </Switch>
+    </Suspense>
   );
 }
 
 function LanguageGate({ children }: { children: React.ReactNode }) {
-  // English is the default — no blocking gate for new visitors.
-  // Language can be changed any time via the LanguageSwitcher.
   return <>{children}</>;
 }
 
