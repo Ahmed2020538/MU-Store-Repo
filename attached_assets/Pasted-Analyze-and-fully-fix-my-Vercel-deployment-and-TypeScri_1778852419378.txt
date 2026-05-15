@@ -1,0 +1,117 @@
+Analyze and fully fix my Vercel deployment and TypeScript build errors automatically.
+
+Your task is to deeply inspect the entire project and resolve ALL deployment issues preventing production build success.
+
+Current problems include:
+- TypeScript build failures
+- TS2349 errors
+- TS7006 implicit any errors
+- Express import/setup issues
+- Vercel deployment failing
+- Incorrect app initialization
+- Missing Request/Response types
+- Strict TypeScript configuration conflicts
+
+You must:
+
+1. FULLY ANALYZE THE CODEBASE
+- Scan all frontend and backend files
+- Detect all TypeScript issues
+- Detect invalid imports
+- Detect Express initialization problems
+- Detect route typing problems
+- Detect build configuration issues
+- Detect incompatible dependencies
+- Detect Vercel deployment conflicts
+
+2. FIX EXPRESS SETUP
+Replace incorrect imports such as:
+- import * as express from "express"
+- const express = require("express")
+
+With the correct modern TypeScript Express setup:
+- import express, { Request, Response } from "express"
+
+Ensure app initialization uses:
+- const app = express()
+
+NOT:
+- const app = express
+
+3. FIX ALL ROUTE TYPES
+For every route:
+- Add proper Request and Response typing
+- Remove implicit any errors
+- Fix middleware typing
+- Fix async handler typing
+
+Example:
+app.get("/", (req: Request, res: Response) => {})
+
+Apply this everywhere automatically.
+
+4. FIX TYPESCRIPT CONFIGURATION
+Inspect and repair:
+- tsconfig.json
+- module settings
+- target settings
+- strict mode issues
+- noImplicitAny issues
+- esModuleInterop
+- moduleResolution
+- outDir/rootDir
+
+Ensure compatibility with:
+- Vercel
+- Node.js
+- Express
+- TypeScript 5+
+
+5. FIX DEPENDENCIES
+Ensure required packages exist:
+- express
+- typescript
+- @types/express
+- @types/node
+
+Install missing packages automatically.
+
+6. FIX BUILD PROCESS
+Ensure:
+- npm run build works
+- Production build succeeds
+- No TypeScript errors remain
+- No deployment blockers remain
+- Vercel deployment succeeds fully
+
+7. VERIFY VERCEL COMPATIBILITY
+Inspect and fix:
+- vercel.json
+- build command
+- output directory
+- environment variables
+- serverless compatibility
+- Node runtime compatibility
+
+8. SECURITY & ENVIRONMENT VARIABLES
+Ensure:
+- JWT_SECRET is loaded securely
+- Secrets use environment variables properly
+- No secrets are stored in .replit
+- No secrets are committed to GitHub
+
+9. FINAL OUTPUT
+After fixing:
+- Show every file changed
+- Explain every fix
+- Show before/after code
+- Confirm build success
+- Confirm deployment readiness
+
+10. IMPORTANT
+- Automatically edit files directly
+- Do NOT ask for permission repeatedly
+- Do NOT stop at first error
+- Continue until ALL deployment/build issues are fixed
+- Optimize the project for production readiness
+- Ensure the app deploys successfully on Vercel without errors
