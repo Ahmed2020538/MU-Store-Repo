@@ -1,0 +1,140 @@
+```text
+Deeply inspect my entire project and automatically fix ALL Vercel deployment and TypeScript build issues until the application deploys successfully in production.
+
+The deployment is currently failing because of:
+- TypeScript build errors
+- TS2349 errors
+- TS7006 implicit any errors
+- Incorrect Express imports
+- Incorrect app initialization
+- Missing Request and Response typings
+- TypeScript strict mode conflicts
+- Vercel build configuration issues
+
+Your mission is to fully repair the project for production deployment without breaking existing functionality.
+
+Tasks:
+
+1. FULL PROJECT ANALYSIS
+- Scan the complete frontend and backend codebase
+- Detect all TypeScript issues
+- Detect invalid imports
+- Detect Express configuration problems
+- Detect route typing problems
+- Detect dependency conflicts
+- Detect Vercel deployment issues
+- Detect broken build scripts
+- Detect runtime compatibility issues
+
+2. FIX EXPRESS + TYPESCRIPT SETUP
+Find and repair incorrect Express usage including:
+- import * as express from "express"
+- const express = require("express")
+- const app = express
+
+Replace them with the proper modern TypeScript setup:
+import express, { Request, Response, NextFunction } from "express";
+
+Ensure:
+const app = express();
+
+is used correctly everywhere.
+
+3. FIX ALL ROUTES AND MIDDLEWARE TYPES
+For every API route and middleware:
+- Add proper Request and Response types
+- Remove implicit any errors
+- Fix async handler typing
+- Fix middleware typing
+- Fix Express handler signatures
+- Ensure all controllers are strongly typed
+
+Example:
+app.get("/", (req: Request, res: Response) => {
+  res.send("OK");
+});
+
+Apply fixes across the entire project automatically.
+
+4. FIX TYPESCRIPT CONFIGURATION
+Inspect and repair tsconfig.json completely.
+
+Ensure proper settings for:
+- module
+- target
+- moduleResolution
+- esModuleInterop
+- resolveJsonModule
+- strict mode
+- noImplicitAny
+- skipLibCheck
+- outDir
+- rootDir
+
+Make the project fully compatible with:
+- Vercel
+- Node.js
+- Express
+- TypeScript 5+
+
+5. FIX DEPENDENCIES
+Verify and install missing packages automatically:
+- express
+- typescript
+- @types/express
+- @types/node
+- ts-node
+- nodemon
+
+Update incompatible packages if necessary.
+
+6. FIX BUILD SYSTEM
+Ensure:
+- npm run build works successfully
+- No TypeScript errors remain
+- No compile errors remain
+- Production build succeeds
+- Project runs correctly after build
+- Deployment succeeds on Vercel
+
+7. VERIFY VERCEL DEPLOYMENT
+Inspect and repair:
+- vercel.json
+- build commands
+- output configuration
+- environment variable handling
+- serverless compatibility
+- Node runtime version
+- API/server configuration
+
+Ensure the project is fully optimized for Vercel deployment.
+
+8. SECURITY + ENVIRONMENT VARIABLES
+Ensure:
+- JWT_SECRET is loaded securely from environment variables
+- No secrets are stored in .replit
+- No secrets are committed to GitHub
+- Environment variables work correctly in Vercel
+- dotenv setup is correct
+
+9. AUTOMATIC FILE EDITING
+Directly modify and repair files automatically.
+Do not stop at the first issue.
+Continue debugging until ALL errors are resolved.
+
+10. FINAL VERIFICATION
+After fixing everything:
+- Run a full production build
+- Verify deployment readiness
+- Show all modified files
+- Explain all fixes applied
+- Confirm that the project is production-ready
+- Confirm that Vercel deployment should succeed without errors
+
+IMPORTANT:
+- Preserve existing functionality and UI
+- Do not remove features unless absolutely necessary
+- Use production-grade solutions only
+- Optimize code quality where possible
+- Fully finish debugging before stopping
+```
